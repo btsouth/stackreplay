@@ -49,7 +49,10 @@ test("an imported workload survives a reload", async ({ page }) => {
   await expect(page.getByTestId("stored-imports")).toBeVisible();
   await expect(page.getByTestId("no-stored-imports")).toHaveCount(0);
 
-  await page.getByRole("link", { name: "Open my recap" }).click();
+  await page
+    .getByTestId("stored-imports")
+    .getByRole("link", { name: /^Open my recap/u })
+    .click();
   await expect(page.getByTestId("recap-ready")).toBeVisible({ timeout: 60_000 });
 });
 
@@ -175,7 +178,10 @@ test("a corrupted payload is rejected when opened and then removed", async ({ pa
   // Listing reads metadata and payload keys only; the full payload is checked
   // when opened, without cloning every saved workload merely to list them.
   await expect(page.getByTestId("stored-imports")).toBeVisible();
-  await page.getByRole("link", { name: "Open my recap" }).click();
+  await page
+    .getByTestId("stored-imports")
+    .getByRole("link", { name: /^Open my recap/u })
+    .click();
   await expect(page.getByRole("alert")).toContainText(/unavailable|no longer stored/);
   await page.goto("/app/scan");
   await expect(page.getByTestId("no-stored-imports")).toBeVisible();

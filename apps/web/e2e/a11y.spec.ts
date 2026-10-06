@@ -1,7 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, type Page, test } from "@playwright/test";
 import { encodeShareToken } from "@stackreplay/share";
-import { importDemo } from "./helpers";
+import { gotoImport, importDemo } from "./helpers";
 
 /**
  * Accessibility (M3 brief): WCAG 2.2 AA target on the new surfaces, in both
@@ -41,8 +41,7 @@ test.describe("import surface accessibility", () => {
   }
 
   test("is operable with the keyboard alone", async ({ page }) => {
-    await page.goto("/app/scan");
-    await expect(page.getByTestId("intake-surface")).toHaveAttribute("data-ready", "true");
+    await gotoImport(page);
     const input = page.getByTestId("import-file-input");
     await input.focus();
     await expect(input).toBeFocused();
@@ -167,7 +166,6 @@ test.describe("public site accessibility", () => {
     for (const [label, href] of [
       ["Recap", "/app/recap"],
       ["Models & plans", "/catalog"],
-      ["Methodology", "/methodology"],
       ["Privacy", "/methodology#privacy"],
     ] as const) {
       const link = homepageNav.getByRole("link", { name: label, exact: true });

@@ -18,7 +18,9 @@ test("missing pages have one public shell and conditional saved-workload copy", 
     await expect(page.locator("main")).toHaveCount(1);
     await expect(page.locator("main")).toContainText("This address may have moved");
     await expect(page.locator("main")).not.toContainText("Your saved history");
-    await expect(page.getByRole("link", { name: "Open my recap", exact: true })).toHaveCount(0);
+    await expect(
+      page.locator("main").getByRole("link", { name: "Open my recap", exact: true }),
+    ).toHaveCount(0);
     await expect(page.getByRole("banner")).toHaveCount(1);
     await expect(page.getByRole("contentinfo")).toHaveCount(1);
   }
@@ -28,7 +30,9 @@ test("missing pages offer the saved recap when local history exists", async ({ p
   await importDemo(page, "moderate");
   await page.goto("/this-page-does-not-exist");
   await expect(page.locator("main")).toContainText("Your saved history is still in this browser.");
-  await expect(page.getByRole("link", { name: "Open my recap", exact: true })).toBeVisible();
+  await expect(
+    page.locator("main").getByRole("link", { name: "Open my recap", exact: true }),
+  ).toBeVisible();
 });
 
 test("a direct public 404 restores the saved theme", async ({ page }) => {

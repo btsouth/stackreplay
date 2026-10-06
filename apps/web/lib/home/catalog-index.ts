@@ -1,7 +1,7 @@
 import { bundledPublicApiProviders } from "@stackreplay/catalog/bundled";
 import { type PublicCatalog, planDisplayName } from "../public-catalog";
-import { PLAN_FAMILIES } from "./plan-families";
 import type { HomeCatalogIndex } from "./personal";
+import { PLAN_FAMILIES } from "./plan-families";
 
 /**
  * The catalog facts the homepage's personal islands need, as plain data. The

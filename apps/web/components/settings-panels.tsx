@@ -129,71 +129,81 @@ export function SavedWorkloads() {
           </Link>
         </div>
       ) : (
-        records?.map((record) => (
-          <div
-            key={record.id}
-            className="saved-scan-row"
-            data-testid={`settings-scan-${record.id}`}
-          >
-            <h3>{record.label}</h3>
-            <p className="saved-scan-meta">
-              {record.eventCount.toLocaleString()} requests ·{" "}
-              {record.savedLocally === false
-                ? "Temporary, until reload"
-                : `Saved ${new Date(record.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`}{" "}
-              ·{" "}
-              {sizes[record.id] !== undefined
-                ? `${formatBytes(sizes[record.id] ?? 0)} export`
-                : "Calculating export size…"}
-            </p>
-            <div className="saved-scan-actions">
-              <Link
-                href={`/app/recap?import=${encodeURIComponent(record.id)}`}
-                className={buttonVariants({ variant: "secondary" })}
-              >
-                Open my recap
-              </Link>
-              <Button
-                variant="outline"
-                disabled={busy === record.id}
-                onClick={() => void download(record)}
-              >
-                {busy === record.id ? "Exporting…" : "Export scan"}
-              </Button>
-              <Button
-                variant="ghost"
-                className="text-negative"
-                disabled={deleting !== undefined}
-                onClick={() => setPending(record.id)}
-              >
-                Delete scan
-              </Button>
-            </div>
-            {pending === record.id && (
-              <div className="mt-4 rounded-xl border border-negative/40 p-4" role="alert">
-                <p className="mb-3 text-sm">
-                  Delete this scan from this browser? Your history files and other scans will stay.
-                </p>
-                <div className="saved-scan-actions">
-                  <Button
-                    variant="destructive"
-                    disabled={deleting !== undefined}
-                    onClick={() => void remove(record)}
-                  >
-                    {deleting === record.id ? "Deleting…" : "Yes, delete this scan"}
-                  </Button>
-                  <Button
-                    variant="secondary"
-                    disabled={deleting !== undefined}
-                    onClick={() => setPending(undefined)}
-                  >
-                    Keep scan
-                  </Button>
-                </div>
+        <>
+          {records?.map((record) => (
+            <div
+              key={record.id}
+              className="saved-scan-row"
+              data-testid={`settings-scan-${record.id}`}
+            >
+              <h3>{record.label}</h3>
+              <p className="saved-scan-meta">
+                {record.eventCount.toLocaleString()} requests ·{" "}
+                {record.savedLocally === false
+                  ? "Temporary, until reload"
+                  : `Saved ${new Date(record.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`}{" "}
+                ·{" "}
+                {sizes[record.id] !== undefined
+                  ? `${formatBytes(sizes[record.id] ?? 0)} export`
+                  : "Calculating export size…"}
+              </p>
+              <div className="saved-scan-actions">
+                <Link
+                  href={`/app/recap?import=${encodeURIComponent(record.id)}`}
+                  className={buttonVariants({ variant: "secondary" })}
+                >
+                  Open my recap
+                </Link>
+                <Button
+                  variant="outline"
+                  disabled={busy === record.id}
+                  onClick={() => void download(record)}
+                >
+                  {busy === record.id ? "Exporting…" : "Export scan"}
+                </Button>
+                <Button
+                  variant="ghost"
+                  className="text-negative"
+                  disabled={deleting !== undefined}
+                  onClick={() => setPending(record.id)}
+                >
+                  Delete scan
+                </Button>
               </div>
-            )}
-          </div>
-        ))
+              {pending === record.id && (
+                <div className="mt-4 rounded-xl border border-negative/40 p-4" role="alert">
+                  <p className="mb-3 text-sm">
+                    Delete this scan from this browser? Your history files and other scans will
+                    stay.
+                  </p>
+                  <div className="saved-scan-actions">
+                    <Button
+                      variant="destructive"
+                      disabled={deleting !== undefined}
+                      onClick={() => void remove(record)}
+                    >
+                      {deleting === record.id ? "Deleting…" : "Yes, delete this scan"}
+                    </Button>
+                    <Button
+                      variant="secondary"
+                      disabled={deleting !== undefined}
+                      onClick={() => setPending(undefined)}
+                    >
+                      Keep scan
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
+          ))}
+          <Link
+            href="/app/scan"
+            className="saved-scan-scan-again mt-2 inline-flex min-h-11 items-center text-sm text-accent"
+            data-testid="settings-scan-again"
+          >
+            Scan again →
+          </Link>
+        </>
       )}
     </div>
   );

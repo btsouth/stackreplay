@@ -261,13 +261,17 @@ export function RecapSurface({ initialImportId }: { initialImportId?: string | u
               </div>
             </section>
             <footer className="recap-footer">
-              Calculated on this device. Your logs stay here.{" "}
-              <Link
-                href={`/app/stats?import=${encodeURIComponent(id ?? "")}`}
-                onNavigate={() => window.scrollTo(0, 0)}
-              >
-                Explore your stats →
-              </Link>
+              <span>Calculated on this device. Your logs stay here.</span>
+              <span>
+                <Link href="/app/scan">Scan again</Link>
+                {" · "}
+                <Link
+                  href={`/app/stats?import=${encodeURIComponent(id ?? "")}`}
+                  onNavigate={() => window.scrollTo(0, 0)}
+                >
+                  Explore your stats →
+                </Link>
+              </span>
             </footer>
           </div>
         ) : (

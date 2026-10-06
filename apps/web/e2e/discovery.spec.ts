@@ -232,7 +232,8 @@ test("an OpenCode data folder can be imported, dropped or chosen", async ({ page
   await page.getByTestId("select-codex").uncheck();
   await page.getByTestId("build-workload").click();
   await waitForWorkload(page);
-  await expect(page.getByTestId("discovery-group-opencode")).toContainText("OpenCode activity");
+  await page.getByRole("tab", { name: "Tools" }).click();
+  await expect(page.getByRole("table", { name: "Tools in this period" })).toContainText("OpenCode");
 });
 
 test("a dropped bare projects folder asks for access and is never listed", async ({

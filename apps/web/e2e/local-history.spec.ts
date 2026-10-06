@@ -152,16 +152,15 @@ test("a partial scan says so beside the totals and offers a rescan", async ({ pa
   const notice = page.getByTestId("partial-scan");
   await expect(notice).toBeVisible({ timeout: 30_000 });
   await expect(notice).toContainText("Partial scan");
-  await expect(notice).toContainText(
-    "source file was incomplete; missing usage is outside these totals",
-  );
+  await expect(notice).toContainText("could not be read to the end");
+  await expect(notice).toContainText("not in these totals");
   await expect(notice).not.toContainText(/malformed|changed/iu);
   await expect(page.getByTestId("stats-rescan")).toHaveAttribute("href", "/app/scan");
   const id = new URL(href).searchParams.get("import");
   await page.goto(`/app/recap?import=${id}`);
-  await expect(page.getByTestId("recap-ready").getByTestId("partial-scan")).toBeVisible({
-    timeout: 60_000,
-  });
+  const briefing = page.getByTestId("recap-ready").getByTestId("partial-scan");
+  await expect(briefing).toBeVisible({ timeout: 60_000 });
+  await expect(briefing).toContainText("missing usage is outside these totals");
   await page.goto("/app/scan");
   await page.getByTestId("import-details").first().locator(":scope > summary").click();
   await expect(page.getByTestId("intake-file-review")).toContainText("unreadable");

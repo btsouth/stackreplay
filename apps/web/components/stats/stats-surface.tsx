@@ -346,7 +346,12 @@ export function StatsSurface({ initialImportId }: { initialImportId?: string | u
         </div>
       </section>
       <CalculationNote recap={recap} />
-      <footer className="recap-footer">Calculated on this device. Your logs stay here.</footer>
+      <footer className="recap-footer">
+        <span>Calculated on this device. Your logs stay here.</span>
+        <a href="/app/scan" data-testid="stats-scan-again">
+          Scan again →
+        </a>
+      </footer>
     </div>
   );
 }
