@@ -88,7 +88,7 @@ describe("period insight facts", () => {
       { date: "2026-09-28", families: { openai: 9000 } },
     ];
     expect(find(r, "week:peak")).toMatchObject({
-      headline: "Your busiest full week (Sep 21) ran 3.1x your usual week",
+      headline: "Your busiest full week (Sep 21) ran 3.1× your usual week",
       detail: "USUAL = MEDIAN OF 3 ACTIVE WEEKS",
     });
     r.weeks = r.weeks.slice(0, 2);
@@ -127,7 +127,7 @@ describe("period insight facts", () => {
     }));
     // Counting the three empty weeks would halve the median and report 12.4x.
     expect(find(r, "week:peak")).toMatchObject({
-      headline: "Your busiest full week (Sep 21) ran 3.1x your usual week",
+      headline: "Your busiest full week (Sep 21) ran 3.1× your usual week",
       detail: "USUAL = MEDIAN OF 3 ACTIVE WEEKS",
     });
   });
@@ -209,7 +209,9 @@ describe("period insight facts", () => {
     expect(find(r, "value:cache")).toBeUndefined();
     r.deep!.cacheSavings = "1234.99";
     r.deep!.cacheSavingsRecords = 1;
-    expect(find(r, "value:cache")?.headline).toBe("Cache reads saved $1,234 at list prices");
+    expect(find(r, "value:cache")?.headline).toBe(
+      "Cached context would have cost $1,234 more at full input price",
+    );
     r.deep!.cacheSavings = "1234.99999999999999999999";
     expect(find(r, "value:cache")?.figure).toBe("$1,234");
     r.deep!.cacheSavings = "0";
@@ -221,7 +223,7 @@ describe("period insight facts", () => {
     expect(
       recapInsightCandidates(r, undefined, paid).find((i) => i.id === "value:paid"),
     ).toMatchObject({
-      headline: "Your API list-price value was 10.1x your plan cost",
+      headline: "Your API list-price value was 10.1× your plan cost",
       figure: "10.1×",
     });
     r.usd = "986.8421052631578947368";

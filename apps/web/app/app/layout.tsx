@@ -10,7 +10,9 @@ export default function AppLayout({ children }: { children: ReactNode }) {
       </main>
       <footer>
         <div className="wrap">
-          <span>CALCULATED ON THIS DEVICE. YOUR LOGS STAY HERE.</span>
+          <span>
+            YOUR LOGS NEVER LEAVE THIS BROWSER. SHARING UPLOADS ONLY THE NUMBERS ON YOUR CARD.
+          </span>
           <a href="/methodology#privacy">PRIVACY</a>
         </div>
       </footer>

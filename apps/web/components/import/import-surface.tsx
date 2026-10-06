@@ -61,6 +61,9 @@ import type { ImportRecord, SafeError, ScanProgress } from "@/lib/worker-protoco
 
 type Phase = "idle" | "reading" | "validating" | "preparing" | "finishing" | "ready";
 
+/** Set while a scan runs, so a reload can report that it was interrupted. */
+const ACTIVE_SCAN_FLAG = "stackreplay.scan-active";
+
 /** Each source card uses lazy discovery, with an explicit file-list fallback for older browsers. */
 const SOURCE_CHOICES: { kind: string; name: string; action: string; path: string }[] = [
   {
@@ -148,6 +151,8 @@ export function ImportSurface({
   const [largeBytes, setLargeBytes] = useState<number | undefined>(undefined);
   /** The last scan was cancelled; saved scans were left alone. */
   const [canceled, setCanceled] = useState(false);
+  /** A previous visit started a scan that a reload or close abandoned. */
+  const [interrupted, setInterrupted] = useState(false);
   const dropRef = useRef<HTMLDivElement>(null);
   const progressAnchorRef = useRef<HTMLDivElement>(null);
   const feedbackAnchorRef = useRef<HTMLDivElement>(null);
@@ -174,6 +179,27 @@ export function ImportSurface({
     setReady(true);
     setPickerCapable(supportsDirectoryPicker());
   }, []);
+
+  // A reload or close during a scan throws the in-memory progress away. Warn
+  // first, and on return say plainly that the previous scan was interrupted.
+  useEffect(() => {
+    try {
+      if (sessionStorage.getItem(ACTIVE_SCAN_FLAG) === "1") {
+        sessionStorage.removeItem(ACTIVE_SCAN_FLAG);
+        setInterrupted(true);
+      }
+    } catch {}
+  }, []);
+
+  useEffect(() => {
+    if (!busy) return;
+    const warn = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      event.returnValue = "";
+    };
+    window.addEventListener("beforeunload", warn);
+    return () => window.removeEventListener("beforeunload", warn);
+  }, [busy]);
 
   const refreshImports = useCallback(async () => {
     try {
@@ -205,11 +231,15 @@ export function ImportSurface({
       const request = ++generation.current;
       setBusy(true);
       setCanceled(false);
+      setInterrupted(false);
       setError(undefined);
       setRecord(undefined);
       setPhase("reading");
       setDetail(undefined);
       setScan(undefined);
+      try {
+        sessionStorage.setItem(ACTIVE_SCAN_FLAG, "1");
+      } catch {}
       // A superseded request must not clear the interface state a newer request
       // owns, so the busy flag is only released by the request that still owns it.
       let superseded = false;
@@ -226,7 +256,17 @@ export function ImportSurface({
         setRecord(imported);
         setNotice(undefined);
         setPhase("ready");
-        void refreshImports();
+        // A rescan of the same source replaces its earlier saved scan; scans of
+        // other sources stay. Labels carry the source, dates carry the time.
+        if (imported.savedLocally !== false) {
+          try {
+            const prior = (await client.listImports()).filter(
+              (row) => row.id !== imported.id && row.label === imported.label,
+            );
+            for (const row of prior) await client.deleteImport(row.id).catch(() => undefined);
+          } catch {}
+        }
+        await refreshImports();
         return imported;
       } catch (failure) {
         if (request !== generation.current || failure instanceof SupersededError) {
@@ -236,10 +276,15 @@ export function ImportSurface({
         setError(describeWorkerFailure(failure));
         setPhase("idle");
       } finally {
-        if (!superseded && request === generation.current) setBusy(false);
+        if (!superseded && request === generation.current) {
+          setBusy(false);
+          try {
+            sessionStorage.removeItem(ACTIVE_SCAN_FLAG);
+          } catch {}
+        }
       }
     },
-    [refreshImports],
+    [client, refreshImports],
   );
 
   useEffect(
@@ -404,6 +449,9 @@ export function ImportSurface({
     setRecord(undefined);
     setLargeBytes(undefined);
     setCanceled(true);
+    try {
+      sessionStorage.removeItem(ACTIVE_SCAN_FLAG);
+    } catch {}
   }, [client]);
 
   /** Per-tool choices discover the same known paths as the drop path. */
@@ -932,6 +980,19 @@ export function ImportSurface({
 
       {!scanShown ? (
         <div className="flex min-w-0 flex-col gap-5">
+          {interrupted ? (
+            <p
+              role="status"
+              data-testid="scan-interrupted"
+              className="border-l-2 border-warning py-1 pl-3 text-sm text-muted-foreground"
+            >
+              <span className="font-mono text-[11px] tracking-[0.12em] text-foreground uppercase">
+                Scan interrupted
+              </span>{" "}
+              The last scan was interrupted by a reload or a closed tab. Your saved scans are
+              unchanged. Choose your files again to make a new recap.
+            </p>
+          ) : null}
           {showIntro ? (
             <section
               className={`border-y border-border-strong py-4 ${imports.length > 0 ? "order-2" : ""}`}
@@ -960,8 +1021,9 @@ export function ImportSurface({
                   Network boundary
                 </p>
                 <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-                  Site assets and public catalog facts only. A share link is created only when you
-                  choose to share a result.
+                  Site assets and page analytics only. Connecting GitHub sends only your username to
+                  a public lookup. A share link is created only when you choose to share a result,
+                  and it uploads only the numbers on your card.
                 </p>
               </div>
             </section>
@@ -1115,8 +1177,8 @@ export function ImportSurface({
             )}
             {importsState === "loaded" && imports.length > 1 ? (
               <p className="text-xs leading-relaxed text-muted-foreground">
-                Each scan is kept separately. Similar counts do not prove identical calls, so scans
-                are never merged by appearance.
+                Rescanning the same source replaces its earlier saved scan. Scans of different
+                sources are kept separately; similar counts are never merged by appearance.
               </p>
             ) : null}
           </section>

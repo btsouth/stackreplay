@@ -28,7 +28,7 @@ for (const temporary of [false, true])
       "Value",
       "Rhythm",
       "Your stack",
-      "Debuts",
+      "New this period",
       "Share",
     ])
       await expect(page.getByRole("heading", { name: title, exact: true })).toBeVisible();
@@ -213,6 +213,23 @@ test("all card formats measure non-overlapping text with every stat selected", a
     }),
   );
   expect(faults).toEqual([]);
+});
+
+test("a failed GitHub lookup shows the error and never looks connected", async ({ page }) => {
+  await page.clock.install({ time: new Date("2026-10-04T12:00:00Z") });
+  await page.route("**/api/github/contributions**", (route) =>
+    route.fulfill({ status: 404, json: { error: "not found" } }),
+  );
+  await gotoImport(page);
+  await page.getByTestId("import-file-input").setInputFiles(fixture);
+  await expect(page.getByTestId("recap-ready")).toBeVisible({ timeout: 60000 });
+  await page.getByRole("textbox", { name: "GitHub username" }).fill("stackreplay-missing");
+  await page.getByRole("button", { name: "Connect", exact: true }).click();
+  await expect(page.locator("form.connect").getByRole("alert")).toContainText(
+    "No GitHub user named stackreplay-missing",
+  );
+  await expect(page.getByRole("button", { name: "Disconnect", exact: true })).toHaveCount(0);
+  await expect(page.getByTestId("recap-ready")).not.toContainText("STACKREPLAY-MISSING");
 });
 
 test("insights follow the period and GitHub connection", async ({ page }) => {

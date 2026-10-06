@@ -36,7 +36,7 @@ export function SiteShell({
       <div className="terminal terminal-public public-chrome">
         <footer>
           <div className="wrap">
-            <span>YOUR LOGS STAY ON YOUR DEVICE.</span>
+            <span>YOUR LOGS NEVER LEAVE THIS BROWSER.</span>
             <Link href="/methodology#privacy">Privacy</Link>
           </div>
         </footer>

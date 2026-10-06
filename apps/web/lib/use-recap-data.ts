@@ -17,6 +17,7 @@ export function useRecapData(initialImportId?: string | undefined) {
   const [recap, setRecap] = useState<Recap>();
   const [error, setError] = useState<string>();
   const [historyError, setHistoryError] = useState<string>();
+  const [indexStatus, setIndexStatus] = useState<"idle" | "reading" | "updating">("idle");
   const [revision, setRevision] = useState(0);
   const hydratedAt = useRef<number | undefined>(undefined);
   const resolvedAt = useRef<number | undefined>(undefined);
@@ -109,12 +110,22 @@ export function useRecapData(initialImportId?: string | undefined) {
     if (!id) return;
     let active = true;
     setError(undefined);
-    loadCachedRecap(id, period, now, timeZone, (previous) => {
-      if (active) {
-        resolvedAt.current = performance.now();
-        setRecap(previous);
-      }
-    })
+    setIndexStatus("idle");
+    loadCachedRecap(
+      id,
+      period,
+      now,
+      timeZone,
+      (previous) => {
+        if (active) {
+          resolvedAt.current = performance.now();
+          setRecap(previous);
+        }
+      },
+      (status) => {
+        if (active) setIndexStatus(status);
+      },
+    )
       .then((value) => {
         if (active) {
           resolvedAt.current = performance.now();
@@ -122,12 +133,14 @@ export function useRecapData(initialImportId?: string | undefined) {
         }
       })
       .catch((error) => {
-        if (active)
+        if (active) {
+          setIndexStatus("idle");
           setError(
             error instanceof Error
               ? error.message
               : "Could not read this history. Reload to try again.",
           );
+        }
       });
     return () => {
       active = false;
@@ -159,6 +172,7 @@ export function useRecapData(initialImportId?: string | undefined) {
     selectHistory,
     recap,
     error: error ?? (recap ? undefined : historyError),
+    indexStatus,
     now,
     timeZone,
   };

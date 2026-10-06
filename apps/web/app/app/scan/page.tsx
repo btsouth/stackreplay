@@ -15,7 +15,9 @@ export default function ScanPage() {
           <b>›</b> LOCAL SCAN
         </div>
         <h1>Scan your history</h1>
-        <p>Drag your home folder below, or choose a tool folder. Your logs stay on this device.</p>
+        <p>
+          Drag your home folder below, or choose a tool folder. Your logs never leave this browser.
+        </p>
       </div>
       <ImportSurface initialImports={[]} />
     </div>

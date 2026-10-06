@@ -47,8 +47,8 @@ const catalogSections = [
   {
     heading: "How AI updates are selected",
     body: [
-      "The homepage and AI updates page read the same versioned feed of model releases, benchmark results, API price changes and subscription changes. Each accepted event has a first-party source, an occurrence date and a verification date. Its linked model, plan and benchmark identities are checked against the catalog and evidence.",
-      "The homepage briefing selects recent recorded events by their date and significance. It is a selection of recorded changes, not a complete news feed. Prices and benchmark figures beside an update come from the accepted catalog and benchmark records, so they use the same facts as the detail pages.",
+      "The AI updates page reads the versioned feed of model releases, benchmark results, API price changes and subscription changes. Each accepted event has a first-party source, an occurrence date and a verification date. Its linked model, plan and benchmark identities are checked against the catalog and evidence.",
+      "The updates feed selects recent recorded events by their date and significance. It is a selection of recorded changes, not a complete news feed. Prices and benchmark figures beside an update come from the accepted catalog and benchmark records, so they use the same facts as the detail pages.",
     ],
   },
 ] as const;
@@ -65,7 +65,7 @@ const sections = [
   {
     heading: "One definition per figure",
     body: [
-      "A call is one recorded model request, which the scan records as one event. A day is a calendar day in your browser's timezone, in the recap and in Stats alike.",
+      "A request is one recorded model call, which the scan records as one event. A day is a calendar day in your browser's timezone, in the Overview and in every period alike. A few sources log a session's requests as one summary row; those rows are named and left out of the request count.",
       "Output is the output bucket only. Reasoning tokens are a separate bucket and are never added into output. Models are the catalog models a history resolved to; identifiers StackReplay could not resolve are counted separately as unresolved IDs, never as models.",
     ],
   },
@@ -90,9 +90,9 @@ const sections = [
     ],
   },
   {
-    heading: "What you pay",
+    heading: "Your plan price",
     body: [
-      "This is optional. If you enter the subscriptions you pay for in Settings, the recap and Stats divide the whole-dollar API-price figure by those plans' published monthly prices, prorated to the period (the days in it over 30.4 days a month), and show the result as how many times what you paid.",
+      "This is optional. If you enter the plans you pay for in Settings, the overview divides the whole-dollar API-price figure by those plans' published monthly prices, prorated to the period (the days in it over 30.4 days a month), and shows the result as how many times your plan price.",
       "It uses published list prices, not your invoices, and it leaves out taxes, discounts, plan changes and separate API charges. Nothing about plans appears until you enter one, and what you enter stays in this browser.",
     ],
   },
@@ -105,7 +105,7 @@ const sections = [
   {
     heading: "What StackReplay does not do",
     body: [
-      "Raw history files do not leave the browser during a scan. A share link contains only the aggregate numbers shown on its card, and creating one is an explicit action. Raw history is never uploaded.",
+      "Your logs never leave this browser. A scan reads the files you choose on this device. A share link contains only the aggregate numbers shown on its card and is created only when you choose to share. Connecting GitHub sends only your username for a public contribution lookup. Raw history is never uploaded.",
       "The hosted site uses Cloudflare Web Analytics for page visits and performance metrics. It records page paths, including public share URLs, but removes query strings and fragments. Request referrers contain only the site origin. Imported history files, prompts, responses and local scan records are not sent to analytics.",
       "It does not claim to know unpublished provider behaviour, and it does not turn an unknown into a number. It does not advise which plan to buy: plan limits are not published in a form that would make that honest.",
     ],

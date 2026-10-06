@@ -237,7 +237,9 @@ test("an OpenCode data folder can be imported, dropped or chosen", async ({ page
   await page.getByTestId("build-workload").click();
   await waitForWorkload(page);
   await expect(
-    page.locator("#section-06 .lcol").filter({ has: page.getByText("Tools", { exact: true }) }),
+    page
+      .locator("#section-06 .lcol")
+      .filter({ has: page.getByText("Apps & agents", { exact: true }) }),
   ).toContainText("OpenCode");
 });
 
