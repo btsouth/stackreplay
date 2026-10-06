@@ -1220,10 +1220,14 @@
   font: 12px / 1.6 var(--mono);
 }
 .terminal .app-setting {
+  border-radius: 3px;
   border: 1px solid var(--line);
   padding: 24px;
-  margin-bottom: 24px;
+  margin-bottom: 0;
   background: var(--panel);
+}
+.terminal .app-setting [class*="rounded"] {
+  border-radius: 3px;
 }
 .terminal .app-setting h2 {
   font-size: 22px;
@@ -1567,6 +1571,7 @@
   margin-top: 16px;
 }
 .terminal.shared-terminal {
+  min-height: 0;
   padding: 0 24px 32px;
   border: 1px solid var(--line);
 }
@@ -1703,4 +1708,27 @@
 body:has(.shared-terminal) header svg {
   width: 16px;
   height: 16px;
+}
+
+/* Theme the public chrome only on a shared card page. */
+body:has(.shared-terminal) {
+  --background: #f3f2ed;
+  --surface: #f8f7f3;
+  --foreground: #121413;
+  --muted-foreground: #5c625e;
+  --border: #dedcd3;
+  --border-strong: #cbc8bd;
+  --accent: #b83d00;
+  --accent-solid: #e24e00;
+  --accent-foreground: #120800;
+}
+.dark body:has(.shared-terminal) {
+  --background: #08090a;
+  --surface: #0c0e0f;
+  --foreground: #eceee9;
+  --muted-foreground: #8d9691;
+  --border: #1c2022;
+  --border-strong: #2a3034;
+  --accent: #ff6a1f;
+  --accent-solid: #ff6a1f;
 }
