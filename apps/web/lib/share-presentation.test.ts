@@ -36,7 +36,9 @@ describe("share crawler and posting contracts", () => {
   it("serves explicit absolute social metadata with crawling allowed", async () => {
     const token = await encodeShareTokenV2(snapshot);
     const metadata = await generateMetadata({ params: Promise.resolve({ token }) });
-    expect(metadata.title).toEqual({ absolute: shareCopy(snapshot).title });
+    expect(metadata.title).toEqual({
+      absolute: "36.9B tokens of AI coding in 30 days · StackReplay",
+    });
     expect(metadata.robots).toMatchObject({
       index: true,
       follow: true,

@@ -74,8 +74,9 @@ test("a recap link can be stored as a short link that carries only its aggregate
   });
   await scanMarkedHistory(page);
   const id = new URL(page.url()).searchParams.get("import");
-  await page.goto(`/app/recap?import=${id}`);
+  await page.goto(`/app/recap?import=${id}&period=30`);
   await expect(page.getByTestId("recap-ready")).toBeVisible({ timeout: 60_000 });
+  await expect(page.getByTestId("recap-ready")).toHaveAttribute("data-period", "30");
   const posted = page.waitForRequest(
     (r) => r.url().endsWith("/api/share") && r.method() === "POST",
   );

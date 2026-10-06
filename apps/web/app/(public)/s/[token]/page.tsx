@@ -25,7 +25,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const image = origin ? `${origin}${shareImagePath(r.path)}` : absoluteUrl(shareImagePath(r.path));
   const url = origin ? `${origin}${r.path}` : absoluteUrl(r.path);
   return {
-    title: { absolute: copy.title },
+    title: { absolute: copy.title.replace(" · stackreplay.com", " · StackReplay") },
     description: copy.description,
     robots: { index: true, follow: true, "max-image-preview": "large" },
     openGraph: {
