@@ -109,13 +109,39 @@ test("OpenCode and Command Code appear as independent tools in Stats", async ({ 
 test("individual OpenCode and Command Code connection controls remain accessible on mobile and desktop", async ({
   page,
 }, info) => {
-  const { root } = await history(info);
+  const { bytes, wal } = await history(info);
+  await page.addInitScript(
+    ({ database, wal }) => {
+      const files: Record<string, File> = {
+        "opencode.db": new File([new Uint8Array(database)], "opencode.db"),
+        "opencode.db-wal": new File([new Uint8Array(wal)], "opencode.db-wal"),
+      };
+      const directory = {
+        kind: "directory",
+        name: "opencode",
+        async getDirectoryHandle() {
+          throw new DOMException("Missing", "NotFoundError");
+        },
+        async getFileHandle(name: string) {
+          const file = files[name];
+          if (file === undefined) throw new DOMException("Missing", "NotFoundError");
+          return { kind: "file", name, getFile: async () => file };
+        },
+        values() {
+          throw new Error("A database folder must not be listed");
+        },
+      };
+      Object.defineProperty(window, "showDirectoryPicker", {
+        configurable: true,
+        value: async () => directory,
+      });
+    },
+    { database: [...bytes], wal: [...wal] },
+  );
   await gotoImport(page);
   await openConnectIndividually(page);
   await expect(page.getByTestId("connect-command-code")).toBeVisible();
-  const chooser = page.waitForEvent("filechooser");
   await page.getByTestId("connect-opencode").click();
-  await (await chooser).setFiles(root);
   await waitForWorkload(page);
   await expect(page.getByTestId("recap-ready")).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
