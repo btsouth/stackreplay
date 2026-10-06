@@ -203,13 +203,13 @@ test("native Sonnet 5.5 history receives the published cache-duration range", as
   await expect(
     page
       .getByRole("table", { name: "Models in this period" })
-      .or(page.getByRole("group", { name: "Models in this period" }))
+      .or(page.getByRole("region", { name: "Models in this period" }))
       .filter({ visible: true }),
   ).toContainText("Claude Sonnet 5.5");
   await expect(
     page
       .getByRole("table", { name: "Models in this period" })
-      .or(page.getByRole("group", { name: "Models in this period" }))
+      .or(page.getByRole("region", { name: "Models in this period" }))
       .filter({ visible: true }),
   ).not.toContainText("unpriced");
 });

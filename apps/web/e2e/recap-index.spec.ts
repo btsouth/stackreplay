@@ -175,9 +175,12 @@ test("a new import replaces the cached selection and persists its own index", as
   await expect(page.getByTestId("recap-ready")).toBeVisible();
 });
 
-test("cold scan routes load metadata validation without module errors", async ({ browser }) => {
+test("cold scan routes load metadata validation without module errors", async ({
+  browser,
+  baseURL,
+}) => {
   for (let visit = 0; visit < 5; visit++) {
-    const context = await browser.newContext();
+    const context = await browser.newContext({ baseURL });
     const page = await context.newPage();
     const errors: string[] = [];
     page.on("pageerror", (error) => errors.push(error.message));

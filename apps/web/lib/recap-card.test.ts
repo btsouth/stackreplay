@@ -42,7 +42,7 @@ describe("recap card rendering", () => {
       expect(written).toContain("20.4B");
       expect(written).toContain("total tokens processed");
       expect(written).toContain("Fictional sample. Illustrative values.");
-      expect(written).not.toContain("76.4M");
+      expect(written).not.toContain("76.3M");
       expect(written.indexOf("DeepSeek-V4.1-Flash")).toBeLessThan(written.indexOf("GPT-6 Sol"));
     });
   it("keeps fictional activity, model mix and totals consistent", () => {
