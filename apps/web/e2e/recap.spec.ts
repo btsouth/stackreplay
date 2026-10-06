@@ -100,3 +100,81 @@ test("Settings plan prices drive the opt-in paid comparison", async ({ page }) =
     "false",
   );
 });
+
+test("all card formats measure non-overlapping text with every stat selected", async ({ page }) => {
+  await page.clock.install({ time: new Date("2026-10-04T12:00:00Z") });
+  await page.addInitScript(() =>
+    localStorage.setItem(
+      "stackreplay.stack-subscriptions.v2",
+      JSON.stringify([{ id: "paidqa1", plan: "plan:claude-max-5x", quantity: 2 }]),
+    ),
+  );
+  await page.route("**/api/github/contributions?*", (route) =>
+    route.fulfill({
+      json: {
+        login: "btsouth",
+        fetchedAt: "2026-10-04T12:00:00Z",
+        total: 40,
+        days: { "2026-10-04": 40 },
+      },
+    }),
+  );
+  await gotoImport(page);
+  await page.getByTestId("import-file-input").setInputFiles(fixture);
+  await expect(page.getByTestId("recap-ready")).toBeVisible();
+  await page.getByRole("radio", { name: "All time" }).check();
+  await page.getByRole("textbox", { name: "GitHub username" }).fill("btsouth");
+  await page.getByRole("button", { name: "Connect", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Disconnect", exact: true })).toBeVisible();
+  await expect(page.getByTestId("recap-paid")).toBeVisible();
+  for (const label of ["STREAK", "TOP MODELS", "PEAK HOUR", "WHAT YOU PAID"])
+    await page.getByRole("button", { name: label, exact: true }).click();
+  await expect
+    .poll(() =>
+      page
+        .locator("canvas")
+        .evaluateAll((nodes) =>
+          nodes.every(
+            (n) =>
+              n instanceof HTMLCanvasElement &&
+              JSON.parse(n.dataset.textBoxes ?? "[]").some(
+                (b: { id: string }) => b.id === "model-name-0",
+              ),
+          ),
+        ),
+    )
+    .toBe(true);
+  const faults = await page.locator("canvas").evaluateAll((nodes) =>
+    nodes.flatMap((n) => {
+      const canvas = n as HTMLCanvasElement;
+      const boxes = JSON.parse(canvas.dataset.textBoxes!) as {
+        id: string;
+        x: number;
+        y: number;
+        width: number;
+        height: number;
+      }[];
+      const faults: string[] = [];
+      for (let i = 0; i < boxes.length; i++) {
+        const a = boxes[i]!;
+        if (
+          a.x < 0 ||
+          a.y < 0 ||
+          a.x + a.width > canvas.width + 0.1 ||
+          a.y + a.height > canvas.height
+        )
+          faults.push(`${canvas.width}: ${a.id} outside card`);
+        for (const b of boxes.slice(i + 1))
+          if (
+            a.x < b.x + b.width &&
+            a.x + a.width > b.x &&
+            a.y < b.y + b.height &&
+            a.y + a.height > b.y
+          )
+            faults.push(`${canvas.width}: ${a.id} / ${b.id}`);
+      }
+      return faults;
+    }),
+  );
+  expect(faults).toEqual([]);
+});

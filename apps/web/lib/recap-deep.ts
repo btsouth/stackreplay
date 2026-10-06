@@ -2,7 +2,6 @@ import { quantile } from "./recap-quantile";
 import { Decimal } from "@stackreplay/replay-engine";
 import type { TextUsageEventV1 } from "@stackreplay/schema";
 import { totalTokensOf } from "./recap";
-import { harnessNames, providerNames, developerNames } from "./recap-names";
 export { harnessNames, providerNames, developerNames } from "./recap-names";
 export function servingRouteId(id: string): string {
   const aliases: Record<string, string> = {
