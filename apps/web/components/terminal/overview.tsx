@@ -459,7 +459,7 @@ export function Overview({
                 })}
               </tbody>
             </table>
-            <div className="mobile-models" aria-label="Models in this period">
+            <div className="mobile-models" role="group" aria-label="Models in this period">
               {p.top.map((m) => {
                 const speed = p.speeds.find((s) => s.id === m.id);
                 const first = r.deep?.firstSeen.find((f) => f.id === m.id);

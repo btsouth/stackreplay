@@ -200,12 +200,18 @@ test("native Sonnet 5.5 history receives the published cache-duration range", as
   await expect(page.getByTestId("recap-value").locator(".v")).toHaveText("$3");
   const id = new URL(page.url()).searchParams.get("import");
   await page.goto(`/app/recap?import=${id}`);
-  await expect(page.getByRole("table", { name: "Models in this period" })).toContainText(
-    "Claude Sonnet 5.5",
-  );
-  await expect(page.getByRole("table", { name: "Models in this period" })).not.toContainText(
-    "unpriced",
-  );
+  await expect(
+    page
+      .getByRole("table", { name: "Models in this period" })
+      .or(page.getByRole("group", { name: "Models in this period" }))
+      .filter({ visible: true }),
+  ).toContainText("Claude Sonnet 5.5");
+  await expect(
+    page
+      .getByRole("table", { name: "Models in this period" })
+      .or(page.getByRole("group", { name: "Models in this period" }))
+      .filter({ visible: true }),
+  ).not.toContainText("unpriced");
 });
 
 test("model capabilities filter and selected specifications are useful without opening evidence", async ({

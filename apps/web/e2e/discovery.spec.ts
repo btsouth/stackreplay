@@ -517,6 +517,7 @@ test("discovery states pass axe and selection works from the keyboard", async ({
 
 test("the manual chooser stays one keyboard step away", async ({ page }) => {
   await gotoImport(page);
+  await page.getByTestId("find-histories").click();
   const toggle = page.getByTestId("connect-individually");
   await toggle.focus();
   await page.keyboard.press("Enter");

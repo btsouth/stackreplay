@@ -21,6 +21,8 @@ export async function gotoImport(page: Page): Promise<void> {
 export async function openConnectIndividually(page: Page): Promise<void> {
   const card = page.getByTestId("connect-claude-code");
   if (await card.isVisible()) return;
+  if (!(await page.getByTestId("connect-individually").first().isVisible()))
+    await page.getByTestId("find-histories").click();
   await page.getByTestId("connect-individually").first().click();
   await expect(card).toBeVisible();
 }

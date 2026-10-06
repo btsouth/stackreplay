@@ -163,8 +163,8 @@ test.describe("public site accessibility", () => {
         ? page.getByRole("dialog").getByRole("navigation", { name: "Public" })
         : page.getByRole("navigation", { name: "Public" });
     for (const [label, href] of [
-      ["Recap", "/app/recap"],
-      ["Models & plans", "/catalog"],
+      ["Overview", "/app/recap"],
+      ["Models", "/models"],
       ["Privacy", "/methodology#privacy"],
     ] as const) {
       const link = homepageNav.getByRole("link", { name: label, exact: true });
@@ -173,13 +173,12 @@ test.describe("public site accessibility", () => {
       await link.focus();
       await expect(link).toBeFocused();
     }
-    await homepageNav.getByRole("link", { name: "Models & plans", exact: true }).focus();
+    await homepageNav.getByRole("link", { name: "Models", exact: true }).focus();
     await page.keyboard.press("Enter");
-    await expect(page).toHaveURL(/\/catalog$/u);
-    for (const label of ["Plans", "Models", "Compare", "Methodology", "Updates"])
-      await expect(
-        page.getByRole("contentinfo").getByRole("link", { name: label, exact: true }),
-      ).toBeVisible();
+    await expect(page).toHaveURL(/\/models$/u);
+    await expect(
+      page.getByRole("contentinfo").getByRole("link", { name: "Privacy", exact: true }),
+    ).toBeVisible();
     if (testInfo.project.name === "mobile") {
       const trigger = page.getByRole("button", { name: "Open menu" });
       await trigger.focus();

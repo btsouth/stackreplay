@@ -56,7 +56,7 @@ test.describe("public site", () => {
     await page.goto("/models");
     const brand = page.getByRole("banner").getByRole("link", { name: "StackReplay home" });
     await expect(brand).toBeVisible();
-    await expect(brand).toContainText("StackReplay");
+    await expect(brand).toContainText("stackreplay");
     await expect(brand).toHaveAttribute("href", "/");
     const response = await request.get("/fonts/instrument-sans.ttf");
     expect(response.status()).toBe(200);
@@ -246,11 +246,11 @@ test.describe("public site", () => {
     await page.setViewportSize({ width: 1366, height: 768 });
     await page.goto("/plans/github-copilot-business");
     const desktopNav = page.getByRole("navigation", { name: "Public" }).first();
-    await expect(desktopNav.getByRole("link", { name: "Models & plans" })).toHaveAttribute(
+    await expect(desktopNav.getByRole("link", { name: "Models" })).toHaveAttribute(
       "aria-current",
       "page",
     );
-    await expect(desktopNav.getByRole("link", { name: "Recap" })).not.toHaveAttribute(
+    await expect(desktopNav.getByRole("link", { name: "Overview" })).not.toHaveAttribute(
       "aria-current",
       "page",
     );
@@ -261,11 +261,11 @@ test.describe("public site", () => {
       await expect(menu).toHaveAttribute("aria-expanded", "true");
     }).toPass();
     const mobileNav = page.getByRole("navigation", { name: "Public" }).last();
-    await expect(mobileNav.getByRole("link", { name: "Models & plans" })).toHaveAttribute(
+    await expect(mobileNav.getByRole("link", { name: "Models" })).toHaveAttribute(
       "aria-current",
       "page",
     );
-    await expect(mobileNav.getByRole("link", { name: "Recap" })).not.toHaveAttribute(
+    await expect(mobileNav.getByRole("link", { name: "Overview" })).not.toHaveAttribute(
       "aria-current",
       "page",
     );
@@ -279,9 +279,7 @@ test.describe("public site", () => {
     await expect(privacy).toHaveAttribute("href", "/methodology#privacy");
     await privacy.click();
     await expect(page.locator("#privacy")).toBeVisible();
-    const catalog = page.getByRole("contentinfo").getByRole("link", { name: "Plans", exact: true });
-    await expect(catalog).toHaveAttribute("href", "/plans");
-    await catalog.click();
+    await page.goto("/plans");
     await page.getByTestId("plan-card").first().getByRole("link", { name: "Explore plan" }).click();
     await page.getByText("Published terms, sources & history", { exact: true }).click();
     await expect(page.getByTestId("source-list").first()).toBeVisible();
@@ -371,8 +369,8 @@ test.describe("share links", () => {
     // An older link opens the shared recap page with only the aggregates it carries.
     await expect(page.getByTestId("share-card-v2")).toBeVisible();
     await expect(page.getByRole("heading", { level: 1 })).toContainText("AI coding, in numbers");
-    await expect(page.getByTestId("share-tokens")).toHaveText("24.5M tokens");
-    await expect(page.getByTestId("share-figure")).toHaveText("Value not shared");
+    await expect(page.getByRole("img", { name: /StackReplay card: 24.5M tokens/ })).toBeVisible();
+    await expect(page.getByTestId("share-tokens")).toHaveCount(0);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
       true,
     );
@@ -478,7 +476,7 @@ test.describe("share links", () => {
     await page.getByTestId("recap-share-open").click();
     await expect(page.getByTestId("share-card-v2")).toBeVisible();
     await expect(page.getByRole("heading", { level: 1 })).toContainText("AI coding, in numbers");
-    await expect(page.getByTestId("share-tokens")).toBeVisible();
+    await expect(page.getByRole("img", { name: /StackReplay card:/ })).toBeVisible();
     // A sample history is labelled as fictional on the public page.
     await expect(page.locator(".shared-recap-honesty")).toContainText("Fictional");
   });

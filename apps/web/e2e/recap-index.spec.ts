@@ -44,7 +44,7 @@ test("saved indexes serve Recap, Stats and Settings without exporting or opening
   });
   for (const [route, ready] of [
     ["recap", "recap-ready"],
-    ["stats", "stats-ready"],
+    ["stats", "recap-ready"],
     ["settings", "settings-saved"],
   ]) {
     await page.goto(`/app/${route}?import=${id}`);
@@ -94,7 +94,7 @@ test("a missing or stale index rebuilds lazily, then deletion clears it", async 
     db.close();
   });
   await page.goto(`/app/stats?import=${id}`);
-  await expect(page.getByTestId("stats-ready")).toBeVisible();
+  await expect(page.getByTestId("recap-ready")).toBeVisible();
   await expect
     .poll(async () => (await indexes(page))[0]?.index.catalogVersion)
     .toBe(original.index.catalogVersion);
@@ -149,7 +149,7 @@ for (const route of ["recap", "stats"] as const)
       await request.continue();
     });
     await page.goto(`/app/${route}?import=${id}&period=all`);
-    const ready = page.getByTestId(`${route}-ready`);
+    const ready = page.getByTestId("recap-ready");
     await expect(ready).toBeVisible();
     expect((await indexes(page))[0]!.index.catalogVersion).toBe("stale");
     const previous = await ready.textContent();
@@ -164,12 +164,12 @@ for (const route of ["recap", "stats"] as const)
 test("a new import replaces the cached selection and persists its own index", async ({ page }) => {
   await importDemo(page, "moderate");
   const previousId = new URL(page.url()).searchParams.get("import")!;
-  const previous = await page.getByTestId("stats-ready").textContent();
+  const previous = await page.getByTestId("recap-ready").textContent();
   await importDemo(page, "heavy");
   const id = new URL(page.url()).searchParams.get("import")!;
   expect(id).not.toBe(previousId);
-  await expect(page.getByTestId("stats-ready")).toBeVisible();
-  expect(await page.getByTestId("stats-ready").textContent()).not.toBe(previous);
+  await expect(page.getByTestId("recap-ready")).toBeVisible();
+  expect(await page.getByTestId("recap-ready").textContent()).not.toBe(previous);
   expect(await indexes(page)).toHaveLength(2);
   await page.goto(`/app/recap?import=${id}&period=all`);
   await expect(page.getByTestId("recap-ready")).toBeVisible();

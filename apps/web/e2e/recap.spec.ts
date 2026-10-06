@@ -84,7 +84,7 @@ test("Settings plan prices drive the opt-in paid comparison", async ({ page }) =
     (await page.getByTestId("recap-value").locator(".v").innerText()).replace(/[$,]/g, ""),
   );
   await expect(page.getByTestId("recap-paid")).toHaveCount(0);
-  await expect(page.getByRole("link", { name: "Set your plan price ↗" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Add plan price ↗" })).toBeVisible();
   await page.goto("/app/settings#what-you-pay");
   await page.getByRole("combobox", { name: "Add a plan" }).click();
   await page.getByRole("option", { name: /^Claude Max 5x ·/ }).click();

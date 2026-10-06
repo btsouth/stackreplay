@@ -56,7 +56,9 @@ export function Readout({
   return (
     <div className="cell kv" data-testid={testId}>
       <div className="label">{label}</div>
-      <div className={`v${signal ? " sig" : ""}`}>
+      <div
+        className={`v${signal ? " sig" : ""}${typeof value === "string" && !/\d/.test(value) ? " text-value" : ""}`}
+      >
         {typeof value === "string" || typeof value === "number" ? (
           <TightNumber value={value} />
         ) : (

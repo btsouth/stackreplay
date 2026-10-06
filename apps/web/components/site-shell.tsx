@@ -2,7 +2,8 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { LocalWorkloadAction } from "@/components/local-workload-action";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { TerminalBrand } from "@/components/terminal/brand";
+import { TerminalPublicNav } from "@/components/terminal/public-nav";
+import { SkipLink } from "@stackreplay/ui/components/skip-link";
 import "@/components/terminal/terminal.css";
 export function SiteShell({
   children,
@@ -14,17 +15,10 @@ export function SiteShell({
   return (
     <div className="public-shell">
       <div className="terminal terminal-public public-chrome public-header">
-        <Link href="#main-content" className="sr-skip">
-          Skip to content
-        </Link>
+        <SkipLink />
         <header className="terminal-header">
           <div className="wrap">
-            <TerminalBrand href="/" />
-            <nav aria-label="Public navigation">
-              <Link href="/app/recap">Overview</Link>
-              <Link href="/models">Models</Link>
-              <Link href="/methodology#privacy">Privacy</Link>
-            </nav>
+            <TerminalPublicNav />
             <div className="hright">
               <LocalWorkloadAction variant="header" className="btn primary" />
               <ThemeToggle />
@@ -43,7 +37,7 @@ export function SiteShell({
         <footer>
           <div className="wrap">
             <span>YOUR LOGS STAY ON YOUR DEVICE.</span>
-            <Link href="/methodology#privacy">PRIVACY</Link>
+            <Link href="/methodology#privacy">Privacy</Link>
           </div>
         </footer>
       </div>
