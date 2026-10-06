@@ -1,9 +1,9 @@
 import { buttonVariants, CatalogSubNav, PageHeader, Panel, SectionHeader } from "@stackreplay/ui";
 import { ArrowUpRight, BookOpen, Layers3 } from "lucide-react";
 import Link from "next/link";
-import { FEATURED_MODEL_IDS } from "@/lib/home/featured-models";
 import { LocalWorkloadAction } from "@/components/local-workload-action";
 import { MarketFooter } from "@/components/public/market-header";
+import { FEATURED_MODEL_IDS } from "@/lib/home/featured-models";
 import { marketEventViews } from "@/lib/market/events";
 import { loadPublicCatalog } from "@/lib/public-catalog";
 import { loadPublicDirectory } from "@/lib/public-directory";
@@ -60,7 +60,10 @@ export default function CatalogPage() {
         }
         description="Your recap tells your story. Explore the models and plans around it, with published facts and sources you can check."
         actions={
-          <LocalWorkloadAction variant="header" className={buttonVariants({variant:"outline"})} />
+          <LocalWorkloadAction
+            variant="header"
+            className={buttonVariants({ variant: "outline" })}
+          />
         }
       />
       <div className="catalog-leads">

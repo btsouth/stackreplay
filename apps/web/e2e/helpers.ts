@@ -7,6 +7,8 @@ export type DemoPreset = (typeof DEMO_PRESETS)[number];
 
 export async function gotoImport(page: Page): Promise<void> {
   await page.goto("/app/scan");
+  await page.getByText("Use files or an export instead", { exact: true }).click();
+  await page.getByText("Try a sample recap", { exact: true }).click();
   await expect(page.getByTestId("import-dropzone")).toBeVisible();
   await expect(page.getByTestId("intake-surface")).toHaveAttribute("data-ready", "true");
 }

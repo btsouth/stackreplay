@@ -1,6 +1,5 @@
 "use client";
 import { encodeShareTokenV2 } from "@stackreplay/share";
-import { recapShareV2 } from "@/lib/share-v2";
 import { Select } from "@stackreplay/ui";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -22,6 +21,7 @@ import type { Recap, RecapPeriod } from "@/lib/recap";
 import { recapUsd, renderRecapCard } from "@/lib/recap-card";
 import { paidMultiplier, recapPlans } from "@/lib/recap-plans";
 import type { TargetKey } from "@/lib/routes";
+import { recapShareV2 } from "@/lib/share-v2";
 import { getWorkerClient } from "@/lib/worker-client";
 import type { ImportRecord } from "@/lib/worker-protocol";
 import { PeriodControl } from "./period-control";
@@ -46,7 +46,7 @@ export function RecapSurface({
   const [stack, setStack] = useState<StackSubscription[]>([]);
   const [showPaid, setShowPaid] = useState(false);
   const [confirmedPlans, setConfirmedPlans] = useState<string>();
-  const [shareHref,setShareHref]=useState<string>();
+  const [shareHref, setShareHref] = useState<string>();
   const [exporting, setExporting] = useState(false);
   const now = useMemo(() => new Date().toISOString(), []);
   const timeZone = useMemo(() => Intl.DateTimeFormat().resolvedOptions().timeZone, []);
@@ -286,8 +286,32 @@ export function RecapSurface({
               </div>
             </section>
             <section className="recap-share">
-              <div><h2>Let your numbers travel.</h2><p>A link to the same card. Only the numbers you see here are shared.</p></div>
-              <div>{shareHref ? <Link className="recap-button" href={shareHref} data-testid="recap-share-open">Open shared recap</Link> : <button type="button" className="recap-button secondary" data-testid="recap-share-create" onClick={async()=>{try{setShareHref(`/s/${await encodeShareTokenV2(recapShareV2(recap))}`);}catch{setError("Your share link couldn't be created. Try again.");}}}>Create a share link</button>}</div>
+              <div>
+                <h2>Let your numbers travel.</h2>
+                <p>A link to the same card. Only the numbers you see here are shared.</p>
+              </div>
+              <div>
+                {shareHref ? (
+                  <Link className="recap-button" href={shareHref} data-testid="recap-share-open">
+                    Open shared recap
+                  </Link>
+                ) : (
+                  <button
+                    type="button"
+                    className="recap-button secondary"
+                    data-testid="recap-share-create"
+                    onClick={async () => {
+                      try {
+                        setShareHref(`/s/${await encodeShareTokenV2(recapShareV2(recap))}`);
+                      } catch {
+                        setError("Your share link couldn't be created. Try again.");
+                      }
+                    }}
+                  >
+                    Create a share link
+                  </button>
+                )}
+              </div>
             </section>
             <section className="recap-payment" aria-label="Card payment comparison">
               <label className="recap-paid-toggle">
@@ -352,8 +376,8 @@ export function RecapSurface({
                     {selectedPlanCount > 0 && !monthlyCost && (
                       <p>
                         Selected plans use different currencies or billing intervals, or have an
-                        unreported price. See <a href="/app/plans">Your plans</a> for their individual
-                        prices.
+                        unreported price. See <a href="/app/plans">Your plans</a> for their
+                        individual prices.
                       </p>
                     )}
                   </details>

@@ -21,7 +21,10 @@ export interface RecapModel {
 }
 export interface Recap {
   period: RecapPeriod;
-  explorer?: { modelSessions: Record<string, number>; days: { date: string; total: number; records: number; usd: string }[] };
+  explorer?: {
+    modelSessions: Record<string, number>;
+    days: { date: string; total: number; records: number; usd: string }[];
+  };
   deep?: RecapDeep;
   sourceCoverage?: { name: string; role: string; status: string }[];
   start: string;
@@ -229,7 +232,8 @@ export function buildRecap(
     const id = e.model.canonicalId ?? e.model.rawName;
     if (session) {
       const group = modelSessions.get(id) ?? new Set<string>();
-      group.add(`${e.source.adapterId}:${session}`); modelSessions.set(id, group);
+      group.add(`${e.source.adapterId}:${session}`);
+      modelSessions.set(id, group);
     }
     const model = e.model.canonicalId ? catalog.models[e.model.canonicalId] : undefined;
     const family = model?.developerId ?? "other";
@@ -373,7 +377,17 @@ export function buildRecap(
   return {
     period,
     deep,
-    explorer: { modelSessions: Object.fromEntries([...modelSessions].map(([id, sessions]) => [id, sessions.size])), days: daily.map(d => ({date:d.date, records:d.records, total:dayTokens.get(d.date) ?? 0, usd:costDays.get(d.date)?.toString() ?? "0"})) },
+    explorer: {
+      modelSessions: Object.fromEntries(
+        [...modelSessions].map(([id, sessions]) => [id, sessions.size]),
+      ),
+      days: daily.map((d) => ({
+        date: d.date,
+        records: d.records,
+        total: dayTokens.get(d.date) ?? 0,
+        usd: costDays.get(d.date)?.toString() ?? "0",
+      })),
+    },
     start,
     end,
     timeZone,

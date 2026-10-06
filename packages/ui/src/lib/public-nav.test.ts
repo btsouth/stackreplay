@@ -13,7 +13,6 @@ describe("public navigation", () => {
     expect(publicNavItems.map((item) => item.label)).toEqual([
       "Recap",
       "Models & plans",
-      "Methodology",
       "Privacy",
     ]);
     expect(catalogNavItems.map((item) => item.label)).toEqual([

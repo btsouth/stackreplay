@@ -3,7 +3,13 @@ import { buildPlanExplorer } from "../lib/plan-explorer";
 import { buildRecap, type RecapPeriod } from "../lib/recap";
 
 self.onmessage = (
-  message: MessageEvent<{ bytes: Uint8Array; period: RecapPeriod; now: string; timeZone: string; counts?: Record<string, number> }>,
+  message: MessageEvent<{
+    bytes: Uint8Array;
+    period: RecapPeriod;
+    now: string;
+    timeZone: string;
+    counts?: Record<string, number>;
+  }>,
 ) => {
   try {
     const data = message.data;
@@ -23,7 +29,10 @@ self.onmessage = (
                 ? "No collected tokens in this period"
                 : "Detected, not collected",
       }));
-    self.postMessage({ recap, ...(data.counts ? {options:buildPlanExplorer(payload.events,recap,data.counts)} : {}) });
+    self.postMessage({
+      recap,
+      ...(data.counts ? { options: buildPlanExplorer(payload.events, recap, data.counts) } : {}),
+    });
   } catch {
     self.postMessage({ error: "Could not calculate this recap. Try importing the history again." });
   }

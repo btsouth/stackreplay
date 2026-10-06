@@ -1,20 +1,113 @@
-.shared-recap { max-width:1000px; padding:0; margin:0 auto; }
-.shared-recap h1 { font-size:clamp(36px,5vw,60px); font-weight:500; margin-bottom:40px; }
-.shared-recap-hero { display:grid; grid-template-columns:1.15fr 1fr; gap:24px; padding:40px; border:1px solid var(--border-strong); border-radius:24px; background:var(--surface); }
-.shared-recap-hero strong { font-size:clamp(44px,6vw,84px); font-weight:500; letter-spacing:-.06em; line-height:1.1; }
-.shared-recap-hero > div:nth-child(2) strong { color:var(--accent); }
-.shared-recap-hero p { color:var(--muted-foreground); margin-top:16px; }
-.shared-recap-stats { display:flex; flex-wrap:wrap; gap:32px; margin:32px 0 48px; }
-.shared-recap-stats > div { display:grid; gap:8px; }
-.shared-recap-stats strong { font-size:36px; font-weight:500; letter-spacing:-.04em; }
-.shared-recap-stats span { color:var(--muted-foreground); font-size:14px; }
-.shared-recap-models > div { display:grid; grid-template-columns:1fr auto; gap:12px; margin-top:24px; }
-.shared-recap-models > div strong { font-weight:500; }
-.shared-model-track { grid-column:1 / -1; height:6px; background:var(--surface-2); border-radius:3px; overflow:hidden; }
-.shared-model-track i { display:block; height:100%; border-radius:3px; }
-.shared-recap-honesty { margin-top:40px!important; color:var(--muted-foreground); }
-.shared-recap-cta { display:flex; flex-wrap:wrap; gap:24px; justify-content:space-between; align-items:center; border-top:1px solid var(--border); margin-top:32px; padding-top:32px; }
-.shared-recap-cta h2 { font-size:32px; }
-.shared-recap-cta p { margin-top:12px; color:var(--muted-foreground); }
-.shared-recap-download { display:inline-flex; min-height:44px; align-items:center; margin-top:20px; color:var(--accent); }
-@media(max-width:700px) { .shared-recap-hero { grid-template-columns:1fr; padding:28px; gap:28px; } .shared-recap-hero strong { font-size:56px; } .shared-recap-stats { gap:24px; } }
+.shared-recap {
+  max-width: 1000px;
+  padding: 0;
+  margin: 0 auto;
+}
+.shared-recap h1 {
+  font-size: clamp(36px, 5vw, 60px);
+  font-weight: 500;
+  margin-bottom: 40px;
+}
+.shared-recap-hero {
+  display: grid;
+  grid-template-columns: 1.15fr 1fr;
+  gap: 24px;
+  padding: 40px;
+  border: 1px solid var(--border-strong);
+  border-radius: 24px;
+  background: var(--surface);
+}
+.shared-recap-hero strong {
+  font-size: clamp(44px, 6vw, 84px);
+  font-weight: 500;
+  letter-spacing: -0.06em;
+  line-height: 1.1;
+}
+.shared-recap-hero > div:nth-child(2) strong {
+  color: var(--accent);
+}
+.shared-recap-hero p {
+  color: var(--muted-foreground);
+  margin-top: 16px;
+}
+.shared-recap-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 32px;
+  margin: 32px 0 48px;
+}
+.shared-recap-stats > div {
+  display: grid;
+  gap: 8px;
+}
+.shared-recap-stats strong {
+  font-size: 36px;
+  font-weight: 500;
+  letter-spacing: -0.04em;
+}
+.shared-recap-stats span {
+  color: var(--muted-foreground);
+  font-size: 14px;
+}
+.shared-recap-models > div {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 12px;
+  margin-top: 24px;
+}
+.shared-recap-models > div strong {
+  font-weight: 500;
+}
+.shared-model-track {
+  grid-column: 1 / -1;
+  height: 6px;
+  background: var(--surface-2);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.shared-model-track i {
+  display: block;
+  height: 100%;
+  border-radius: 3px;
+}
+.shared-recap-honesty {
+  margin-top: 40px !important;
+  color: var(--muted-foreground);
+}
+.shared-recap-cta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 1px solid var(--border);
+  margin-top: 32px;
+  padding-top: 32px;
+}
+.shared-recap-cta h2 {
+  font-size: 32px;
+}
+.shared-recap-cta p {
+  margin-top: 12px;
+  color: var(--muted-foreground);
+}
+.shared-recap-download {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  margin-top: 20px;
+  color: var(--accent);
+}
+@media (max-width: 700px) {
+  .shared-recap-hero {
+    grid-template-columns: 1fr;
+    padding: 28px;
+    gap: 28px;
+  }
+  .shared-recap-hero strong {
+    font-size: 56px;
+  }
+  .shared-recap-stats {
+    gap: 24px;
+  }
+}

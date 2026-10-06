@@ -144,7 +144,7 @@ export function ImportSurface({
   );
   /** A selection above the large-history threshold, noted inside the instrument. */
   const [largeBytes, setLargeBytes] = useState<number | undefined>(undefined);
-  /** The last scan was cancelled; saved workloads were left alone. */
+  /** The last scan was cancelled; saved scans were left alone. */
   const [canceled, setCanceled] = useState(false);
   const dropRef = useRef<HTMLDivElement>(null);
   const progressAnchorRef = useRef<HTMLDivElement>(null);
@@ -284,7 +284,7 @@ export function ImportSurface({
       setNotice(advice.level === "large" ? advice.message : undefined);
       setLargeBytes(undefined);
       setScanHistories(undefined);
-      setScanSource("your workload file");
+      setScanSource("your history file");
       return runImport((onProgress) =>
         client.importFile(file, {
           importId: createLocalImportId(),
@@ -301,7 +301,7 @@ export function ImportSurface({
 
   const importDemo = useCallback(
     (preset: DemoWorkloadPresetId) => {
-      setScanSource("a synthetic demo workload");
+      setScanSource("a sample history");
       setScanHistories(undefined);
       setLargeBytes(undefined);
       setNotice(undefined);
@@ -392,7 +392,7 @@ export function ImportSurface({
   );
 
   /**
-   * Stops the scan in progress. Only this scan: saved workloads are untouched,
+   * Stops the scan in progress. Only this scan: saved scans are untouched,
    * nothing from it is kept, and the page returns to the sources it came from.
    */
   const cancelScan = useCallback(() => {
@@ -468,7 +468,7 @@ export function ImportSurface({
       await forgetSources();
     } catch {
       setNotice(
-        "Workloads were cleared, but folder access saved by an earlier version could not be cleared in this browser.",
+        "Scans were cleared, but folder access saved by an earlier version could not be cleared in this browser.",
       );
     }
     await refreshImports();
@@ -551,8 +551,7 @@ export function ImportSurface({
             <span className="font-mono text-[11px] tracking-[0.12em] text-foreground uppercase">
               Scan canceled
             </span>{" "}
-            Nothing from it was saved, and your saved workloads are unchanged. Your sources are
-            below.
+            Nothing from it was saved, and your saved scans are unchanged. Your sources are below.
           </p>
         ) : null}
         {scanActive && imports.length > 0 ? (
@@ -569,7 +568,7 @@ export function ImportSurface({
             role="status"
           >
             <p className="font-mono text-[11px] tracking-[0.12em] text-foreground uppercase">
-              {notice.startsWith("Workloads were cleared") ? "Browser note" : "Large file"}
+              {notice.startsWith("Scans were cleared") ? "Browser note" : "Large file"}
             </p>
             <p className="mt-1 text-sm text-muted-foreground">{notice}</p>
           </div>
@@ -708,173 +707,177 @@ export function ImportSurface({
             event.target.value = "";
           }}
         />
-        <details className="order-2"><summary className="min-h-11 cursor-pointer content-center">Use files or an export instead</summary>
-        {/* biome-ignore lint/a11y/noStaticElementInteractions: this is a drop
+        <details className="order-2">
+          <summary className="min-h-11 cursor-pointer content-center">
+            Use files or an export instead
+          </summary>
+          {/* biome-ignore lint/a11y/noStaticElementInteractions: this is a drop
             target, not a control. The file input inside it is the keyboard and
             screen-reader path; dragging is an additional convenience. */}
-        <div
-          ref={dropRef}
-          onDragOver={(event) => {
-            event.preventDefault();
-            setDragActive(true);
-          }}
-          onDragLeave={() => setDragActive(false)}
-          onDrop={onDrop}
-          data-testid="import-dropzone"
-          data-drag-active={dragActive ? "true" : "false"}
-          className={[
-            "order-2 transition-colors",
-            dragActive
-              ? "border border-dashed border-accent bg-surface-2 p-5 sm:p-6"
-              : "border-t border-border bg-transparent pt-5",
-          ].join(" ")}
-        >
-          <div className="flex flex-col gap-4">
-            <div>
-              <h2 className="text-base font-medium">Choose history files or an export</h2>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Files are read on this device.
+          <div
+            ref={dropRef}
+            onDragOver={(event) => {
+              event.preventDefault();
+              setDragActive(true);
+            }}
+            onDragLeave={() => setDragActive(false)}
+            onDrop={onDrop}
+            data-testid="import-dropzone"
+            data-drag-active={dragActive ? "true" : "false"}
+            className={[
+              "order-2 transition-colors",
+              dragActive
+                ? "border border-dashed border-accent bg-surface-2 p-5 sm:p-6"
+                : "border-t border-border bg-transparent pt-5",
+            ].join(" ")}
+          >
+            <div className="flex flex-col gap-4">
+              <div>
+                <h2 className="text-base font-medium">Choose history files or an export</h2>
+                <p className="mt-1 text-sm text-muted-foreground">Files are read on this device.</p>
+              </div>
+              <div className="grid gap-3">
+                <div className="grid gap-1.5 sm:grid-cols-[8rem_minmax(0,1fr)] sm:items-center">
+                  <label htmlFor={sourceInputId} className="text-sm font-medium">
+                    Source files or ZIP
+                  </label>
+                  <div className="relative flex min-h-12 min-w-0 items-center justify-between gap-3 border border-control-border bg-surface px-3 py-2 text-sm transition-colors hover:border-border-strong focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 focus-within:ring-offset-background">
+                    <span
+                      className="min-w-0 text-foreground [overflow-wrap:anywhere]"
+                      id={`${sourceInputId}-selection`}
+                    >
+                      {selectedFiles.source || "Choose files or ZIP"}
+                    </span>
+                    <span aria-hidden="true" className="shrink-0 text-xs text-accent">
+                      Browse
+                    </span>
+                    <input
+                      id={sourceInputId}
+                      ref={sourceInputRef}
+                      type="file"
+                      disabled={busy || !ready}
+                      multiple
+                      accept=".json,.jsonl,.db,.db-wal,.zip,application/json,application/zip"
+                      aria-describedby={`${sourceInputId}-selection`}
+                      className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+                      data-testid="source-file-input"
+                      onChange={(event) => {
+                        const files = Array.from(event.target.files ?? []);
+                        setSelectedFiles((current) => ({
+                          ...current,
+                          source:
+                            files.length === 1
+                              ? (files[0]?.name ?? "")
+                              : `${files.length} files selected`,
+                        }));
+                        setScanSource(
+                          files.length === 1
+                            ? (files[0]?.name ?? "the selected file")
+                            : `${files.length} selected files`,
+                        );
+                        void importSources(files);
+                        event.target.value = "";
+                      }}
+                    />
+                  </div>
+                </div>
+                <div className="grid gap-1.5 sm:grid-cols-[8rem_minmax(0,1fr)] sm:items-center">
+                  <label htmlFor={inputId} className="text-sm font-medium">
+                    StackReplay export
+                  </label>
+                  <div className="relative flex min-h-12 min-w-0 items-center justify-between gap-3 border border-control-border bg-surface px-3 py-2 text-sm transition-colors hover:border-border-strong focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 focus-within:ring-offset-background">
+                    <span
+                      className="min-w-0 text-foreground [overflow-wrap:anywhere]"
+                      id={`${inputId}-selection`}
+                    >
+                      {selectedFiles.workload || "Choose a StackReplay export"}
+                    </span>
+                    <span aria-hidden="true" className="shrink-0 text-xs text-accent">
+                      Browse
+                    </span>
+                    <input
+                      id={inputId}
+                      type="file"
+                      disabled={busy || !ready}
+                      accept=".stackreplay.json,.json,application/json"
+                      aria-describedby={`${inputId}-selection`}
+                      className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+                      data-testid="import-file-input"
+                      onChange={(event) => {
+                        const file = event.target.files?.[0];
+                        if (file !== undefined) {
+                          setSelectedFiles((current) => ({ ...current, workload: file.name }));
+                          void importFile(file);
+                        }
+                        event.target.value = "";
+                      }}
+                    />
+                  </div>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Use an existing CLI export here, or drop selected files above. If your browser
+                  cannot select a folder, choose its files instead.
+                </p>
+              </div>
+              <label className="flex items-center gap-2 text-xs text-muted-foreground">
+                <input
+                  type="checkbox"
+                  disabled={busy || !ready}
+                  checked={saveLocal}
+                  onChange={(event) => setSaveLocal(event.target.checked)}
+                />
+                Save this scan in this browser
+              </label>
+              <p
+                className="text-xs leading-relaxed text-muted-foreground"
+                data-testid="save-local-note"
+              >
+                {saveLocal
+                  ? "On by default so a finished scan survives a reload. Only the numbers behind your work are kept, in this browser's storage: models, token counts, timestamps, salted session and project hashes, and local project labels. Raw session files are never copied. Delete it any time below or in Settings."
+                  : "Off: the next scan stays available only until this page reloads."}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Supported raw files:{" "}
+                {BROWSER_SOURCE_FORMATS.map((source) => `${source.name} ${source.format}`).join(
+                  ", ",
+                )}
+                . Other formats are reported without guessing.
               </p>
             </div>
-            <div className="grid gap-3">
-              <div className="grid gap-1.5 sm:grid-cols-[8rem_minmax(0,1fr)] sm:items-center">
-                <label htmlFor={sourceInputId} className="text-sm font-medium">
-                  Source files or ZIP
-                </label>
-                <div className="relative flex min-h-12 min-w-0 items-center justify-between gap-3 border border-control-border bg-surface px-3 py-2 text-sm transition-colors hover:border-border-strong focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 focus-within:ring-offset-background">
-                  <span
-                    className="min-w-0 text-foreground [overflow-wrap:anywhere]"
-                    id={`${sourceInputId}-selection`}
-                  >
-                    {selectedFiles.source || "Choose files or ZIP"}
-                  </span>
-                  <span aria-hidden="true" className="shrink-0 text-xs text-accent">
-                    Browse
-                  </span>
-                  <input
-                    id={sourceInputId}
-                    ref={sourceInputRef}
-                    type="file"
-                    disabled={busy || !ready}
-                    multiple
-                    accept=".json,.jsonl,.db,.db-wal,.zip,application/json,application/zip"
-                    aria-describedby={`${sourceInputId}-selection`}
-                    className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
-                    data-testid="source-file-input"
-                    onChange={(event) => {
-                      const files = Array.from(event.target.files ?? []);
-                      setSelectedFiles((current) => ({
-                        ...current,
-                        source:
-                          files.length === 1
-                            ? (files[0]?.name ?? "")
-                            : `${files.length} files selected`,
-                      }));
-                      setScanSource(
-                        files.length === 1
-                          ? (files[0]?.name ?? "the selected file")
-                          : `${files.length} selected files`,
-                      );
-                      void importSources(files);
-                      event.target.value = "";
-                    }}
-                  />
-                </div>
+          </div>
+        </details>
+        <details className="order-2">
+          <summary className="min-h-11 cursor-pointer content-center">Try a sample recap</summary>
+          <Card className="order-2 rounded-none border-x-0 border-b-0 bg-transparent px-0 shadow-none">
+            <CardContent className="flex flex-col gap-4 p-5">
+              <div>
+                <h2 className="text-sm font-medium">Try a fictional history</h2>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Fictional data, ready to explore.
+                </p>
               </div>
-              <div className="grid gap-1.5 sm:grid-cols-[8rem_minmax(0,1fr)] sm:items-center">
-                <label htmlFor={inputId} className="text-sm font-medium">
-                  StackReplay export
-                </label>
-                <div className="relative flex min-h-12 min-w-0 items-center justify-between gap-3 border border-control-border bg-surface px-3 py-2 text-sm transition-colors hover:border-border-strong focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 focus-within:ring-offset-background">
-                  <span
-                    className="min-w-0 text-foreground [overflow-wrap:anywhere]"
-                    id={`${inputId}-selection`}
-                  >
-                    {selectedFiles.workload || "Choose a StackReplay export"}
-                  </span>
-                  <span aria-hidden="true" className="shrink-0 text-xs text-accent">
-                    Browse
-                  </span>
-                  <input
-                    id={inputId}
-                    type="file"
+              <div className="flex flex-wrap gap-2" data-testid="demo-presets">
+                {demoWorkloadPresetIds.map((presetId) => (
+                  <Button
+                    key={presetId}
+                    type="button"
+                    variant="secondary"
+                    size="sm"
                     disabled={busy || !ready}
-                    accept=".stackreplay.json,.json,application/json"
-                    aria-describedby={`${inputId}-selection`}
-                    className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
-                    data-testid="import-file-input"
-                    onChange={(event) => {
-                      const file = event.target.files?.[0];
-                      if (file !== undefined) {
-                        setSelectedFiles((current) => ({ ...current, workload: file.name }));
-                        void importFile(file);
-                      }
-                      event.target.value = "";
-                    }}
-                  />
-                </div>
+                    data-testid={`demo-${presetId}`}
+                    onClick={() => void importDemo(presetId)}
+                  >
+                    {demoWorkloadPresets[presetId].name}
+                  </Button>
+                ))}
               </div>
               <p className="text-xs text-muted-foreground">
-                Use an existing CLI export here, or drop selected files above. If your browser
-                cannot select a folder, choose its files instead.
+                Start with Complete billing period: 3,600 synthetic calls, sample paid subscriptions
+                and a same-period API comparison.
               </p>
-            </div>
-            <label className="flex items-center gap-2 text-xs text-muted-foreground">
-              <input
-                type="checkbox"
-                disabled={busy || !ready}
-                checked={saveLocal}
-                onChange={(event) => setSaveLocal(event.target.checked)}
-              />
-              Save this scan in this browser
-            </label>
-            <p
-              className="text-xs leading-relaxed text-muted-foreground"
-              data-testid="save-local-note"
-            >
-              {saveLocal
-                ? "On by default so a finished scan survives a reload. Only the numbers behind your work are kept, in this browser's storage: models, token counts, timestamps, salted session and project hashes, and local project labels. Raw session files are never copied. Delete it any time below or in Settings."
-                : "Off: the next scan stays available only until this page reloads."}
-            </p>
-            <p className="text-xs text-muted-foreground">
-              Supported raw files:{" "}
-              {BROWSER_SOURCE_FORMATS.map((source) => `${source.name} ${source.format}`).join(", ")}
-              . Other formats are reported without guessing.
-            </p>
-          </div>
-        </div>
-
+            </CardContent>
+          </Card>{" "}
         </details>
-        <details className="order-2"><summary className="min-h-11 cursor-pointer content-center">Try a sample recap</summary>
-        <Card className="order-2 rounded-none border-x-0 border-b-0 bg-transparent px-0 shadow-none">
-          <CardContent className="flex flex-col gap-4 p-5">
-            <div>
-              <h2 className="text-sm font-medium">Try a fictional history</h2>
-              <p className="mt-1 text-xs text-muted-foreground">
-                Fictional data, ready to explore.
-              </p>
-            </div>
-            <div className="flex flex-wrap gap-2" data-testid="demo-presets">
-              {demoWorkloadPresetIds.map((presetId) => (
-                <Button
-                  key={presetId}
-                  type="button"
-                  variant="secondary"
-                  size="sm"
-                  disabled={busy || !ready}
-                  data-testid={`demo-${presetId}`}
-                  onClick={() => void importDemo(presetId)}
-                >
-                  {demoWorkloadPresets[presetId].name}
-                </Button>
-              ))}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Start with Complete billing period: 3,600 synthetic calls, sample paid subscriptions
-              and a same-period API comparison.
-            </p>
-          </CardContent>
-        </Card>        </details>
       </div>
 
       {!scanShown ? (
@@ -931,14 +934,14 @@ export function ImportSurface({
                 role="status"
                 data-testid="stored-imports-loading"
               >
-                Looking up local workloads…
+                Looking up saved scans…
               </p>
             ) : importsState === "error" ? (
               <div
                 role="alert"
                 className="flex flex-col items-start gap-2 border-l-2 border-warning pl-3 text-xs"
               >
-                <p>Local workloads could not be read from this browser.</p>
+                <p>Saved scans couldn’t be opened in this browser.</p>
                 <Button
                   type="button"
                   variant="ghost"
@@ -950,7 +953,7 @@ export function ImportSurface({
               </div>
             ) : imports.length === 0 ? (
               <p className="text-xs text-muted-foreground" data-testid="no-stored-imports">
-                No workloads stored yet.
+                No scans saved here yet.
               </p>
             ) : (
               <ul className="flex flex-col divide-y divide-border" data-testid="stored-imports">
@@ -990,11 +993,11 @@ export function ImportSurface({
                         data-testid={`open-import-${entry.id}`}
                         className={`${buttonVariants({ size: "sm" })} min-h-11 sm:min-h-0`}
                       >
-                        Open workload
+                        Open my recap
                       </Link>
                       <Link
                         href={replayHref(entry.id, initialTarget)}
-                        aria-label={`Replay ${entry.label}${imports.length > 1 ? `, workload ${index + 1} of ${imports.length}` : ""}`}
+                        aria-label={`Open ${entry.label}${imports.length > 1 ? `, scan ${index + 1} of ${imports.length}` : ""}`}
                         className={`${buttonVariants({ variant: "secondary", size: "sm" })} min-h-11 justify-center sm:min-h-0`}
                       >
                         Replay
@@ -1004,7 +1007,7 @@ export function ImportSurface({
                         variant="ghost"
                         size="sm"
                         className="min-h-11 sm:min-h-0"
-                        aria-label={`Export ${entry.label}${imports.length > 1 ? `, workload ${index + 1} of ${imports.length}` : ""}`}
+                        aria-label={`Export ${entry.label}${imports.length > 1 ? `, scan ${index + 1} of ${imports.length}` : ""}`}
                         onClick={() => void exportWorkload(entry.id)}
                       >
                         Export
@@ -1098,10 +1101,7 @@ function ClearAllControl({ count, onConfirm }: { count: number; onConfirm: () =>
       data-testid="clear-local-data-confirmation"
     >
       <span className="basis-full text-foreground">
-        Delete{" "}
-        {count === 1
-          ? "the saved workload"
-          : `all ${count.toLocaleString("en-US")} saved workloads`}{" "}
+        Delete {count === 1 ? "the saved scan" : `all ${count.toLocaleString("en-US")} saved scans`}{" "}
         and remembered folders from this browser? This cannot be undone.
       </span>
       <Button
@@ -1124,7 +1124,7 @@ function ClearAllControl({ count, onConfirm }: { count: number; onConfirm: () =>
         className="min-h-11 sm:min-h-0"
         onClick={() => setAsking(false)}
       >
-        Keep my workloads
+        Keep my scans
       </Button>
     </fieldset>
   );
@@ -1185,7 +1185,7 @@ export function ImportSummaryGrid({
         {summary.tokens.buckets.reasoningTokens > 0 ? (
           <p>Reasoning: {formatTokens(summary.tokens.buckets.reasoningTokens)}</p>
         ) : null}
-        <p className="tabular-nums">Exact known tokens: {exactTokens}</p>
+        <p className="tabular-nums">Reported tokens: {exactTokens}</p>
       </div>
 
       <details className="border-t border-border pt-4" data-testid="import-sources-details">

@@ -489,7 +489,7 @@ export function RecapStory({
           <Heading
             number="06 / RHYTHM"
             title="Your hours have a signature."
-            note={`Usage records · ${recap.timeZone}`}
+            note="Requests · your local time"
           />
           <div
             className="recap-hour-heatmap"

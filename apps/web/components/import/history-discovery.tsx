@@ -54,7 +54,7 @@ import {
  * location. The user drops their home folder (or a tool folder) on the
  * machine; discovery asks that folder for each registered location by name and
  * reports what is really there. Nothing is parsed until the user picks what to
- * import and presses Build my workload; the scan instrument then takes over
+ * import and presses Make my recap; the scan instrument then takes over
  * with the same histories.
  *
  * Linked, WSL, relocated and external histories go through the folder chooser,
@@ -636,7 +636,7 @@ export function HistoryDiscovery({
                 <p className="sr-find-fine">
                   {saveLocal
                     ? "Only normalized usage is kept, in this browser."
-                    : "The workload stays available until this page reloads."}
+                    : "This scan stays available until this page reloads."}
                 </p>
               )}
             </div>
@@ -646,9 +646,9 @@ export function HistoryDiscovery({
               disabled={disabled || selected.length === 0 || building}
               onClick={() => void build()}
               data-testid="build-workload"
-              aria-label={`Build my workload from ${selected.length} selected ${selected.length === 1 ? "history" : "histories"}`}
+              aria-label={`Make my recap from ${selected.length} selected ${selected.length === 1 ? "history" : "histories"}`}
             >
-              Build my workload →
+              Make my recap →
             </Button>
           </div>
           <div className="sr-find-more">

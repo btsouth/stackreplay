@@ -186,7 +186,6 @@ export function ModelExplorer({
     <div data-model-results>
       <div className="market-section-title">
         <span>Explore models</span>
-
       </div>
       <a href="#published-api-rates" className="market-link">
         Compare published API rates ↓
@@ -235,10 +234,28 @@ export function ModelExplorer({
         </div>
         <div className="catalog-control">
           Sort
-          <CatalogSelect label="Sort" disabled={!ready} value={sort === "featured" ? "featured" : `${sort}:${direction}`} onChange={e=>{const [key,dir]=e.target.value.split(":");changeSort(key as ModelSortKey,dir as SortDirection | undefined);}}>
-            {SORT_OPTIONS.flatMap(([id,label]) => {
-              const directions=sortDirectionLabels(id as ModelSortKey);
-              return directions ? (["ascending","descending"] as const).map(dir=><option key={`${id}:${dir}`} value={`${id}:${dir}`}>{label} · {directions[dir]}</option>) : [<option key={id} value={id}>{label}</option>];
+          <CatalogSelect
+            label="Sort"
+            disabled={!ready}
+            value={sort === "featured" ? "featured" : `${sort}:${direction}`}
+            onChange={(e) => {
+              const [key, dir] = e.target.value.split(":");
+              changeSort(key as ModelSortKey, dir as SortDirection | undefined);
+            }}
+          >
+            {SORT_OPTIONS.flatMap(([id, label]) => {
+              const directions = sortDirectionLabels(id as ModelSortKey);
+              return directions
+                ? (["ascending", "descending"] as const).map((dir) => (
+                    <option key={`${id}:${dir}`} value={`${id}:${dir}`}>
+                      {label} · {directions[dir]}
+                    </option>
+                  ))
+                : [
+                    <option key={id} value={id}>
+                      {label}
+                    </option>,
+                  ];
             })}
           </CatalogSelect>
         </div>

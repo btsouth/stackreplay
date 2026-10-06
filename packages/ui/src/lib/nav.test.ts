@@ -9,7 +9,7 @@ describe("app navigation", () => {
       ["Plans", "/app/plans"],
       ["Settings", "/app/settings"],
     ]);
-    expect(scanAction).toEqual({ label: "Scan history", href: "/app/scan" });
+    expect(scanAction).toEqual({ label: "Scan my history", href: "/app/scan" });
     expect(appNavItems.some((item) => item.href === String(scanAction.href))).toBe(false);
   });
   it("uses exact path segments", () => {

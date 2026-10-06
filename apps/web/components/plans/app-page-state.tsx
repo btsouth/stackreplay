@@ -52,7 +52,7 @@ export function ScanEmptyState({
         description={description}
         actions={
           <Link className={buttonVariants()} href="/app/scan">
-            Scan your AI history
+            Scan my history
           </Link>
         }
       />

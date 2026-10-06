@@ -128,14 +128,20 @@ export function SavedWorkloads() {
     };
   }, []);
   useEffect(() => {
-    let active=true;
+    let active = true;
     async function measure() {
-      for(const record of records ?? []) {
-        try {const bytes=await getWorkerClient().exportImport(record.id);if(active)setSizes(old=>({...old,[record.id]:bytes.byteLength}));} catch {}
+      for (const record of records ?? []) {
+        try {
+          const bytes = await getWorkerClient().exportImport(record.id);
+          if (active) setSizes((old) => ({ ...old, [record.id]: bytes.byteLength }));
+        } catch {}
       }
     }
-    void measure();return()=>{active=false;};
-  },[records]);
+    void measure();
+    return () => {
+      active = false;
+    };
+  }, [records]);
   async function download(record: ImportRecord, save = true) {
     setBusy(record.id);
     setError(undefined);
@@ -207,7 +213,7 @@ export function SavedWorkloads() {
             exported copy.
           </p>
           <Link href="/app/scan" className={buttonVariants()}>
-            Scan your AI history
+            Scan my history
           </Link>
         </div>
       ) : (
