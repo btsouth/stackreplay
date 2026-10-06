@@ -60,6 +60,33 @@ export function TerminalLandscape({
             : t.id === "footer-note" && synthetic
               ? "FICTIONAL SAMPLE · NOT A BILL"
               : t.text;
+        if (t.lines && t.lines.length > 1) {
+          const longest = Math.max(...t.lines.map((line) => line.length));
+          const size = Math.min(t.size, t.width / Math.max(1, longest * 0.5));
+          return (
+            <div
+              key={t.id}
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                position: "absolute",
+                left: t.x,
+                top: t.y,
+                width: t.width,
+                fontFamily: t.font === "sans" ? "Geist Sans" : "Geist Mono",
+                fontSize: size,
+                lineHeight: 1.16,
+                color: t.signal ? signal : t.dim ? dim : fg,
+              }}
+            >
+              {t.lines.map((line) => (
+                <span key={line} style={{ display: "flex" }}>
+                  {line}
+                </span>
+              ))}
+            </div>
+          );
+        }
         const size = Math.min(
           t.size,
           t.width / Math.max(1, text.length * (t.font === "sans" ? 0.56 : 0.6)),

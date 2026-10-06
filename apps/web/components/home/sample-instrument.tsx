@@ -293,7 +293,14 @@ export function SampleInstrument({ recap: r }: { recap: Recap }) {
         note="Landscape, square top models and story. Make one from your history."
         id="share"
       >
-        <TerminalShare recap={r} github={ghTotal} githubDays={github} synthetic previewOnly />
+        <TerminalShare
+          recap={r}
+          github={ghTotal}
+          githubDays={github}
+          headline={sampleInsights[0]?.headline}
+          synthetic
+          previewOnly
+        />
       </Section>
     </>
   );

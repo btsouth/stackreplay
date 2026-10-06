@@ -87,12 +87,12 @@ export function recapInsightCandidates(
     Number.isSafeInteger(top.total) &&
     Number.isSafeInteger(r.total)
   ) {
-    // A lower bound stays true even when a rounded percentage would overstate the share.
+    // The share is floored to a whole percent, so the plain figure never overstates it.
     const share = Number((BigInt(top.total) * 100n) / BigInt(r.total));
     if (share >= 20)
       add(
         "model:leader",
-        `${modelDisplayName(top.id, top.name)} accounted for ${share === 100 ? "" : "at least "}${share}% of your tokens`,
+        `${modelDisplayName(top.id, top.name)} accounted for ${share}% of your tokens`,
         `${share}%`,
         `${compact(top.total)} OF ${compact(r.total)} TOKENS`,
         80 + share / 10,
@@ -121,10 +121,13 @@ export function recapInsightCandidates(
       70 + Math.min(first.size, 10),
     );
 
-  // Monday-Sunday weeks only. Empty complete weeks count toward the usual week.
+  // Monday-Sunday weeks only, and only complete weeks that saw activity. A
+  // run of empty weeks before the history starts must not drag the usual week
+  // down and inflate the ratio.
   const weeks = r.weeks
     .filter((w) => w.date >= r.start && nextDay(w.date, 6) <= r.end)
-    .map((w) => ({ date: w.date, total: Object.values(w.families).reduce((a, b) => a + b, 0) }));
+    .map((w) => ({ date: w.date, total: Object.values(w.families).reduce((a, b) => a + b, 0) }))
+    .filter((week) => week.total > 0);
   if (weeks.length >= 3 && weeks.every((week) => Number.isSafeInteger(week.total))) {
     const values = weeks.map((w) => w.total).sort((a, b) => a - b);
     const median =
@@ -138,9 +141,9 @@ export function recapInsightCandidates(
     if (median > 0 && tenths <= BigInt(Number.MAX_SAFE_INTEGER) && lower >= 1.5)
       add(
         "week:peak",
-        `Your busiest full week (${dateLabel(best.date)}) used at least ${lower.toFixed(1)}x the usual tokens`,
+        `Your busiest full week (${dateLabel(best.date)}) ran ${lower.toFixed(1)}x your usual week`,
         `${lower.toFixed(1)}×`,
-        `USUAL = MEDIAN OF ${weeks.length} FULL WEEKS`,
+        `USUAL = MEDIAN OF ${weeks.length} ACTIVE WEEKS`,
         82,
       );
   }
@@ -215,31 +218,32 @@ export function recapInsightCandidates(
   )
     add(
       "value:cache",
-      `Cache reads saved at least ${dollars(Number(wholeSavings))} at list prices`,
+      `Cache reads saved ${dollars(Number(wholeSavings))} at list prices`,
       dollars(Number(wholeSavings)),
       "ESTIMATE FOR MATCHED CACHE READS",
       90,
     );
   const monthly = decimalRatio(paid?.monthlyUsd);
   const value = decimalRatio(r.usd);
-  const ratio =
+  const tenths =
     monthly && value && monthly.units > 0n && days.length > 0
-      ? (value.units * monthly.scale * 304n) /
+      ? (value.units * monthly.scale * 3040n) /
         (value.scale * monthly.units * BigInt(days.length) * 10n)
       : 0n;
+  const lower = Number(tenths) / 10;
   if (
     paid &&
     monthly &&
     monthly.units > 0n &&
     paid.days === days.length &&
     r.priced > 0 &&
-    ratio <= BigInt(Number.MAX_SAFE_INTEGER) &&
-    ratio >= 2n
+    tenths <= BigInt(Number.MAX_SAFE_INTEGER) &&
+    tenths >= 20n
   )
     add(
       "value:paid",
-      `Your API list-price value was at least ${integer(Number(ratio))}x your plan cost`,
-      `${integer(Number(ratio))}×`,
+      `Your API list-price value was ${lower.toFixed(1)}x your plan cost`,
+      `${lower.toFixed(1)}×`,
       "ESTIMATE · PLAN COST PRORATED OVER THIS PERIOD",
       92,
     );

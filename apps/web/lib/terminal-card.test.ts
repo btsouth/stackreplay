@@ -1,16 +1,21 @@
 import { decodeAnyShareToken, encodeShareTokenV2 } from "@stackreplay/share";
 import { buildArchetypeExport } from "@stackreplay/test-fixtures";
+import { createElement } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
+import { TerminalLandscape } from "../components/share/terminal-landscape";
 import { buildRecap } from "./recap";
 import { terminalShareV2 } from "./share-v2";
 import {
   CARD_SIZES,
   cardLayout,
   cardMetrics,
+  cardTextHeight,
   cardTitle,
   DEFAULT_SELECTIONS,
   largestEmptyHorizontalBand,
   makeCard,
+  wrapCardText,
 } from "./terminal-card";
 
 const recap = buildRecap(
@@ -47,12 +52,75 @@ describe("terminal share privacy boundary", () => {
         models: false,
         peakHour: false,
         paidMultiplier: false,
+        headline: false,
       },
       "light",
       undefined,
       123,
     );
     expect(card).toEqual({ theme: "light", start: recap.start, end: recap.end });
+  });
+  it("prints the chosen headline only when the toggle is on and carries it in the link", async () => {
+    const headline = "Claude Opus 5.5 accounted for 33% of your tokens";
+    const on = makeCard(recap, DEFAULT_SELECTIONS, "dark", undefined, 123, undefined, headline);
+    expect(on.headline).toBe(headline);
+    for (const format of ["landscape", "square", "story"] as const)
+      expect(cardLayout(on, format).texts.some((t) => t.id === "headline")).toBe(true);
+    const decoded = await decodeAnyShareToken(await encodeShareTokenV2(terminalShareV2(on)));
+    expect(decoded.ok).toBe(true);
+    if (decoded.ok) expect(decoded.snapshot).toEqual(terminalShareV2(on));
+    const off = makeCard(
+      recap,
+      { ...DEFAULT_SELECTIONS, headline: false },
+      "dark",
+      undefined,
+      123,
+      undefined,
+      headline,
+    );
+    expect(off.headline).toBeUndefined();
+    for (const format of ["landscape", "square", "story"] as const)
+      expect(cardLayout(off, format).texts.some((t) => t.id === "headline")).toBe(false);
+  });
+  it("wraps a headline to at most two lines without dropping words", () => {
+    const long =
+      "Claude Opus 5.5 accounted for 33% of your tokens and saved $109,765 at list prices";
+    expect(long.length).toBeLessThanOrEqual(90);
+    for (const [format, size] of [
+      ["landscape", 30],
+      ["square", 36],
+      ["story", 44],
+    ] as const) {
+      const lines = wrapCardText(long, CARD_SIZES[format][0] - 112, size);
+      expect(lines.length).toBeLessThanOrEqual(2);
+      expect(lines.join(" ")).toBe(long);
+    }
+  });
+  it("draws the headline into the server share image, and nothing when absent", () => {
+    const headline = "Cache reads saved $109,765 at list prices";
+    const on = makeCard(
+      recap,
+      DEFAULT_SELECTIONS,
+      "dark",
+      undefined,
+      undefined,
+      undefined,
+      headline,
+    );
+    const html = renderToStaticMarkup(createElement(TerminalLandscape, { card: on }));
+    expect(html).toContain(headline);
+    const off = makeCard(
+      recap,
+      { ...DEFAULT_SELECTIONS, headline: false },
+      "dark",
+      undefined,
+      undefined,
+      undefined,
+      headline,
+    );
+    expect(renderToStaticMarkup(createElement(TerminalLandscape, { card: off }))).not.toContain(
+      "Cache reads",
+    );
   });
 });
 
@@ -187,7 +255,7 @@ describe("poster composition", () => {
                 x: t.align === "right" ? t.x - t.width : t.x,
                 y: t.y,
                 width: t.width,
-                height: t.size,
+                height: cardTextHeight(t),
               })),
               ...layout.bars,
               ...layout.activityBars,
@@ -212,7 +280,14 @@ describe("poster composition", () => {
             expect(largestEmptyHorizontalBand(regions, height) / height).toBeLessThan(0.15);
             expect(layout.activityBars.some((b) => b.id.startsWith("token-day-"))).toBe(true);
             expect(layout.activityBars.some((b) => b.id.startsWith("github-day-"))).toBe(connected);
-            expect(layout.texts.some((t) => t.id === "headline")).toBe(withHeadline);
+            const headlineText = layout.texts.find((t) => t.id === "headline");
+            expect(Boolean(headlineText)).toBe(withHeadline);
+            if (headlineText) {
+              const minimum = format === "story" ? 44 : format === "square" ? 36 : 30;
+              expect(headlineText.size).toBeGreaterThanOrEqual(minimum);
+              expect(headlineText.lines?.length ?? 1).toBeLessThanOrEqual(2);
+              expect(headlineText.lines?.join(" ")).toBe(headline);
+            }
           });
   it("measures horizontal gaps after merging overlapping regions and including canvas edges", () => {
     expect(

@@ -52,9 +52,7 @@ describe("period insight facts", () => {
     const r = recap();
     r.models = [model("b", 285), model("a", 285)];
     r.total = 1000;
-    expect(find(r, "model:leader")?.headline).toBe(
-      "Model A accounted for at least 28% of your tokens",
-    );
+    expect(find(r, "model:leader")?.headline).toBe("Model A accounted for 28% of your tokens");
     r.models[1]!.family = "other";
     expect(find(r, "model:leader")?.headline).toContain("Model B");
     r.total = 0;
@@ -65,18 +63,19 @@ describe("period insight facts", () => {
     r.models[0]!.name = "x".repeat(100);
     expect(find(r, "model:leader")).toBeUndefined();
   });
-  it("requires three full weeks, excludes partials and uses a median including empty weeks", () => {
+  it("requires three complete active weeks, excludes partials and ignores empty weeks", () => {
     const r = recap();
     r.weeks = [
-      { date: "2026-08-31", families: { openai: 9000 } },
+      { date: "2026-08-31", families: { openai: 0 } },
       { date: "2026-09-07", families: { openai: 100 } },
       { date: "2026-09-14", families: { openai: 200 } },
       { date: "2026-09-21", families: { openai: 620 } },
       { date: "2026-09-28", families: { openai: 9000 } },
     ];
-    expect(find(r, "week:peak")?.headline).toBe(
-      "Your busiest full week (Sep 21) used at least 3.1x the usual tokens",
-    );
+    expect(find(r, "week:peak")).toMatchObject({
+      headline: "Your busiest full week (Sep 21) ran 3.1x your usual week",
+      detail: "USUAL = MEDIAN OF 3 ACTIVE WEEKS",
+    });
     r.weeks = r.weeks.slice(0, 2);
     expect(find(r, "week:peak")).toBeUndefined();
     r.weeks = [7, 14, 21].map((n) => ({
@@ -86,9 +85,29 @@ describe("period insight facts", () => {
     expect(find(r, "week:peak")).toBeUndefined();
     r.weeks[1]!.families.openai = 100;
     r.weeks[2]!.families.openai = 200;
+    expect(find(r, "week:peak")).toBeUndefined();
+    r.weeks[0]!.families.openai = 50;
     expect(find(r, "week:peak")?.figure).toBe("2.0×");
     r.weeks[0]!.families.openai = 200;
     expect(find(r, "week:peak")).toBeUndefined();
+  });
+  it("uses active weeks only, so leading empty weeks cannot inflate the ratio", () => {
+    const r = recap();
+    r.start = "2026-08-01";
+    r.end = "2026-09-30";
+    r.weeks = [
+      { date: "2026-08-03", families: { openai: 0 } },
+      { date: "2026-08-10", families: { openai: 0 } },
+      { date: "2026-08-17", families: { openai: 0 } },
+      { date: "2026-08-31", families: { openai: 100 } },
+      { date: "2026-09-07", families: { openai: 200 } },
+      { date: "2026-09-21", families: { openai: 620 } },
+    ];
+    // Counting the three empty weeks would halve the median and report 12.4x.
+    expect(find(r, "week:peak")).toMatchObject({
+      headline: "Your busiest full week (Sep 21) ran 3.1x your usual week",
+      detail: "USUAL = MEDIAN OF 3 ACTIVE WEEKS",
+    });
   });
   it("counts midnight through 5 AM exclusively in half-hour zones, skips aggregates", () => {
     for (const timeZone of ["Asia/Kolkata", "Australia/Adelaide"]) {
@@ -137,9 +156,7 @@ describe("period insight facts", () => {
     expect(find(r, "value:cache")).toBeUndefined();
     r.deep!.cacheSavings = "1234.99";
     r.deep!.cacheSavingsRecords = 1;
-    expect(find(r, "value:cache")?.headline).toBe(
-      "Cache reads saved at least $1,234 at list prices",
-    );
+    expect(find(r, "value:cache")?.headline).toBe("Cache reads saved $1,234 at list prices");
     r.deep!.cacheSavings = "1234.99999999999999999999";
     expect(find(r, "value:cache")?.figure).toBe("$1,234");
     r.deep!.cacheSavings = "0";
@@ -149,12 +166,15 @@ describe("period insight facts", () => {
     const paid = { text: "10×", monthlyUsd: "100", accounts: 1, days: 30 };
     expect(recapInsightCandidates(r).some((i) => i.id === "value:paid")).toBe(false);
     expect(
-      recapInsightCandidates(r, undefined, paid).find((i) => i.id === "value:paid")?.figure,
-    ).toBe("10×");
+      recapInsightCandidates(r, undefined, paid).find((i) => i.id === "value:paid"),
+    ).toMatchObject({
+      headline: "Your API list-price value was 10.1x your plan cost",
+      figure: "10.1×",
+    });
     r.usd = "986.8421052631578947368";
     expect(
       recapInsightCandidates(r, undefined, paid).find((i) => i.id === "value:paid")?.figure,
-    ).toBe("9×");
+    ).toBe("9.9×");
     for (const p of [
       { ...paid, monthlyUsd: "0" },
       { ...paid, days: 90 },

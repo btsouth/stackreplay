@@ -135,6 +135,8 @@ export const shareWorkloadV2Schema = z.strictObject({
       peakHour: z.number().int().min(0).max(23).optional(),
       paidMultiplier: z.number().finite().nonnegative().optional(),
       spark: z.array(z.number().int().min(0).max(1000)).max(64).optional(),
+      /** One short headline the sharer chose to print; absent on older links. */
+      headline: z.string().min(1).max(90).optional(),
     })
     .optional(),
   /** Present only for a synthetic demo workload. */
