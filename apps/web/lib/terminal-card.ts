@@ -270,7 +270,8 @@ export function cardLayout(card: PublicCard, format: CardFormat, options: CardRe
   const metrics = cardMetrics(card);
   // Landscape with models: hero left, ranked models right, a full-width chart,
   // then one row of readouts. Without models the readouts take the right half.
-  const wide = landscape && (card.models?.length ?? 0) > 0;
+  const landscapeSpeeds = landscape && (card.speeds?.length ?? (card.speed ? 1 : 0)) > 0;
+  const wide = landscape && ((card.models?.length ?? 0) > 0 || landscapeSpeeds);
   const speeds = card.speeds ?? (card.speed ? [card.speed] : []),
     dense = speeds.length > 0 || metrics.length > 4;
   const heroY = story
@@ -314,8 +315,11 @@ export function cardLayout(card: PublicCard, format: CardFormat, options: CardRe
   });
   // Landscape spends the right half on the readouts; square and story keep the
   // ranked model list beside the hero.
+  // With the speed board selected, landscape gives its right column to speed.
   const models = wide
-    ? (card.models?.slice(0, 4) ?? [])
+    ? landscapeSpeeds
+      ? []
+      : (card.models?.slice(0, 4) ?? [])
     : landscape
       ? []
       : (card.models?.slice(0, 5) ?? []);
@@ -373,6 +377,23 @@ export function cardLayout(card: PublicCard, format: CardFormat, options: CardRe
       color: familyColor(m.family ?? "other")!,
     });
   });
+  if (landscapeSpeeds) {
+    add("speed-heading", "SPEED · MEDIAN TOK/S", modelX, modelY - 42, 20, modelWidth, {
+      dim: true,
+    });
+    speeds.slice(0, 4).forEach((speed, i) => {
+      const y = modelY + i * modelStep;
+      add(`speed-name-${i}`, cardName(speed.id), modelX, y, modelSize, modelWidth - 120, {
+        font: "sans",
+        dim: unresolvedModel(speed.id),
+      });
+      add(`speed-value-${i}`, speed.median.toFixed(1), modelX + modelWidth, y, modelSize, 100, {
+        align: "right",
+        dim: true,
+        tight: true,
+      });
+    });
+  }
   let statsBottom = 0;
   const footerY = h - (story ? 68 : 44);
   // Wide landscape: readouts in one row (two if many are chosen) above the footer.
@@ -454,30 +475,41 @@ export function cardLayout(card: PublicCard, format: CardFormat, options: CardRe
   const tokenSeries = card.spark ?? [],
     githubSeries = card.github !== undefined ? (card.githubSpark ?? []) : [];
   const connected = githubSeries.length > 0;
-  const lastModelBottom = models.length ? modelY + (models.length - 1) * modelStep + 36 : 0;
+  const rightRows = landscapeSpeeds ? Math.min(4, speeds.length) : models.length;
+  const lastModelBottom = rightRows ? modelY + (rightRows - 1) * modelStep + 36 : 0;
   const activityY = wide
     ? Math.max(heroY + heroSize + 48, lastModelBottom + 16)
     : landscape
       ? 380
-    : story
-      ? Math.max(
-          hasHeadline ? (speeds.length ? 1550 : 1560) : speeds.length ? 1630 : 1560,
-          statsBottom + 24,
-        )
-      : square
-        ? speeds.length
-          ? 858
-          : 680
-        : hasHeadline
-          ? 406
-          : 348;
+      : story
+        ? Math.max(
+            hasHeadline ? (speeds.length ? 1550 : 1560) : speeds.length ? 1630 : 1560,
+            statsBottom + 24,
+          )
+        : square
+          ? speeds.length
+            ? 858
+            : 680
+          : hasHeadline
+            ? 406
+            : 348;
   const chartWidth = landscape && !wide ? 620 : width;
   const chartTop = wide
     ? activityY + 30
     : landscape
       ? 404
       : activityY + (story ? 46 : square ? 42 : 24);
-  const chartBottom = wide ? statsTop - 22 : landscape ? 520 : story ? 1800 : square ? 976 : hasHeadline ? 510 : 500,
+  const chartBottom = wide
+      ? statsTop - 22
+      : landscape
+        ? 520
+        : story
+          ? 1800
+          : square
+            ? 976
+            : hasHeadline
+              ? 510
+              : 500,
     chartHeight = chartBottom - chartTop;
   const tokenHeight = tokenSeries.length ? (connected ? (chartHeight - 4) * 0.55 : chartHeight) : 0,
     baseline = chartTop + tokenHeight;
@@ -548,7 +580,9 @@ export function cardLayout(card: PublicCard, format: CardFormat, options: CardRe
   );
   add(
     "footer-note",
-    oneLineFooter ? `LIST-PRICE ESTIMATE · ${coverage} · NOT A BILL` : "REPORTED USAGE · NOT A BILL",
+    oneLineFooter
+      ? `LIST-PRICE ESTIMATE · ${coverage} · NOT A BILL`
+      : "REPORTED USAGE · NOT A BILL",
     w - pad,
     footerBrandY,
     story ? 26 : square ? 20 : 18,

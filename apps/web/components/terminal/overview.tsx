@@ -281,8 +281,8 @@ export function Overview({
               <div className="cell">
                 <div className="label">GitHub</div>
                 <p className="connect-copy">
-                  Add your GitHub username to mirror your public contributions under the token
-                  bars and see how the two line up.
+                  Add your GitHub username to mirror your public contributions under the token bars
+                  and see how the two line up.
                 </p>
                 <form
                   className="connect"
@@ -308,29 +308,26 @@ export function Overview({
               </div>
             </div>
           ) : (
-          <div className="actside">
-            <Readout
-              label="GitHub contributions"
-              value={integer(activity.contributions)}
-            />
-            <Readout
-              label="Tokens per contribution"
-              value={
-                activity.tokensPerContribution ? compact(activity.tokensPerContribution) : "None"
-              }
-            />
-            <Readout
-              label="Days with AI and GitHub"
-              value={activity.longestJointStreak}
-              unit="days"
-              note="LONGEST RUN"
-            />
-            <Readout
-              label="Most GitHub contributions in a day"
-              value={activity.bestDay ? integer(activity.bestDay.count) : "None"}
-              note={activity.bestDay ? dateLabel(activity.bestDay.date).toUpperCase() : undefined}
-            />
-          </div>
+            <div className="actside">
+              <Readout label="GitHub contributions" value={integer(activity.contributions)} />
+              <Readout
+                label="Tokens per contribution"
+                value={
+                  activity.tokensPerContribution ? compact(activity.tokensPerContribution) : "None"
+                }
+              />
+              <Readout
+                label="Days with AI and GitHub"
+                value={activity.longestJointStreak}
+                unit="days"
+                note="LONGEST RUN"
+              />
+              <Readout
+                label="Most GitHub contributions in a day"
+                value={activity.bestDay ? integer(activity.bestDay.count) : "None"}
+                note={activity.bestDay ? dateLabel(activity.bestDay.date).toUpperCase() : undefined}
+              />
+            </div>
           )}
         </div>
       </Section>

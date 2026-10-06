@@ -234,6 +234,33 @@ export function ModelExplorer({
             <option value="long-context">1M+ input / context</option>
           </CatalogSelect>
         </div>
+        <div className="catalog-control">
+          Sort
+          <CatalogSelect
+            label="Sort"
+            disabled={!ready}
+            value={sort === "featured" ? "featured" : `${sort}:${direction}`}
+            onChange={(e) => {
+              const [key, dir] = e.target.value.split(":");
+              changeSort(key as ModelSortKey, dir as SortDirection | undefined);
+            }}
+          >
+            {SORT_OPTIONS.flatMap(([id, label]) => {
+              const directions = sortDirectionLabels(id as ModelSortKey);
+              return directions
+                ? (["ascending", "descending"] as const).map((dir) => (
+                    <option key={`${id}:${dir}`} value={`${id}:${dir}`}>
+                      {label} · {directions[dir]}
+                    </option>
+                  ))
+                : [
+                    <option key={id} value={id}>
+                      {label}
+                    </option>,
+                  ];
+            })}
+          </CatalogSelect>
+        </div>
         <details
           className="market-filters-more"
           open={filtersOpen}
@@ -241,33 +268,6 @@ export function ModelExplorer({
         >
           <summary>More filters</summary>
           <div className="market-filters-more-body">
-            <div className="catalog-control">
-              Sort
-              <CatalogSelect
-                label="Sort"
-                disabled={!ready}
-                value={sort === "featured" ? "featured" : `${sort}:${direction}`}
-                onChange={(e) => {
-                  const [key, dir] = e.target.value.split(":");
-                  changeSort(key as ModelSortKey, dir as SortDirection | undefined);
-                }}
-              >
-                {SORT_OPTIONS.flatMap(([id, label]) => {
-                  const directions = sortDirectionLabels(id as ModelSortKey);
-                  return directions
-                    ? (["ascending", "descending"] as const).map((dir) => (
-                        <option key={`${id}:${dir}`} value={`${id}:${dir}`}>
-                          {label} · {directions[dir]}
-                        </option>
-                      ))
-                    : [
-                        <option key={id} value={id}>
-                          {label}
-                        </option>,
-                      ];
-                })}
-              </CatalogSelect>
-            </div>
             <fieldset className="market-filter-checks">
               <legend>Access</legend>
               <label>

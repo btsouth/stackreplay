@@ -875,9 +875,6 @@
     font-size: 30px;
     margin: 6px 0 10px;
   }
-  .public-terminal .market-section-title {
-    display: none;
-  }
   .public-terminal .market-filters {
     padding: 12px 14px;
     gap: 10px 12px;

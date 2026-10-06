@@ -179,13 +179,9 @@ describe("speed board compatibility", () => {
     for (const format of ["landscape", "square", "story"] as const) {
       const texts = cardLayout(card, format).texts;
       expect(texts.find((t) => t.id === "hero")?.text).toBe("AI CODING");
-      if (format === "landscape") {
-        // Landscape keeps a sparse composition: no model or speed list.
-        expect(texts.some((t) => t.id.startsWith("speed-"))).toBe(false);
-      } else {
-        expect(texts.find((t) => t.id === "speed-name-0")?.text).toBe("Claude Opus 5.5");
-        expect(texts.find((t) => t.id === "speed-value-0")?.text).toBe("87.1");
-      }
+      // Speed only ever appears as the opt-in list, never as the hero.
+      expect(texts.find((t) => t.id === "speed-name-0")?.text).toBe("Claude Opus 5.5");
+      expect(texts.find((t) => t.id === "speed-value-0")?.text).toBe("87.1");
     }
   });
   it("roundtrips the complete ranked board only with an explicit opt-in", async () => {

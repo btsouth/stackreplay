@@ -62,10 +62,10 @@ export function ReplayHomepage() {
               <dd>A Web Worker in your browser counts your history on this device.</dd>
             </div>
             <div className="cell">
-              <dt className="label">LEAVES ONLY BY CHOICE</dt>
+              <dt className="label">WHAT LEAVES</dt>
               <dd>
-                Raw logs stay here. Site assets and page analytics use the network; GitHub lookup
-                and aggregate sharing happen when you choose them.
+                Nothing from your logs. A share link uploads only your card's numbers, GitHub gets
+                only your username, and the site counts page visits with Cloudflare Web Analytics.
               </dd>
             </div>
           </dl>

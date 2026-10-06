@@ -43,7 +43,7 @@ test("home explains the local scan and optional sharing", async ({ page }) => {
   await page.goto("/");
   await expect(page.locator("main")).toContainText(/your logs never leave this browser/i);
   await expect(page.locator("main")).toContainText(
-    "Nothing, unless you create a share link or connect a GitHub username",
+    "Nothing from your logs. A share link uploads only your card's numbers",
   );
   await page.goto("/methodology");
   await expect(page.getByRole("heading", { level: 2 }).first()).toHaveText("The files you choose.");

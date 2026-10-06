@@ -2941,3 +2941,9 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* A disabled quiet link stays readable while the scanner gets ready. */
+.terminal .app-scan .sr-find-link:disabled {
+  opacity: 1;
+  color: var(--dim);
+}
