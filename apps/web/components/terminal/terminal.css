@@ -2953,3 +2953,15 @@
   opacity: 1;
   color: var(--dim);
 }
+
+/* Side readouts scale with their own cell, so long figures never touch the edge. */
+.terminal :is(.costside, .rside, .hero .side, .actside, .sins) .cell {
+  container-type: inline-size;
+}
+.terminal :is(.costside, .rside, .hero .side, .actside, .sins) .kv .v {
+  font-size: clamp(18px, 14cqi, var(--kv-max, 34px));
+  overflow-wrap: anywhere;
+}
+.terminal .costside .kv .v {
+  --kv-max: 28px;
+}
