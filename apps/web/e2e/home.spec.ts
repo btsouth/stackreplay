@@ -56,6 +56,7 @@ test("reduced motion shows completed stats with no animations or tilt", async ({
 });
 test("sample cards download all three real renderer sizes", async ({ page }) => {
   await page.goto("/");
+  await expect(page.getByRole("button", { name: "Toggle theme" })).toBeEnabled();
   for (const [name, size] of [
     ["Download landscape PNG", [1200, 630]],
     ["Download square PNG", [1080, 1080]],
