@@ -136,13 +136,20 @@ test("all card formats measure non-overlapping text with every stat selected", a
     .getByTestId("import-file-input")
     .setInputFiles({ ...fixture, buffer: Buffer.from(JSON.stringify(timed)) });
   await expect(page.getByTestId("recap-ready")).toBeVisible();
+  await expect(page.getByRole("button", { name: "SPEED BOARD", exact: true })).toHaveAttribute(
+    "aria-pressed",
+    "false",
+  );
   await page.getByRole("radio", { name: "All time" }).check();
   await page.getByRole("textbox", { name: "GitHub username" }).fill("btsouth");
   await page.getByRole("button", { name: "Connect", exact: true }).click();
   await expect(page.getByRole("button", { name: "Disconnect", exact: true })).toBeVisible();
   await expect(page.getByTestId("recap-paid")).toBeVisible();
-  for (const label of ["STREAK", "TOP MODELS", "PEAK HOUR", "WHAT YOU PAID"])
-    await page.getByRole("button", { name: label, exact: true }).click();
+  for (const button of await page
+    .getByRole("group", { name: "Card stats" })
+    .getByRole("button")
+    .all())
+    if ((await button.getAttribute("aria-pressed")) === "false") await button.click();
   await expect
     .poll(() =>
       page
@@ -152,12 +159,23 @@ test("all card formats measure non-overlapping text with every stat selected", a
             (n) =>
               n instanceof HTMLCanvasElement &&
               JSON.parse(n.dataset.textBoxes ?? "[]").some(
-                (b: { id: string }) => b.id === "model-name-0",
+                (b: { id: string }) => b.id === "speed-name-0",
               ),
           ),
         ),
     )
     .toBe(true);
+  const speedCount = await page.locator(".srow").count();
+  expect(speedCount).toBeGreaterThan(0);
+  for (const canvas of await page.locator(".card-canvas").all())
+    expect(
+      await canvas.evaluate(
+        (n) =>
+          JSON.parse((n as HTMLCanvasElement).dataset.textBoxes ?? "[]").filter(
+            (b: { id: string }) => b.id.startsWith("speed-name-"),
+          ).length,
+      ),
+    ).toBe(speedCount);
   const faults = await page.locator("canvas").evaluateAll((nodes) =>
     nodes.flatMap((n) => {
       const canvas = n as HTMLCanvasElement;
@@ -169,6 +187,9 @@ test("all card formats measure non-overlapping text with every stat selected", a
         height: number;
       }[];
       const faults: string[] = [];
+      // Use measured glyph and data-bar bounds, excluding the decorative background grid.
+      if (Number(canvas.dataset.emptyBand) / canvas.height >= 0.15)
+        faults.push(`${canvas.width}: empty horizontal band exceeds 15%`);
       for (let i = 0; i < boxes.length; i++) {
         const a = boxes[i]!;
         if (

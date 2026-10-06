@@ -662,6 +662,7 @@ export function Overview({
           recap={r}
           paid={paid}
           github={activity?.contributions}
+          githubDays={ghDays}
           synthetic={record && isSyntheticWorkload(record)}
         />
       </Section>

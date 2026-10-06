@@ -288,10 +288,10 @@ export function SampleInstrument({ recap: r }: { recap: Recap }) {
       <Section
         number="05"
         title="Made to share"
-        note="Landscape, square speed board and story. Make one from your history."
+        note="Landscape, square top models and story. Make one from your history."
         id="share"
       >
-        <TerminalShare recap={r} github={ghTotal} synthetic previewOnly />
+        <TerminalShare recap={r} github={ghTotal} githubDays={github} synthetic previewOnly />
       </Section>
     </>
   );

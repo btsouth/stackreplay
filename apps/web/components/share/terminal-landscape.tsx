@@ -14,7 +14,7 @@ export function TerminalLandscape({
     dim = dark ? "#8d9691" : "#5c625e",
     signal = dark ? "#ff6a1f" : "#e24e00";
   const layout = cardLayout(card, "landscape");
-  const spark = card.spark?.map((value, slot) => ({ value, slot }));
+
   return (
     <div
       style={{
@@ -39,21 +39,20 @@ export function TerminalLandscape({
           background: signal,
         }}
       />
-      {layout.spark &&
-        spark?.map(({ value: v, slot: i }) => (
-          <div
-            key={i}
-            style={{
-              display: "flex",
-              position: "absolute",
-              left: 56 + i * (1088 / card.spark!.length),
-              top: 390 - Math.max(2, (v / 1000) * 72),
-              width: (1088 / card.spark!.length) * 0.7,
-              height: Math.max(2, (v / 1000) * 72),
-              background: signal,
-            }}
-          />
-        ))}
+      {[...layout.bars, ...layout.activityBars].map((bar) => (
+        <div
+          key={bar.id}
+          style={{
+            display: "flex",
+            position: "absolute",
+            left: bar.x,
+            top: bar.y,
+            width: bar.width,
+            height: bar.height,
+            background: bar.color,
+          }}
+        />
+      ))}
       {layout.texts.map((t) => {
         const text =
           t.id === "period" && legacy

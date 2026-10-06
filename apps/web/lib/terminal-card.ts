@@ -4,6 +4,7 @@ import {
   compact,
   dateLabel,
   dollars,
+  familyColor,
   modelDisplayName,
   presentation,
   unresolvedModel,
@@ -23,10 +24,10 @@ export type CardSelections = Record<CardToggle, boolean>;
 export const DEFAULT_SELECTIONS: CardSelections = {
   tokens: true,
   usd: true,
-  speed: true,
+  speed: false,
   github: true,
-  streak: false,
-  models: false,
+  streak: true,
+  models: true,
   peakHour: false,
   paidMultiplier: false,
 };
@@ -42,11 +43,12 @@ export function makeCard(
   theme: "dark" | "light",
   paid?: PaidFigure,
   github?: number,
+  githubDays?: ReadonlyMap<string, number>,
 ): PublicCard {
   const p = presentation(r),
-    work = p.workhorse,
     top = p.top.slice(0, 5);
   const max = Math.max(1, ...p.days.map((d) => d.total));
+  const githubMax = Math.max(1, ...p.days.map((d) => githubDays?.get(d.date) ?? 0));
   const step = Math.max(1, Math.ceil(p.days.length / 64));
   return {
     theme,
@@ -61,14 +63,25 @@ export function makeCard(
         }
       : {}),
     ...(selected.usd && r.priced ? { usd: r.usd } : {}),
-    ...(selected.speed && work && top.some((m) => m.id === work.id)
-      ? { speed: { id: work.id, median: work.median, replies: work.n } }
-      : selected.speed && work && r.models.some((m) => m.id === work.id && m.family !== "other")
-        ? { speed: { id: work.id, median: work.median, replies: work.n } }
-        : {}),
-    ...(selected.github && github !== undefined ? { github } : {}),
+    ...(selected.speed && p.speeds.length
+      ? { speeds: p.speeds.map((m) => ({ id: m.id, median: m.median })) }
+      : {}),
+    ...(selected.github && github !== undefined
+      ? {
+          github,
+          ...(githubDays
+            ? {
+                githubSpark: p.days
+                  .filter((_, i) => i % step === 0)
+                  .map((d) => Math.round(((githubDays.get(d.date) ?? 0) / githubMax) * 1000)),
+              }
+            : {}),
+        }
+      : {}),
     ...(selected.streak ? { streak: r.longestStreak } : {}),
-    ...(selected.models ? { models: top.map((m) => ({ id: m.id, tokenCount: m.total })) } : {}),
+    ...(selected.models
+      ? { models: top.map((m) => ({ id: m.id, tokenCount: m.total, family: m.family })) }
+      : {}),
     ...(selected.peakHour ? { peakHour: p.peakHour } : {}),
     ...(selected.paidMultiplier && paid
       ? { paidMultiplier: Number(paid.text.replace("×", "")) }
@@ -81,14 +94,6 @@ export function cardName(id: string): string {
 export function cardMetrics(card: PublicCard) {
   return [
     ...(card.usd !== undefined ? [{ label: "API VALUE", value: dollars(card.usd) }] : []),
-    ...(card.speed
-      ? [
-          {
-            label: `${cardName(card.speed.id).toUpperCase()} SPEED`,
-            value: `${card.speed.median.toFixed(1)} tok/s`,
-          },
-        ]
-      : []),
     ...(card.github !== undefined
       ? [{ label: "CONTRIBUTIONS", value: card.github.toLocaleString("en-US") }]
       : []),
@@ -106,11 +111,9 @@ export function cardMetrics(card: PublicCard) {
 export function cardTitle(card: PublicCard) {
   return card.totalTokens !== undefined
     ? compact(card.totalTokens)
-    : card.speed
-      ? `${card.speed.median.toFixed(1)} tok/s`
-      : card.usd !== undefined
-        ? dollars(card.usd)
-        : "AI CODING";
+    : card.usd !== undefined
+      ? dollars(card.usd)
+      : "AI CODING";
 }
 export function cardPeriod(card: PublicCard) {
   return `${dateLabel(card.start).toUpperCase()} to ${dateLabel(card.end, true).toUpperCase()}`;
@@ -135,18 +138,38 @@ export interface CardTextBox {
   width: number;
   height: number;
 }
-/** Explicit, bounded regions are shared by canvas and the public image renderer. */
-export function cardLayout(
-  card: PublicCard,
-  format: CardFormat,
-  speeds?: { name: string; median: number }[],
+export interface CardRenderOptions {
+  /** One line supplied by the caller; absent until the headline toggle is available. */
+  headline?: string;
+}
+export interface CardBar extends CardTextBox {
+  color: string;
+}
+/** Largest gap between actual content bounds; decorative backgrounds do not count. */
+export function largestEmptyHorizontalBand(
+  regions: Pick<CardTextBox, "y" | "height">[],
+  height: number,
 ) {
+  let bottom = 0,
+    largest = 0;
+  for (const region of [...regions].sort((a, b) => a.y - b.y)) {
+    const top = Math.max(0, Math.min(height, region.y));
+    largest = Math.max(largest, top - bottom);
+    bottom = Math.max(bottom, Math.min(height, region.y + region.height));
+  }
+  return Math.max(largest, height - bottom);
+}
+/** Explicit, bounded regions shared by canvas and the public image renderer. */
+export function cardLayout(card: PublicCard, format: CardFormat, options: CardRenderOptions = {}) {
   const [w, h] = CARD_SIZES[format];
   const story = format === "story",
     square = format === "square",
-    pad = 56,
+    landscape = !story && !square;
+  const pad = 56,
     width = w - pad * 2;
-  const texts: CardText[] = [];
+  const texts: CardText[] = [],
+    bars: CardBar[] = [],
+    activityBars: CardBar[] = [];
   const add = (
     id: string,
     text: string,
@@ -166,77 +189,210 @@ export function cardLayout(
     story ? width : width - 380,
     { dim: true, align: story ? "left" : "right" },
   );
-  const board = square && card.speed && speeds?.length;
-  const title = square && card.speed ? card.speed.median.toFixed(1) : cardTitle(card);
-  add("hero", title, pad, story ? 230 : square ? 140 : 104, story ? 260 : 156, width, {
-    tight: true,
-  });
+  if (options.headline?.trim())
+    add(
+      "headline",
+      options.headline.trim(),
+      pad,
+      story ? 178 : 80,
+      story ? 26 : square ? 20 : 18,
+      width,
+      { font: "sans" },
+    );
+  const metrics = cardMetrics(card);
+  const speeds = card.speeds ?? (card.speed ? [card.speed] : []),
+    dense = speeds.length > 0 || metrics.length > 4;
+  const heroY = story
+    ? options.headline
+      ? 236
+      : 210
+    : square
+      ? 138
+      : options.headline
+        ? 118
+        : 100;
+  add(
+    "hero",
+    cardTitle(card),
+    pad,
+    heroY,
+    story ? 260 : square ? 156 : 144,
+    story ? width : square ? 490 : 600,
+    { tight: true },
+  );
   add(
     "caption",
-    square && card.speed
-      ? `TOK/S · ${cardName(card.speed.id).toUpperCase()}`
-      : card.totalTokens !== undefined
-        ? "TOKENS OF AI CODING"
-        : "YOUR AI CODING",
+    card.totalTokens !== undefined ? "TOKENS OF AI CODING" : "YOUR AI CODING",
     pad,
-    story ? 520 : square ? 316 : 278,
-    story ? 30 : 22,
-    width,
+    story ? heroY + 282 : square ? 318 : 270,
+    story ? 30 : square ? 22 : 20,
+    story ? width : square ? 490 : 600,
     { dim: true },
   );
-  const metrics = board
-    ? [
-        ...(card.totalTokens !== undefined
-          ? [{ label: "TOTAL TOKENS", value: compact(card.totalTokens) }]
-          : []),
-        ...cardMetrics(card).filter((m) => !m.label.endsWith(" SPEED")),
-      ]
-    : cardMetrics(card);
-  const columns = story ? 2 : 3,
-    step = story ? 188 : square ? 92 : 80;
-  const metricY = story ? 650 : square ? (board ? 680 : 460) : 430;
-  metrics.slice(0, 6).forEach((m, i) => {
-    const x = pad + ((i % columns) * width) / columns,
-      y = metricY + Math.floor(i / columns) * step,
-      cellWidth = width / columns - 28;
-    add(`stat-${i}`, m.value, x, y, story ? 72 : 32, cellWidth, { tight: true });
-    add(`label-${i}`, m.label, x, y + (story ? 88 : 42), story ? 24 : 14, cellWidth, { dim: true });
+  const models = card.models?.slice(0, 5) ?? [];
+  const modelX = landscape ? 716 : square ? 600 : pad;
+  const modelWidth = landscape ? 428 : square ? 424 : width;
+  const modelY = story ? (dense ? 638 : 674) : square ? 182 : 140;
+  const modelStep = story ? (dense ? 84 : 110) : square ? 58 : 43;
+  const modelSize = story ? (dense ? 40 : 44) : square ? 24 : 20;
+  if (models.length)
+    add(
+      "models-heading",
+      "TOP MODELS",
+      modelX,
+      story ? modelY - 56 : modelY - 42,
+      story ? 24 : 16,
+      modelWidth,
+      { dim: true },
+    );
+  const total = card.totalTokens ?? models.reduce((sum, m) => sum + m.tokenCount, 0);
+  models.forEach((m, i) => {
+    const y = modelY + i * modelStep,
+      valueWidth = story ? 180 : square ? 100 : 80;
+    add(
+      `model-name-${i}`,
+      `${i + 1}. ${cardName(m.id)}`,
+      modelX,
+      y,
+      modelSize,
+      modelWidth - valueWidth - 20,
+      { font: "sans", dim: unresolvedModel(m.id) },
+    );
+    add(`model-value-${i}`, compact(m.tokenCount), modelX + modelWidth, y, modelSize, valueWidth, {
+      align: "right",
+      dim: true,
+      tight: true,
+    });
+    bars.push({
+      id: `model-bar-${i}`,
+      x: modelX,
+      y: y + (story ? 60 : square ? 36 : 28),
+      width: modelWidth * Math.min(1, m.tokenCount / Math.max(1, total)),
+      height: story ? 8 : 5,
+      color: familyColor(m.family ?? "other")!,
+    });
   });
-  if (board)
-    speeds!.slice(0, 5).forEach((s, i) => {
-      add(`speed-name-${i}`, s.name, pad, 405 + i * 48, 24, width - 150, { font: "sans" });
-      add(`speed-value-${i}`, s.median.toFixed(1), w - pad, 405 + i * 48, 28, 130, {
+  const columns = story ? 2 : Math.max(1, metrics.length);
+  const metricY = story ? (dense ? 1070 : 1270) : square ? 520 : 514;
+  const metricStep = story ? (dense ? 112 : 140) : 0;
+  const metricSize = story ? (dense ? 60 : 72) : square ? (metrics.length > 3 ? 36 : 54) : 34;
+  metrics.forEach((m, i) => {
+    const x = pad + ((i % columns) * width) / columns,
+      y = metricY + Math.floor(i / columns) * metricStep;
+    const cellWidth = width / columns - 20;
+    add(`stat-${i}`, m.value, x, y, metricSize, cellWidth, { tight: true });
+    add(
+      `label-${i}`,
+      m.label,
+      x,
+      y + metricSize + (story ? 12 : 10),
+      story ? 22 : square ? 16 : 13,
+      cellWidth,
+      { dim: true },
+    );
+  });
+  if (speeds.length) {
+    const headingY = story ? 1412 : square ? 634 : 300;
+    const topY = headingY + (story ? 38 : square ? 32 : 26);
+    const available = story ? 142 : square ? 118 : 78;
+    const cols = 3,
+      rows = Math.ceil(speeds.length / cols);
+    const rowHeight = Math.min(story ? 28 : square ? 26 : 20, available / rows);
+    const size = Math.min(story ? 23 : square ? 20 : 16, rowHeight - 3);
+    const speedWidth = landscape ? 624 : width;
+    add(
+      "speed-heading",
+      "SPEED BOARD · MEDIAN TOK/S",
+      pad,
+      headingY,
+      story ? 22 : square ? 18 : 14,
+      speedWidth,
+      { dim: true },
+    );
+    speeds.forEach((speed, i) => {
+      const x = pad + ((i % cols) * speedWidth) / cols,
+        y = topY + Math.floor(i / cols) * rowHeight;
+      const cellWidth = speedWidth / cols - 18,
+        valueWidth = story ? 62 : square ? 52 : 38;
+      add(`speed-name-${i}`, cardName(speed.id), x, y, size, cellWidth - valueWidth - 8, {
+        font: "sans",
+      });
+      add(`speed-value-${i}`, speed.median.toFixed(1), x + cellWidth, y, size, valueWidth, {
         align: "right",
-        signal: true,
+        dim: true,
         tight: true,
       });
     });
-  const models = card.models?.slice(0, story ? 5 : 3) ?? [];
-  if (models.length)
-    models.forEach((m, i) => {
-      // Landscape models take the sparkline's region, above the stats.
-      const x = format === "landscape" ? pad + (i * width) / 3 : pad;
-      const y = story ? 1470 + i * 64 : square ? 884 + i * 36 : 332;
-      const cellWidth = format === "landscape" ? width / 3 - 24 : width;
+  }
+  // Activity has its own region, including when models and speed are selected.
+  const tokenSeries = card.spark ?? [],
+    githubSeries = card.github !== undefined ? (card.githubSpark ?? []) : [];
+  const connected = githubSeries.length > 0;
+  const activityY = story
+    ? speeds.length
+      ? 1630
+      : 1560
+    : square
+      ? speeds.length
+        ? 800
+        : 658
+      : speeds.length
+        ? 408
+        : 348;
+  const chartTop = activityY + (story ? 46 : square ? 42 : 28);
+  const chartBottom = story ? 1800 : square ? 976 : 490,
+    chartHeight = chartBottom - chartTop;
+  const tokenHeight = tokenSeries.length ? (connected ? chartHeight * 0.67 : chartHeight) : 0,
+    baseline = chartTop + tokenHeight;
+  if (tokenSeries.length || connected) {
+    add(
+      "activity-heading",
+      tokenSeries.length ? "TOKENS / DAY" : "GITHUB / DAY",
+      pad,
+      activityY,
+      story ? 24 : square ? 18 : 14,
+      width / 2,
+      { dim: true },
+    );
+    if (tokenSeries.length && connected)
       add(
-        `model-name-${i}`,
-        cardName(m.id),
-        x,
-        y,
-        story ? 36 : square ? 22 : 20,
-        format === "landscape" ? cellWidth : cellWidth - 210,
-        { font: "sans", dim: unresolvedModel(m.id) },
+        "github-heading",
+        "GITHUB / DAY ↓",
+        w - pad,
+        activityY,
+        story ? 24 : square ? 18 : 14,
+        width / 2,
+        { align: "right", dim: true },
       );
-      add(
-        `model-value-${i}`,
-        compact(m.tokenCount),
-        format === "landscape" ? x : w - pad,
-        format === "landscape" ? y + 32 : y,
-        story ? 36 : square ? 22 : 22,
-        format === "landscape" ? cellWidth : 190,
-        { align: format === "landscape" ? "left" : "right", dim: true, tight: true },
-      );
+  }
+  const signal = card.theme === "dark" ? "#ff6a1f" : "#e24e00";
+  const green = card.theme === "dark" ? "#4ac26b" : "#238636";
+  tokenSeries.forEach((value, i) => {
+    if (!value) return;
+    const slot = width / tokenSeries.length,
+      bh = (value / 1000) * tokenHeight;
+    activityBars.push({
+      id: `token-day-${i}`,
+      x: pad + i * slot,
+      y: baseline - bh,
+      width: slot * 0.7,
+      height: bh,
+      color: signal,
     });
+  });
+  githubSeries.forEach((value, i) => {
+    if (!value) return;
+    const slot = width / githubSeries.length,
+      bh = (value / 1000) * (chartHeight - tokenHeight);
+    activityBars.push({
+      id: `github-day-${i}`,
+      x: pad + i * slot,
+      y: baseline + 3,
+      width: slot * 0.7,
+      height: Math.max(0, bh - 3),
+      color: green,
+    });
+  });
   add("footer-brand", "STACKREPLAY.COM", pad, h - (story ? 68 : 44), story ? 24 : 16, width / 2, {
     dim: true,
   });
@@ -249,11 +405,7 @@ export function cardLayout(
     width / 2,
     { dim: true, align: "right" },
   );
-  const spark =
-    !board && card.spark?.length && !(format === "landscape" && models.length)
-      ? { x: pad, y: story ? 1280 : square ? 370 : 390, width, height: story ? 140 : 72 }
-      : undefined;
-  return { texts, spark, models };
+  return { texts, models, bars, activityBars };
 }
 
 /** Draw and return the actual measured text boxes for the export overlap check. */
@@ -261,7 +413,7 @@ export function drawCard(
   canvas: HTMLCanvasElement,
   card: PublicCard,
   format: CardFormat,
-  speeds?: { name: string; median: number }[],
+  options: CardRenderOptions = {},
 ): CardTextBox[] {
   const [w, h] = CARD_SIZES[format];
   canvas.width = w;
@@ -295,15 +447,10 @@ export function drawCard(
   }
   ctx.fillStyle = signal;
   ctx.fillRect(56, format === "story" ? 69 : 39, 18, 18);
-  const layout = cardLayout(card, format, speeds);
-  if (layout.spark && card.spark) {
-    const s = layout.spark,
-      slot = s.width / card.spark.length;
-    card.spark.forEach((v, i) => {
-      ctx.fillStyle = signal;
-      const bh = Math.max(2, (v / 1000) * s.height);
-      ctx.fillRect(s.x + i * slot, s.y - bh, slot * 0.7, bh);
-    });
+  const layout = cardLayout(card, format, options);
+  for (const bar of [...layout.bars, ...layout.activityBars]) {
+    ctx.fillStyle = bar.color;
+    ctx.fillRect(bar.x, bar.y, bar.width, bar.height);
   }
   const boxes: CardTextBox[] = [];
   ctx.textBaseline = "top";
@@ -343,19 +490,22 @@ export function drawCard(
     });
   }
   canvas.dataset.textBoxes = JSON.stringify(boxes);
+  canvas.dataset.emptyBand = String(
+    largestEmptyHorizontalBand([...boxes, ...layout.bars, ...layout.activityBars], h),
+  );
   return boxes;
 }
 export async function renderTerminalCard(
   card: PublicCard,
   format: CardFormat,
-  speeds?: { name: string; median: number }[],
+  options: CardRenderOptions = {},
 ): Promise<Blob> {
   await document.fonts.ready;
   await document.fonts.load(
     `500 24px ${getComputedStyle(document.documentElement).getPropertyValue("--font-geist-mono")}`,
   );
   const canvas = document.createElement("canvas");
-  drawCard(canvas, card, format, speeds);
+  drawCard(canvas, card, format, options);
   return new Promise((resolve, reject) =>
     canvas.toBlob((b) => (b ? resolve(b) : reject(Error("Image export failed"))), "image/png"),
   );
