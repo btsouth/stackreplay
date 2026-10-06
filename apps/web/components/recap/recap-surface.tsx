@@ -24,6 +24,7 @@ import type { TargetKey } from "@/lib/routes";
 import { recapShareV2 } from "@/lib/share-v2";
 import { getWorkerClient } from "@/lib/worker-client";
 import type { ImportRecord } from "@/lib/worker-protocol";
+import { isSyntheticWorkload } from "@/lib/workload-kind";
 import { PeriodControl } from "./period-control";
 import { RecapShareCard } from "./recap-share-card";
 import { RecapStory } from "./recap-story";
@@ -302,7 +303,16 @@ export function RecapSurface({
                     data-testid="recap-share-create"
                     onClick={async () => {
                       try {
-                        setShareHref(`/s/${await encodeShareTokenV2(recapShareV2(recap))}`);
+                        setShareHref(
+                          `/s/${await encodeShareTokenV2(
+                            recapShareV2(
+                              recap,
+                              imports.some(
+                                (record) => record.id === id && isSyntheticWorkload(record),
+                              ),
+                            ),
+                          )}`,
+                        );
                       } catch {
                         setError("Your share link couldn't be created. Try again.");
                       }

@@ -292,10 +292,11 @@ export function workloadShareV2(
 }
 
 /** A recap link contains only the aggregates printed on the card. Model labels resolve from catalog IDs. */
-export function recapShareV2(recap: import("./recap").Recap): ShareWorkloadV2 {
+export function recapShareV2(recap: import("./recap").Recap, synthetic = false): ShareWorkloadV2 {
   const snapshot: ShareWorkloadV2 = {
     version: 2,
     kind: "workload",
+    ...(synthetic ? { synthetic: true as const } : {}),
     recap: {
       totalTokens: recap.total,
       usd: recap.usd,

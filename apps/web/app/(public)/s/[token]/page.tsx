@@ -96,7 +96,9 @@ export default async function SharePage({ params }: Props) {
         </section>
       )}
       <p className="shared-recap-honesty">
-        Reported usage at published API prices. An estimate, not a bill.
+        {decoded.snapshot.version === 2 && decoded.snapshot.synthetic
+          ? "Fictional sample data at published API prices. An estimate, not a bill."
+          : "Reported usage at published API prices. An estimate, not a bill."}
       </p>
       <details className="premium-calculation">
         <summary>How this is calculated</summary>

@@ -17,4 +17,12 @@ describe("plan explorer", () => {
     expect(max.daysOut).toBeUndefined();
     expect(rows.every((r) => r.share >= 0 && r.share <= 1)).toBe(true);
   });
+  it("opens a requested catalog plan even when it is outside the shortlist", () => {
+    const events = buildDemoExport("billing").events;
+    const recap = buildRecap(events, "all", "2026-10-05T12:00:00Z", "UTC");
+    const requested = buildPlanExplorer(events, recap, {}, ["anthropic-claude-max-20x"]);
+    expect(requested.find((row) => row.id === "anthropic-claude-max-20x")?.name).toBe(
+      "Claude Max 20x",
+    );
+  });
 });

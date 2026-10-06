@@ -44,7 +44,7 @@ test("the model library leads with the coding shortlist but keeps every model di
   page,
 }) => {
   await page.goto("/models");
-  await expectCatalogSelection(page.getByLabel("Order by"), "featured");
+  await expectCatalogSelection(page.getByLabel("Sort"), "featured");
   const rows = page.getByTestId("model-row");
   await expect(rows.nth(0)).toContainText("Claude Opus 5.5");
   await expect(rows.nth(1)).toContainText("GPT-6.1 Sol");
@@ -61,7 +61,7 @@ test("the model library leads with the coding shortlist but keeps every model di
   await page.getByLabel("Find a model, family name or exact alias").fill("Composer 2.5");
   await expect(rows).toHaveCount(1);
   await page.getByLabel("Find a model, family name or exact alias").clear();
-  await selectCatalogOption(page.getByLabel("Order by"), "name");
+  await selectCatalogOption(page.getByLabel("Sort"), "name:ascending");
   await expect(rows.first()).toContainText("Amazon Nova 2 Lite");
 });
 

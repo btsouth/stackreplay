@@ -8,6 +8,7 @@ import { familyColors } from "@/lib/recap";
 import { compactNumber, recapUsd } from "@/lib/recap-card";
 import { developerNames, harnessNames, providerNames } from "@/lib/recap-deep";
 import { useRecapData } from "@/lib/use-recap-data";
+import { isSyntheticWorkload } from "@/lib/workload-kind";
 import "@/components/recap/recap.css";
 import "@/components/plans/explorer.css";
 
@@ -31,7 +32,9 @@ export function StatsSurface({ initialImportId }: { initialImportId?: string | u
     return (
       <div className="recap-page">
         <h1>Your stats</h1>
-        <p role="alert">{data.error}</p>
+        <p role="alert" data-testid="workload-missing">
+          {data.error}
+        </p>
         <a className="recap-button" href="/app/scan">
           Scan my history
         </a>
@@ -179,6 +182,9 @@ export function StatsSurface({ initialImportId }: { initialImportId?: string | u
         </div>
         <PeriodControl value={period} onChange={selectPeriod} />
       </header>
+      {data.record && isSyntheticWorkload(data.record) && (
+        <p className="plan-muted">Fictional demo. These numbers are sample data.</p>
+      )}
       <div className="explorer-stats">
         {[
           [compactNumber(recap.total), "Total tokens"],
@@ -267,17 +273,29 @@ export function StatsSurface({ initialImportId }: { initialImportId?: string | u
                 <span>6 pm</span>
               </div>
               {hours.map((values, day) => (
-                <div key={["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"][day]} className="explorer-hour-row">
+                <div
+                  key={
+                    ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"][
+                      day
+                    ]
+                  }
+                  className="explorer-hour-row"
+                >
                   <span>{["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][day]}</span>
-                  {values.map((n, hour) => (
-                    <div
-                      key={`${["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"][day]} ${hour}:00`}
-                      title={`${["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"][day]}, ${hour}:00: ${n.toLocaleString()} requests`}
-                      style={{
-                        background: `color-mix(in srgb, var(--accent) ${n ? Math.max(15, (100 * n) / maxHour) : 0}%, var(--surface-2))`,
-                      }}
-                    />
-                  ))}
+                  {values
+                    .map((n, hour) => ({
+                      n,
+                      label: `${["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"][day]}, ${hour}:00`,
+                    }))
+                    .map(({ n, label }) => (
+                      <div
+                        key={label}
+                        title={`${label}: ${n.toLocaleString()} requests`}
+                        style={{
+                          background: `color-mix(in srgb, var(--accent) ${n ? Math.max(15, (100 * n) / maxHour) : 0}%, var(--surface-2))`,
+                        }}
+                      />
+                    ))}
                 </div>
               ))}
             </div>
@@ -286,7 +304,8 @@ export function StatsSurface({ initialImportId }: { initialImportId?: string | u
               <DataTable
                 key={tab}
                 label={`${tab} in this period`}
-                rows={all ? rows : rows.slice(0, 10)}
+                rows={rows}
+                rowLimit={all ? undefined : 10}
                 columns={columns}
                 rowKey={(r) => r.id}
                 empty="No activity recorded in this period. Try All time."

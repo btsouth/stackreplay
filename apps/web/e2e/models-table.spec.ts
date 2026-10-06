@@ -169,8 +169,7 @@ for (const theme of ["dark", "light"] as const) {
       await expect(input).toHaveAttribute("aria-sort", "none");
       const contexts = await cellTexts(page, CONTEXT);
       expect(contexts.at(-1)).toContain("Not published");
-      await expectCatalogSelection(page.getByLabel("Order by"), "context");
-      await expectCatalogSelection(page.getByLabel("Direction"), "descending");
+      await expectCatalogSelection(page.getByLabel("Sort"), "context:descending");
     });
 
     test("sorts sourced release dates both ways and preserves the URL", async ({ page }) => {
@@ -178,8 +177,7 @@ for (const theme of ["dark", "light"] as const) {
       const released = page.getByRole("columnheader", { name: "Released", exact: true });
       await released.getByRole("button").click();
       await expect(released).toHaveAttribute("aria-sort", "descending");
-      await expectCatalogSelection(page.getByLabel("Order by"), "releaseDate");
-      await expectCatalogSelection(page.getByLabel("Direction"), "descending");
+      await expectCatalogSelection(page.getByLabel("Sort"), "releaseDate:descending");
       await expect(page).toHaveURL(/[?&]sort=releaseDate(&|$)/u);
       const dates = await cellTexts(page, RELEASED);
       const published = dates.filter((value) => !value.includes("Not recorded"));
@@ -208,17 +206,15 @@ for (const theme of ["dark", "light"] as const) {
       ).toBeVisible();
     });
 
-    test("keeps the direction control and column headers in sync", async ({ page }) => {
+    test("keeps the combined sort control and column headers in sync", async ({ page }) => {
       await openModels(page, "/models?view=table");
-      const direction = page.getByLabel("Direction");
-      await expect(direction).toBeDisabled();
-      await expectCatalogSelection(direction, "fixed");
-      await selectCatalogOption(page.getByLabel("Order by"), "output");
-      await expect(direction).toBeEnabled();
-      await expectCatalogSelection(direction, "ascending");
+      const sort = page.getByLabel("Sort");
+      await expect(sort).toBeEnabled();
+      await expectCatalogSelection(sort, "featured");
+      await selectCatalogOption(sort, "output:ascending");
       const output = page.getByRole("columnheader", { name: "Output $/1M" });
       await expect(output).toHaveAttribute("aria-sort", "ascending");
-      await selectCatalogOption(direction, { label: "High to low" });
+      await selectCatalogOption(sort, "output:descending");
       await expect(output).toHaveAttribute("aria-sort", "descending");
       const published = (await cellTexts(page, OUTPUT))
         .filter((value) => !value.includes("Not published"))
@@ -226,10 +222,15 @@ for (const theme of ["dark", "light"] as const) {
       expect(published).toEqual([...published].sort((a, b) => b - a));
       await output.getByRole("button").click();
       await expect(output).toHaveAttribute("aria-sort", "ascending");
-      await expectCatalogSelection(direction, "ascending");
-      await selectCatalogOption(page.getByLabel("Order by"), "name");
-      await direction.click();
-      await expect(page.getByRole("option")).toHaveText(["A to Z", "Z to A"]);
+      await expectCatalogSelection(sort, "output:ascending");
+      await selectCatalogOption(sort, "name:ascending");
+      await sort.click();
+      await expect(
+        page.getByRole("option", { name: "Model name · A to Z", exact: true }),
+      ).toBeVisible();
+      await expect(
+        page.getByRole("option", { name: "Model name · Z to A", exact: true }),
+      ).toBeVisible();
       await page.keyboard.press("Escape");
     });
 
@@ -265,22 +266,21 @@ for (const theme of ["dark", "light"] as const) {
     test("keeps filters and order in a shareable URL", async ({ page }) => {
       await openModels(page, "/models?view=table&developer=minimax&sort=input&dir=desc&included=1");
       await expectCatalogSelection(page.getByLabel("Developer"), "minimax");
-      await expectCatalogSelection(page.getByLabel("Order by"), "input");
-      await expectCatalogSelection(page.getByLabel("Direction"), "descending");
+      await expectCatalogSelection(page.getByLabel("Sort"), "input:descending");
       await expect(page.getByLabel("Included in a subscription")).toBeChecked();
       await expect(page.getByRole("columnheader", { name: "Input $/1M" })).toHaveAttribute(
         "aria-sort",
         "descending",
       );
       expect((await cellTexts(page, 1)).every((name) => name === "MiniMax")).toBe(true);
-      await selectCatalogOption(page.getByLabel("Order by"), "context");
+      await selectCatalogOption(page.getByLabel("Sort"), "context:descending");
       await expect(page).toHaveURL(/[?&]sort=context(&|$)/u);
       await expect(page).not.toHaveURL(/dir=/u);
       await page.getByRole("radio", { name: "Cards", exact: true }).click();
       await expect(page).not.toHaveURL(/view=/u);
       await selectCatalogOption(page.getByLabel("Developer"), "all");
       await page.getByLabel("Included in a subscription").uncheck();
-      await selectCatalogOption(page.getByLabel("Order by"), "featured");
+      await selectCatalogOption(page.getByLabel("Sort"), "featured");
       await expect(page).toHaveURL(/\/models$/u);
     });
 
@@ -303,7 +303,7 @@ for (const theme of ["dark", "light"] as const) {
       await expect(page.getByLabel("Published API price")).not.toBeChecked();
       await expect(rows(page)).toHaveCount(total);
       await page.getByLabel("Published API price").check();
-      await selectCatalogOption(page.getByLabel("Order by"), "maxOutput");
+      await selectCatalogOption(page.getByLabel("Sort"), "maxOutput:descending");
       await page.getByRole("radio", { name: "Cards", exact: true }).click();
       await expect(page.getByTestId("model-row").first()).toBeVisible();
       await expect(page.getByTestId("model-plan-count").first()).toHaveText(/^In \d+ plans?$/u);
@@ -406,16 +406,16 @@ for (const theme of ["dark", "light"] as const) {
       const input = page.getByRole("columnheader", { name: "Input $/1M" });
       await expect(input).toHaveCount(1);
       await expect(input.getByRole("button")).toBeHidden();
-      await selectCatalogOption(page.getByLabel("Order by"), "input");
-      await selectCatalogOption(page.getByLabel("Direction"), "descending");
+      await selectCatalogOption(page.getByLabel("Sort"), "input:ascending");
+      await selectCatalogOption(page.getByLabel("Sort"), "input:descending");
       await expect(input).toHaveAttribute("aria-sort", "descending");
       const published = (await cellTexts(page, INPUT))
         .filter((value) => !value.includes("Not published"))
         .map((value) => amount(value.replace("Input $/1M", "")));
       expect(published.length).toBeGreaterThan(5);
       expect(published).toEqual([...published].sort((a, b) => b - a));
-      await selectCatalogOption(page.getByLabel("Order by"), "releaseDate");
-      await expectCatalogSelection(page.getByLabel("Direction"), "descending");
+      await selectCatalogOption(page.getByLabel("Sort"), "releaseDate:descending");
+      await expectCatalogSelection(page.getByLabel("Sort"), "releaseDate:descending");
       await expect(first.getByText("Released", { exact: true })).toBeVisible();
       await expect(
         page.getByRole("columnheader", { name: "Released", exact: true }),
@@ -425,8 +425,8 @@ for (const theme of ["dark", "light"] as const) {
         .map((value) => value.replace("Released", "").trim());
       expect(dates).toEqual([...dates].sort().reverse());
       // Return to the numeric sort for the card-layout assertion below.
-      await selectCatalogOption(page.getByLabel("Order by"), "input");
-      await selectCatalogOption(page.getByLabel("Direction"), "descending");
+      await selectCatalogOption(page.getByLabel("Sort"), "input:ascending");
+      await selectCatalogOption(page.getByLabel("Sort"), "input:descending");
       const box = await first.boundingBox();
       expect(box?.width ?? 0).toBeLessThanOrEqual(390);
       await expectNoHorizontalOverflow(page);
@@ -435,7 +435,7 @@ for (const theme of ["dark", "light"] as const) {
       const firstCard = page.getByTestId("model-row").first();
       await expect(firstCard).toContainText("Base API rate · USD / 1M tokens");
       await expect(firstCard).toContainText("Input $/1M");
-      await selectCatalogOption(page.getByLabel("Direction"), "ascending");
+      await selectCatalogOption(page.getByLabel("Sort"), "input:ascending");
       const cardInputs = await page
         .getByTestId("model-row")
         .evaluateAll((cards) =>

@@ -44,19 +44,19 @@ test("a temporary scan remains usable through recap, Stats and Plans", async ({ 
   await expect(page.getByTestId("overview-api-total")).toContainText("$");
   expect(new URL(page.url()).searchParams.get("import")).toBe(id);
   await navigate(page, "Plans");
-  await expect(page.getByTestId("stack-workload-value")).toContainText("3,600", {
-    timeout: 60_000,
-  });
-  await expect(page.getByText("Ready for this visit", { exact: true })).toBeVisible();
-  await expect(page.getByTestId("edit-family-claude")).toBeEnabled();
-  await page
-    .getByRole("navigation", { name: "Your plan tools" })
-    .getByRole("link", { name: "Try a change" })
-    .click();
-  await expect(page.getByTestId("build-own")).toBeVisible();
+  await expect(page.locator(".plan-headline")).toContainText("$3,600", { timeout: 60_000 });
+  await expect(page.getByRole("button", { name: "Save plans", exact: true })).toBeVisible();
+  const alternatives = page.locator("[data-testid^=alternative-]");
+  const optionId = (await alternatives.first().getAttribute("data-testid"))?.replace(
+    "alternative-",
+    "",
+  );
+  await alternatives.first().getByRole("link", { name: "See details", exact: true }).click();
+  await expect(page.getByTestId("plan-detail")).toBeVisible();
+  expect(new URL(page.url()).searchParams.get("detail")).toBe(optionId);
   expect(new URL(page.url()).searchParams.get("import")).toBe(id);
   await page.goBack();
-  await expect(page.getByTestId("my-stack")).toBeVisible();
+  await expect(page.locator(".plan-headline")).toBeVisible();
   await navigate(page, "Settings");
   await expect(page.getByTestId(`settings-scan-${id}`)).toContainText("Temporary, until reload");
   expect(requests).toEqual([]);
@@ -146,8 +146,8 @@ test("Plans names the selected fictional history", async ({ page }) => {
   await page.getByTestId("demo-moderate").click();
   await expect(page.getByTestId("recap-ready")).toBeVisible({ timeout: 60_000 });
   await navigate(page, "Plans");
-  await expect(page.getByTestId("stack-workload")).toContainText("Fictional demo · 900 calls");
-  await expect(page.getByTestId("stack-workload")).not.toContainText("No workload selected");
+  await expect(page.getByTestId("plans-ready")).toContainText("Fictional demo");
+  await expect(page.getByTestId("plans-ready")).not.toContainText("No workload selected");
 });
 
 test("a missing Stats scan is identified even when no other history is saved", async ({ page }) => {
@@ -155,5 +155,5 @@ test("a missing Stats scan is identified even when no other history is saved", a
   await expect(page.getByRole("heading", { name: "Your stats", exact: true })).toBeVisible();
   await expect(page.getByTestId("workload-missing")).toContainText("no longer stored");
   await expect(page.getByTestId("workload-empty")).toHaveCount(0);
-  await expect(page.getByRole("link", { name: "Scan your AI history", exact: true })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Scan my history", exact: true })).toBeVisible();
 });

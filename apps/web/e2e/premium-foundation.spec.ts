@@ -1,6 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 import { buildDemoExport } from "@stackreplay/test-fixtures";
+import { gotoImport } from "./helpers";
 
 for (const [source, destination, section] of [
   ["workload", "stats", undefined],
@@ -32,40 +33,39 @@ for (const [source, destination, section] of [
     expect(url.hash).toBe("#premium-anchor");
     if (section) {
       expect(url.searchParams.get("section")).toBe(section);
-      await expect(
-        page.getByRole("navigation", { name: "Your plan tools" }).getByRole("link", {
-          name: section === "replay" ? "Try a change" : "Compare",
-          exact: true,
-        }),
-      ).toHaveAttribute("aria-current", "page");
     }
     expect(await page.getByRole("main").count()).toBe(1);
   });
 }
 
-test("Plans subviews keep the selected history and browser navigation", async ({ page }) => {
-  await page.goto("/app/plans?import=missing-local&future=preserve-me");
-  const nav = page.getByRole("navigation", { name: "Your plan tools" });
-  await nav.getByRole("link", { name: "Try a change" }).click();
-  await expect(page).toHaveURL(/section=replay/u);
-  await nav.getByRole("link", { name: "Compare", exact: true }).click();
-  await expect(page).toHaveURL(/section=compare/u);
-  expect(new URL(page.url()).searchParams.get("import")).toBe("missing-local");
+test("Plans details and comparison keep the selected history and browser navigation", async ({
+  page,
+}) => {
+  await gotoImport(page);
+  await page.getByTestId("demo-moderate").click();
+  await expect(page.getByTestId("recap-ready")).toBeVisible({ timeout: 60_000 });
+  const id = new URL(page.url()).searchParams.get("import");
+  await page.goto(`/app/plans?import=${id}&period=all&future=preserve-me`);
+  const cards = page.locator("[data-testid^=alternative-]");
+  await expect(cards.first()).toBeVisible({ timeout: 60_000 });
+  await cards.first().getByRole("link", { name: "See details", exact: true }).click();
+  await expect(page.getByTestId("plan-detail")).toBeVisible();
+  expect(new URL(page.url()).searchParams.get("import")).toBe(id);
   expect(new URL(page.url()).searchParams.get("future")).toBe("preserve-me");
   await page.goBack();
-  await expect(nav.getByRole("link", { name: "Try a change" })).toHaveAttribute(
-    "aria-current",
-    "page",
-  );
+  await expect(page.locator(".plan-headline")).toBeVisible();
+  await cards.nth(0).getByRole("checkbox").check();
+  await cards.nth(1).getByRole("checkbox").check();
+  await page.getByRole("link", { name: "Compare 2 plans", exact: true }).click();
+  await expect(page.getByTestId("plans-comparison").locator("article")).toHaveCount(2);
+  await page.goBack();
+  await expect(page.locator(".plan-headline")).toBeVisible();
   await page.goForward();
-  await expect(nav.getByRole("link", { name: "Compare", exact: true })).toHaveAttribute(
-    "aria-current",
-    "page",
-  );
+  await expect(page.getByTestId("plans-comparison").locator("article")).toHaveCount(2);
 });
 
 test("saved and temporary scans keep a path through recap, Stats and Plans", async ({ page }) => {
-  await page.goto("/app/scan");
+  await gotoImport(page);
   await expect(page.getByTestId("intake-surface")).toHaveAttribute("data-ready", "true");
   await page.getByRole("checkbox", { name: "Save this scan in this browser" }).uncheck();
   await page.getByTestId("import-file-input").setInputFiles({
@@ -77,7 +77,7 @@ test("saved and temporary scans keep a path through recap, Stats and Plans", asy
   const id = new URL(page.url()).searchParams.get("import");
   await page.getByRole("link", { name: "Explore your stats" }).click();
   await expect(page).toHaveURL(/\/app\/stats\?import=/u);
-  await expect(page.getByTestId("automatic-workload")).toBeVisible();
+  await expect(page.getByTestId("stats-ready")).toBeVisible();
   // Client links retain the in-memory import. A full page navigation would intentionally discard it.
   if (
     !(await page.getByRole("banner").getByRole("link", { name: "Plans", exact: true }).isVisible())
@@ -87,9 +87,11 @@ test("saved and temporary scans keep a path through recap, Stats and Plans", asy
     .getByRole("link", { name: "Plans", exact: true })
     .filter({ visible: true });
   await destination.click();
-  await expect(page.getByTestId("my-stack")).toBeVisible();
+  await expect(page.getByTestId("plans-ready")).toBeVisible();
   expect(new URL(page.url()).searchParams.get("import")).toBe(id);
-  await expect(page.getByTestId("my-stack")).not.toContainText("That workload is no longer stored");
+  await expect(page.getByTestId("plans-ready")).not.toContainText(
+    "That workload is no longer stored",
+  );
 });
 
 test("design controls support keyboard selection, tab panels and sorting", async ({ page }) => {

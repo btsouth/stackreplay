@@ -127,7 +127,7 @@ test("shared models preserve filters, results and hash through reload and naviga
   await page.goto("/models?view=table&developer=anthropic&sort=input&dir=desc#published-api-rates");
   const path = new URL(page.url()).pathname + new URL(page.url()).search + new URL(page.url()).hash;
   await expectCatalogSelection(page.getByLabel("Developer"), "anthropic");
-  await expectCatalogSelection(page.getByLabel("Order by"), "input");
+  await expectCatalogSelection(page.getByLabel("Sort"), "input:descending");
   const rows = page.getByTestId("model-table-row");
   await expect(rows.first()).toBeVisible();
   const names = await rows.locator("th a").allTextContents();

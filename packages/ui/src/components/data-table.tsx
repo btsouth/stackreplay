@@ -13,12 +13,14 @@ export function DataTable<Row>({
   columns,
   rowKey,
   empty = "No results for these filters.",
+  rowLimit,
 }: {
   label: string;
   rows: readonly Row[];
   columns: readonly DataColumn<Row>[];
   rowKey: (row: Row) => string;
   empty?: string;
+  rowLimit?: number | undefined;
 }) {
   const [sort, setSort] = useState<{ key: string; direction: "ascending" | "descending" }>();
   const selected = columns.find((column) => column.key === sort?.key);
@@ -73,7 +75,7 @@ export function DataTable<Row>({
           </tr>
         </thead>
         <tbody>
-          {sorted.map((row) => (
+          {sorted.slice(0, rowLimit).map((row) => (
             <tr key={rowKey(row)}>
               {columns.map((column) => (
                 <td key={column.key} data-numeric={column.numeric || undefined}>

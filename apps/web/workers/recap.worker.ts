@@ -9,6 +9,7 @@ self.onmessage = (
     now: string;
     timeZone: string;
     counts?: Record<string, number>;
+    requested?: string[];
   }>,
 ) => {
   try {
@@ -31,7 +32,17 @@ self.onmessage = (
       }));
     self.postMessage({
       recap,
-      ...(data.counts ? { options: buildPlanExplorer(payload.events, recap, data.counts) } : {}),
+      ...(data.counts
+        ? {
+            options: buildPlanExplorer(
+              payload.events,
+              recap,
+              data.counts,
+              data.requested,
+              data.now,
+            ),
+          }
+        : {}),
     });
   } catch {
     self.postMessage({ error: "Could not calculate this recap. Try importing the history again." });

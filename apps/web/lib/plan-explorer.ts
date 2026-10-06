@@ -24,6 +24,8 @@ export function buildPlanExplorer(
   events: readonly TextUsageEventV1[],
   recap: Recap,
   counts: Record<string, number>,
+  requested: readonly string[] = [],
+  now?: string,
 ) {
   const catalog = loadBundledCatalog();
   const mapper = createModelMapper(catalog);
@@ -37,7 +39,11 @@ export function buildPlanExplorer(
   const selected = events
     .filter((e) => {
       const date = local(e.occurredAt);
-      return date >= recap.start && date <= recap.end;
+      return (
+        date >= recap.start &&
+        date <= recap.end &&
+        (!now || Date.parse(e.occurredAt) <= Date.parse(now))
+      );
     })
     .map((e) =>
       e.model.canonicalId
@@ -71,7 +77,8 @@ export function buildPlanExplorer(
       ...Object.keys(counts)
         .filter((k) => k.startsWith("plan:"))
         .map((k) => k.slice(5)),
-      ...ranked.slice(0, 6).map((c) => c.id),
+      ...ranked.slice(0, 9).map((c) => c.id),
+      ...requested.filter((id) => catalogPlansAt(recap.rulesAsOf).some((p) => p.id === id)),
     ]),
   ];
   const plans = catalogPlansAt(recap.rulesAsOf);

@@ -25,6 +25,7 @@ import { paidMultiplier, recapPlans } from "@/lib/recap-plans";
 import type { TargetKey } from "@/lib/routes";
 import { type DiscoveryAnswer, discoverStack, initialDiscoveryAnswer } from "@/lib/stack-discovery";
 import { useRecapData } from "@/lib/use-recap-data";
+import { isSyntheticWorkload } from "@/lib/workload-kind";
 import { AppPageSkeleton, ScanEmptyState } from "./app-page-state";
 import "@/components/recap/recap.css";
 import "@/app/my-stack.css";
@@ -40,7 +41,12 @@ export function PlansSurface({ initialImportId }: { initialImportId?: string | u
   const [selected, setSelected] = useState<string[]>([]);
   const [saveError, setSaveError] = useState<string>();
   const counts = useMemo(() => stackCounts(stack), [stack]);
-  const data = useRecapData(initialImportId, counts);
+  const requested = [
+    query.get("target")?.replace(/^plan:/, ""),
+    query.get("detail"),
+    ...(query.get("options")?.split(",") ?? []),
+  ].filter((id): id is string => Boolean(id));
+  const data = useRecapData(initialImportId, counts, requested);
   useEffect(() => {
     const refresh = () => {
       const saved = readStackSubscriptions();
@@ -165,7 +171,7 @@ export function PlansSurface({ initialImportId }: { initialImportId?: string | u
     confirmed && monthly ? paidMultiplier(recap.usd, monthly, recap.days.length) : undefined;
   const alternatives = options.filter((o) => !counts[`plan:${o.id}`]).slice(0, 6);
   const href = (params: Record<string, string>) =>
-    `/app/plans?${new URLSearchParams({ import: data.id ?? "", period: data.period, ...params })}`;
+    `/app/plans?${new URLSearchParams({ ...Object.fromEntries([...query].filter(([key]) => !["detail", "target", "api", "section", "options"].includes(key))), import: data.id ?? "", period: data.period, ...params })}`;
   const Card = ({ option }: { option: PlanOption }) => (
     <article className="plan-alternative" data-testid={`alternative-${option.id}`}>
       <h3>{option.name}</h3>
@@ -181,7 +187,7 @@ export function PlansSurface({ initialImportId }: { initialImportId?: string | u
         <div>
           <dt>Days it would run out</dt>
           <dd>
-            {option.daysOut === undefined ? "Limits aren’t published" : `${option.daysOut} days`}
+            {option.daysOut === undefined ? "Not enough limit evidence" : `${option.daysOut} days`}
           </dd>
         </div>
         <div>
@@ -233,6 +239,9 @@ export function PlansSurface({ initialImportId }: { initialImportId?: string | u
         </div>
         <PeriodControl value={data.period} onChange={data.selectPeriod} />
       </header>
+      {data.record && isSyntheticWorkload(data.record) && (
+        <p className="plan-muted">Fictional demo. These numbers are sample data.</p>
+      )}
       {(detail || comparing) && (
         <Link className="recap-button secondary" href={href({})}>
           Back to your plans
@@ -327,7 +336,7 @@ export function PlansSurface({ initialImportId }: { initialImportId?: string | u
                       </p>
                     </div>
                     <strong>
-                      {t.publishedPrice
+                      {t.publishedPrice?.currency === "USD" && t.publishedPrice.interval === "month"
                         ? `${recapUsd(new Decimal(t.publishedPrice.amount).mul(counts[t.key] ?? 1).toString())}/month`
                         : "Price unreported"}
                     </strong>
@@ -466,7 +475,11 @@ function Usage({ option }: { option: PlanOption }) {
             </p>
           ))}
           {option.daysOut === undefined && (
-            <p>Limits aren’t published, so we can’t say when this plan would run out.</p>
+            <p>
+              {option.limits.some((limit) => limit.uncertain)
+                ? "The available evidence cannot tell us when this plan would run out."
+                : "Limits aren’t published, so we can’t say when this plan would run out."}
+            </p>
           )}
           {option.peak && (
             <p>

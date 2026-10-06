@@ -10,6 +10,7 @@ import type { ImportRecord } from "./worker-protocol";
 export function useRecapData(
   initialImportId?: string | undefined,
   counts?: Record<string, number>,
+  requested: string[] = [],
 ) {
   const router = useRouter();
   const pathname = usePathname();
@@ -20,6 +21,7 @@ export function useRecapData(
   const [recap, setRecap] = useState<Recap>();
   const [options, setOptions] = useState<PlanOption[]>();
   const countsKey = counts ? JSON.stringify(counts) : undefined;
+  const requestedKey = JSON.stringify(requested);
   const [error, setError] = useState<string>();
   const now = useMemo(() => new Date().toISOString(), []);
   const timeZone = useMemo(() => Intl.DateTimeFormat().resolvedOptions().timeZone, []);
@@ -79,7 +81,9 @@ export function useRecapData(
               period,
               now,
               timeZone,
-              ...(countsKey ? { counts: JSON.parse(countsKey) } : {}),
+              ...(countsKey
+                ? { counts: JSON.parse(countsKey), requested: JSON.parse(requestedKey) }
+                : {}),
             },
             [bytes.buffer],
           );
@@ -91,7 +95,7 @@ export function useRecapData(
       active = false;
       worker.terminate();
     };
-  }, [id, period, now, timeZone, countsKey]);
+  }, [id, period, now, timeZone, countsKey, requestedKey]);
   function selectPeriod(value: RecapPeriod) {
     setPeriod(value);
     try {
