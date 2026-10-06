@@ -30,6 +30,10 @@
       "types": "./dist/execution.d.ts",
       "default": "./dist/execution.js"
     },
+    "./execution-selection": {
+      "types": "./dist/execution-selection.d.ts",
+      "default": "./dist/execution-selection.js"
+    },
     "./market": {
       "types": "./dist/decision-market.d.ts",
       "default": "./dist/decision-market.js"
