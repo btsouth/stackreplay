@@ -310,6 +310,16 @@ export function HistoryDiscovery({
         const target = rows.find((row) => row.key === key);
         const run = await discoverPickedDirectory(folder, platform, target?.adapterId);
         setRows((current) => {
+          if (
+            key !== undefined &&
+            run.findings.some(
+              (finding) =>
+                finding.adapterId === target?.adapterId &&
+                (finding.status === "found" || finding.status === "empty"),
+            )
+          ) {
+            return applyChosenFolder(current, run.findings, [], folder.name, key);
+          }
           let next = current;
           for (const finding of run.findings)
             next = mergeFinding(next, finding, folder.name, roots.length === 0, "chooser");
