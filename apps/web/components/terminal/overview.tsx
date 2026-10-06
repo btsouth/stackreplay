@@ -302,7 +302,9 @@ export function Overview({
             </div>
             {p.speeds.map((s) => (
               <div className="srow" key={s.id}>
-                <div className={`sname${unresolvedModel(s.id) ? " dim" : ""}`}>
+                <div
+                  className={`sname${unresolvedModel(s.id, r.models.find((m) => m.id === s.id)?.name) ? " dim" : ""}`}
+                >
                   <i style={{ background: p.colors.get(s.id) }} />
                   {name(s.id)}
                 </div>
@@ -422,7 +424,7 @@ export function Overview({
                     <tr key={m.id}>
                       <td className="num dim">{String(i + 1).padStart(2, "0")}</td>
                       <td data-label="MODEL">
-                        <span className={`mn${unresolvedModel(m.id) ? " dim" : ""}`}>
+                        <span className={`mn${unresolvedModel(m.id, m.name) ? " dim" : ""}`}>
                           <i style={{ background: p.colors.get(m.id) }} />
                           {name(m.id)}
                         </span>
@@ -470,7 +472,7 @@ export function Overview({
                 return (
                   <div className="mobile-model" key={m.id}>
                     <div className="mobile-model-main">
-                      <span className={`mn${unresolvedModel(m.id) ? " dim" : ""}`}>
+                      <span className={`mn${unresolvedModel(m.id, m.name) ? " dim" : ""}`}>
                         <i style={{ background: p.colors.get(m.id) }} />
                         {name(m.id)}
                       </span>
@@ -501,7 +503,7 @@ export function Overview({
               <div className="tail">
                 <span className="label">+ {p.tail.length} more</span>
                 {p.tail.map((m) => (
-                  <span className={`tl${unresolvedModel(m.id) ? " dim" : ""}`} key={m.id}>
+                  <span className={`tl${unresolvedModel(m.id, m.name) ? " dim" : ""}`} key={m.id}>
                     <i style={{ background: p.colors.get(m.id) }} />
                     {name(m.id)}
                     <b>{compact(m.total)}</b>

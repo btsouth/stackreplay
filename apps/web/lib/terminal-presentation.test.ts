@@ -13,6 +13,10 @@ describe("model display names", () => {
     expect(cardName(id)).toBe(label);
     expect(unresolvedModel(id)).toBe(true);
   });
+  it("preserves a supplied catalog name, including an unpriced model", () => {
+    expect(modelDisplayName("gpt-5-6-sol", "Partial model")).toBe("Partial model");
+    expect(unresolvedModel("gpt-5-6-sol", "Partial model")).toBe(false);
+  });
   it("keeps a resolved catalog label prominent", () => {
     expect(modelDisplayName("claude-opus-5-5")).toBe("Claude Opus 5.5");
     expect(unresolvedModel("claude-opus-5-5")).toBe(false);
