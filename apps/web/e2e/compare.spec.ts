@@ -98,10 +98,16 @@ test("a shared comparison never flashes the default pair before it applies", asy
   await page.route(/\.js(\?|$)/u, (route) => route.abort());
   await page.goto("/compare?left=clinepass&right=opencode-go");
   await expect(page.getByTestId("compare-table")).toBeHidden();
-  // If the explorer never hydrates, the default pair comes back instead of staying hidden.
+  // Next serves the static default fallback; Workers resolves the requested plans
+  // on the server. Both must reveal their exact server view if scripts never load.
   await expect(page.getByTestId("compare-table")).toBeVisible({ timeout: 8_000 });
-  await expect(targets(page).nth(0)).toContainText("Claude Max 20x");
-  await expect(targets(page).nth(1)).toContainText("ChatGPT Pro");
+  if (process.env.STACKREPLAY_E2E_RUNTIME === "workers") {
+    await expect(targets(page).nth(0)).toContainText("ClinePass");
+    await expect(targets(page).nth(1)).toContainText("OpenCode Go");
+  } else {
+    await expect(targets(page).nth(0)).toContainText("Claude Max 20x");
+    await expect(targets(page).nth(1)).toContainText("ChatGPT Pro");
+  }
   await page.goto("/compare");
   await expect(page.getByTestId("compare-table")).toBeVisible();
 });
