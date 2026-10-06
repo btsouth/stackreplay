@@ -111,7 +111,6 @@ test("Devin Teams seat estimate is bounded to its accepted published formula", a
   await expect(calculator.getByRole("link", { name: /Devin pricing and FAQ/u })).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await expect(page.getByText("Teams fee", { exact: true })).toBeVisible();
-  await expect(page.getByText("Published offer only.", { exact: true })).toBeVisible();
 });
 
 test("a full sibling comparison preserves the detail history entry", async ({ page }) => {

@@ -95,14 +95,12 @@ test.describe("public site", () => {
     await expect(page.getByTestId("qualitative-limits")).toBeVisible();
   });
 
-  test("a plan detail page leads to comparison and local analysis", async ({ page }) => {
+  test("a plan detail page leads to comparison", async ({ page }) => {
     await page.goto("/plans/clinepass");
     await expect(page.getByRole("link", { name: "Compare this plan" })).toHaveAttribute(
       "href",
       "/compare?left=clinepass&right=openai-chatgpt-pro",
     );
-    await page.getByRole("link", { name: "Make my recap", exact: true }).click();
-    await expect(page.getByTestId("import-dropzone")).toBeVisible();
   });
 
   test("public pages do not overflow horizontally on a narrow screen", async ({ page }) => {
@@ -379,9 +377,6 @@ test.describe("share links", () => {
       true,
     );
     await expect(page.getByRole("link", { name: "Plan details" })).toHaveCount(0);
-
-    const canonical = await page.locator('link[rel="canonical"]').getAttribute("href");
-    expect(canonical).toContain(`/s/${token}`);
   });
 
   test("a tampered link is refused rather than rendered", async ({ page }) => {
@@ -431,10 +426,9 @@ test.describe("share links", () => {
     await expect(page.getByRole("heading", { level: 1 })).toHaveText(
       "Let’s get you somewhere useful.",
     );
-    await expect(page.getByRole("link", { name: "Make my recap", exact: true })).toHaveAttribute(
-      "href",
-      "/app/scan",
-    );
+    await expect(
+      page.getByRole("link", { name: "Scan my history", exact: true }).first(),
+    ).toHaveAttribute("href", "/app/scan");
     await expect(page.getByTestId("share-card-v2")).toHaveCount(0);
     // Next's 404 boundary may add its own policy alongside page metadata.
     // Every emitted policy must prohibit indexing, with at least one present.

@@ -18,6 +18,8 @@ test("a Worker that cannot start reports a safe error instead of waiting forever
   );
 
   await page.goto("/app/scan");
+  await page.getByText("Use files or an export instead", { exact: true }).click();
+  await page.getByText("Try a sample recap", { exact: true }).click();
   await page.getByTestId("demo-moderate").click();
 
   const error = page.getByTestId("import-error");

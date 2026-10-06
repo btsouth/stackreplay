@@ -14,8 +14,8 @@ test("the app entry opens Scan on a first visit, with working navigation", async
 
   if (testInfo.project.name === "desktop") {
     const nav = page.getByRole("navigation", { name: "Primary" });
-    await expect(nav.getByRole("link")).toHaveCount(5);
-    await expect(nav.getByRole("link", { name: "Scan history" })).toHaveAttribute(
+    await expect(nav.getByRole("link")).toHaveCount(4);
+    await expect(nav.getByRole("link", { name: "Scan my history" })).toHaveAttribute(
       "href",
       "/app/scan",
     );

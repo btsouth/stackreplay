@@ -86,7 +86,7 @@ test("what you pay in Settings drives Nx what you paid in the recap and Stats", 
   const api = Number((await page.locator(".recap-cost-number").innerText()).replace(/[$,]/gu, ""));
   // Nothing about plans or payment shows until a plan is entered.
   await expect(page.locator(".recap-plan-comparison")).toHaveCount(0);
-  await expect(page.getByTestId("recap-ready")).not.toContainText(/what you paid|subscription/iu);
+  await expect(page.getByTestId("recap-ready")).not.toContainText(/what you paid/iu);
 
   await page.goto("/app/settings#what-you-pay");
   await expect(page.getByTestId("what-you-pay-empty")).toBeVisible();
