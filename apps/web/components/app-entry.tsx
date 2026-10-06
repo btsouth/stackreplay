@@ -4,7 +4,7 @@ import { buttonVariants } from "@stackreplay/ui";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { getWorkerClient } from "@/lib/worker-client";
+import { listHistoryMetadata } from "@/lib/local-history";
 
 /**
  * The app's front door. A returning visitor goes straight to the workload
@@ -17,8 +17,7 @@ export function AppEntry() {
 
   useEffect(() => {
     let cancelled = false;
-    getWorkerClient()
-      .listImports()
+    listHistoryMetadata()
       .then((list) => {
         if (cancelled) return;
         router.replace(

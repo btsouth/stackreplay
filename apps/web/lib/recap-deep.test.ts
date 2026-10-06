@@ -146,7 +146,11 @@ describe("deep recap provenance", () => {
     expect(s).toMatchObject({ n: 50, median: 34.5, p25: 22.25, p75: 46.75, wait: 10 });
     expect(
       buildRecap(
-        events.map((e) => ({ ...e, source: { ...e.source, adapterId: "hermes" } })),
+        events.map((e) => ({
+          ...e,
+          source: { ...e.source, adapterId: "hermes" },
+          confidence: { ...e.confidence, usage: "estimated" as const },
+        })),
         "30",
         now,
         "UTC",

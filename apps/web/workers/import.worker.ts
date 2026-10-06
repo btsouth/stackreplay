@@ -1,5 +1,7 @@
 /// <reference lib="webworker" />
 
+import { buildRecapIndex } from "../lib/recap-index";
+
 import {
   type BrowserCandidate,
   BrowserIntakeBudget,
@@ -348,6 +350,8 @@ async function handleImportFile(
     });
     return;
   }
+  if (saveLocal) await prepareRecapIndex(saved.value, validated.exported, record, now);
+  if (!importIsCurrent(requestId, signal)) return;
   if (!saveLocal) sessionWorkloads.set(importId, { record, exported: validated.exported });
   post({
     type: "IMPORT_OK",
@@ -584,6 +588,8 @@ async function handleImportSources(
       });
       return;
     }
+    if (saved.ok) await prepareRecapIndex(saved.value, result.exported, record, now);
+    if (!importIsCurrent(requestId, signal)) return;
     if (!saved.ok) {
       // A finished scan is never thrown away because storage refused it: it is
       // kept for this session and marked unsaved, and the interface says so.
@@ -649,6 +655,8 @@ async function handleImportDemo(
     });
     return;
   }
+  await prepareRecapIndex(saved.value, validated.exported, record, now);
+  if (!importIsCurrent(requestId, signal)) return;
   post({ type: "IMPORT_OK", requestId, record, replacedExisting: false });
 }
 
@@ -815,3 +823,24 @@ scope.onmessage = async (event: MessageEvent<WorkerRequest>): Promise<void> => {
 };
 
 post({ type: "READY", protocol: WORKER_PROTOCOL_VERSION });
+
+/** Derived data is optional. Saving the history succeeds even if index storage is full. */
+async function prepareRecapIndex(
+  saved: ImportRecord,
+  exported: StackReplayExportV1,
+  record: ImportRecord,
+  now: string,
+) {
+  Object.assign(record, saved);
+  try {
+    const index = buildRecapIndex(
+      exported.events,
+      now,
+      Intl.DateTimeFormat().resolvedOptions().timeZone,
+    );
+    index.sources = exported.detectedSources;
+    await storage.saveRecapIndex(record.id, storage.recapPayloadRevision(record), index);
+  } catch {
+    /* The first recap open can retry using its dedicated worker. */
+  }
+}

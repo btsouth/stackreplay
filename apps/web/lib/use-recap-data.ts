@@ -1,11 +1,12 @@
 "use client";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { Recap, RecapPeriod } from "./recap";
-import { getWorkerClient } from "./worker-client";
+import { loadCachedRecap } from "./recap-cache";
+import { listHistoryMetadata, subscribeHistory } from "./local-history";
 import type { ImportRecord } from "./worker-protocol";
 
-/** The recap and Stats read the same local history and persisted calendar period. */
+/** Recap and Stats share persisted indexes, period results and metadata-only history reads. */
 export function useRecapData(initialImportId?: string | undefined) {
   const router = useRouter();
   const pathname = usePathname();
@@ -14,10 +15,10 @@ export function useRecapData(initialImportId?: string | undefined) {
   const [id, setId] = useState(initialImportId);
   const [period, setPeriod] = useState<RecapPeriod>("30");
   const [recap, setRecap] = useState<Recap>();
-  const computed = useRef<{ key: string; recap: Recap }>(undefined);
   const [error, setError] = useState<string>();
-  const now = useMemo(() => new Date().toISOString(), []);
-  const timeZone = useMemo(() => Intl.DateTimeFormat().resolvedOptions().timeZone, []);
+  const [revision, setRevision] = useState(0);
+  const now = useMemo(() => new Date().toISOString(), [revision]);
+  const timeZone = useMemo(() => Intl.DateTimeFormat().resolvedOptions().timeZone, [revision]);
   useEffect(() => {
     setId(initialImportId);
   }, [initialImportId]);
@@ -28,10 +29,27 @@ export function useRecapData(initialImportId?: string | undefined) {
     } catch {}
     setPeriod(value === "90" || value === "all" ? value : "30");
   }, [query]);
+  useEffect(
+    () =>
+      subscribeHistory(() => {
+        setRecap(undefined);
+        setRevision((v) => v + 1);
+      }),
+    [],
+  );
+  // Long-lived tabs refresh at the next local calendar day and on return to the tab.
+  useEffect(() => {
+    const refresh = () => setRevision((v) => v + 1);
+    const timer = setTimeout(refresh, 60_000);
+    window.addEventListener("focus", refresh);
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener("focus", refresh);
+    };
+  }, [revision]);
   useEffect(() => {
     let active = true;
-    getWorkerClient()
-      .listImports()
+    listHistoryMetadata()
       .then((rows) => {
         if (active) {
           setImports(rows);
@@ -44,46 +62,29 @@ export function useRecapData(initialImportId?: string | undefined) {
     return () => {
       active = false;
     };
-  }, []);
+  }, [revision]);
   useEffect(() => {
     if (!id) return;
-    const key = JSON.stringify([id, period, now, timeZone]);
-    const previous = computed.current;
-    // Opening an already-calculated alternative changes the URL, not the data.
-    // Keep the controls mounted rather than flashing a second calculation.
-    if (previous?.key === key) {
-      setError(undefined);
-      setRecap(previous.recap);
-      return;
-    }
     let active = true;
-    const worker = new Worker("/stackreplay-recap-worker.js", { type: "module" });
-    setRecap(undefined);
     setError(undefined);
-    worker.onmessage = (event: MessageEvent<{ recap?: Recap; error?: string }>) => {
-      if (active) {
-        if (event.data.recap && !event.data.error)
-          computed.current = { key, recap: event.data.recap };
-        setRecap(event.data.recap);
-        setError(event.data.error);
-      }
-    };
-    worker.onerror = () => {
-      if (active) setError("Could not read this history. Reload to try again.");
-    };
-    getWorkerClient()
-      .exportImport(id)
-      .then((bytes) => {
-        if (active) worker.postMessage({ bytes, period, now, timeZone }, [bytes.buffer]);
+    loadCachedRecap(id, period, now, timeZone, (previous) => {
+      if (active) setRecap(previous);
+    })
+      .then((value) => {
+        if (active) setRecap(value);
       })
-      .catch(() => {
-        if (active) setError("This history is no longer stored here. Scan your files again.");
+      .catch((error) => {
+        if (active)
+          setError(
+            error instanceof Error
+              ? error.message
+              : "Could not read this history. Reload to try again.",
+          );
       });
     return () => {
       active = false;
-      worker.terminate();
     };
-  }, [id, period, now, timeZone]);
+  }, [id, period, now, timeZone, revision]);
   function selectPeriod(value: RecapPeriod) {
     setPeriod(value);
     try {
@@ -92,7 +93,14 @@ export function useRecapData(initialImportId?: string | undefined) {
     const params = new URLSearchParams(query.toString());
     params.set("period", value);
     if (id) params.set("import", id);
-    router.replace(`${pathname}?${params}`, { scroll: false });
+    router.replace(`${pathname}?${params}${window.location.hash}`, { scroll: false });
+  }
+  function selectHistory(value: string) {
+    setRecap(undefined);
+    setId(value);
+    const params = new URLSearchParams(query.toString());
+    params.set("import", value);
+    router.push(`${pathname}?${params}${window.location.hash}`, { scroll: false });
   }
   return {
     id,
@@ -100,6 +108,7 @@ export function useRecapData(initialImportId?: string | undefined) {
     imports,
     period,
     selectPeriod,
+    selectHistory,
     recap,
     error,
     now,

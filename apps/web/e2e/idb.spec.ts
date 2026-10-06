@@ -293,7 +293,7 @@ test("a version 1 local database upgrades in place and keeps the saved workload"
   // A genuine canonical pair, built the same way the importer builds one. The
   // database is seeded at version 1 (imports + payloads only) on a document that
   // does not run the app, so the production open is provably the first writer to
-  // ask for version 3 and the migration, not a fresh install, is what runs.
+  // ask for version 4 and the migration, not a fresh install, is what runs.
   const exported = buildDemoExport("moderate");
   const record = {
     id: "0123456789abcdef0123456789abcdef",
@@ -338,14 +338,15 @@ test("a version 1 local database upgrades in place and keeps the saved workload"
   expect(seeded).toEqual({ version: 1, stores: ["imports", "payloads"] });
   await page.unroute("**/__seed__");
 
-  // The app opens version 3 for the first time here; it must migrate, not reset.
+  // The app opens version 4 for the first time here; it must migrate, not reset.
   await page.goto("/app/scan");
   await expect(page.getByTestId("stored-imports")).toBeVisible();
   await expect(page.getByTestId("stored-imports")).toContainText(record.label);
 
   const upgraded = await localDatabaseShape(page);
-  expect(upgraded.version).toBe(3);
+  expect(upgraded.version).toBe(4);
   expect(upgraded.stores).toContain("workload-results");
+  expect(upgraded.stores).toContain("recap-indexes");
 
   const preserved = await page.evaluate(async (id) => {
     const open = indexedDB.open("stackreplay");

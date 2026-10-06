@@ -7,6 +7,7 @@ import { AppPageSkeleton } from "@/components/app/app-page-state";
 import { formatBytes } from "@/components/import/large-history-note";
 import { themeStorageKey } from "@/lib/theme";
 import { getWorkerClient } from "@/lib/worker-client";
+import { listHistoryMetadata } from "@/lib/local-history";
 import type { ImportRecord } from "@/lib/worker-protocol";
 
 /** Export preserves the worker's exact serialized bytes; deletion is per scan. */
@@ -19,16 +20,14 @@ export function SavedWorkloads() {
   const [deleting, setDeleting] = useState<string>();
   const [busy, setBusy] = useState<string>();
   const refresh = () =>
-    getWorkerClient()
-      .listImports()
+    listHistoryMetadata()
       .then(setRecords)
       .catch(() =>
         setError("We couldn't read saved scans. Try again, or scan your files to start fresh."),
       );
   useEffect(() => {
     let active = true;
-    getWorkerClient()
-      .listImports()
+    listHistoryMetadata()
       .then((list) => {
         if (active) setRecords(list);
       })
@@ -39,21 +38,6 @@ export function SavedWorkloads() {
       active = false;
     };
   }, []);
-  useEffect(() => {
-    let active = true;
-    async function measure() {
-      for (const record of records ?? []) {
-        try {
-          const bytes = await getWorkerClient().exportImport(record.id);
-          if (active) setSizes((old) => ({ ...old, [record.id]: bytes.byteLength }));
-        } catch {}
-      }
-    }
-    void measure();
-    return () => {
-      active = false;
-    };
-  }, [records]);
   async function download(record: ImportRecord, save = true) {
     setBusy(record.id);
     setError(undefined);
@@ -143,9 +127,9 @@ export function SavedWorkloads() {
                   ? "Temporary, until reload"
                   : `Saved ${new Date(record.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`}{" "}
                 ·{" "}
-                {sizes[record.id] !== undefined
-                  ? `${formatBytes(sizes[record.id] ?? 0)} export`
-                  : "Calculating export size…"}
+                {(sizes[record.id] ?? record.payloadBytes) !== undefined
+                  ? `${formatBytes(sizes[record.id] ?? record.payloadBytes ?? 0)} export`
+                  : "Export size available after download"}
               </p>
               <div className="saved-scan-actions">
                 <Link

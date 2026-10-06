@@ -2,15 +2,13 @@
 import { encodeShareTokenV2 } from "@stackreplay/share";
 import { Select } from "@stackreplay/ui";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useState } from "react";
 import { AppPageSkeleton } from "@/components/app/app-page-state";
 import { PartialScanNotice } from "@/components/import/evidence";
-import type { Recap, RecapPeriod } from "@/lib/recap";
 import { renderRecapCard } from "@/lib/recap-card";
 import { recapShareV2 } from "@/lib/share-v2";
 import { usePaidMultiplier } from "@/lib/use-paid-multiplier";
-import { getWorkerClient } from "@/lib/worker-client";
+import { useRecapData } from "@/lib/use-recap-data";
 import type { ImportRecord } from "@/lib/worker-protocol";
 import { isSyntheticWorkload } from "@/lib/workload-kind";
 import { PeriodControl } from "./period-control";
@@ -18,94 +16,14 @@ import { RecapShareCard } from "./recap-share-card";
 import { RecapStory } from "./recap-story";
 
 export function RecapSurface({ initialImportId }: { initialImportId?: string | undefined }) {
-  const router = useRouter();
-  const query = useSearchParams();
-  const [imports, setImports] = useState<ImportRecord[]>([]);
-  const [id, setId] = useState(initialImportId);
-  const [period, setPeriod] = useState<RecapPeriod>("30");
-  const [recap, setRecap] = useState<Recap>();
-  const [error, setError] = useState<string>();
-  const [loaded, setLoaded] = useState(false);
+  const data = useRecapData(initialImportId);
+  const { id, period, recap, error: dataError, selectPeriod, selectHistory } = data;
+  const imports = data.imports ?? [];
+  const loaded = data.imports !== undefined;
+  const [exportError, setError] = useState<string>();
+  const error = exportError ?? dataError;
   const [shareHref, setShareHref] = useState<string>();
   const [exporting, setExporting] = useState(false);
-  const now = useMemo(() => new Date().toISOString(), []);
-  const timeZone = useMemo(() => Intl.DateTimeFormat().resolvedOptions().timeZone, []);
-  useEffect(() => {
-    setId(initialImportId);
-  }, [initialImportId]);
-  useEffect(() => {
-    let selected = query.get("period");
-    if (selected === null) {
-      try {
-        selected = window.localStorage.getItem("stackreplay.recap-period");
-      } catch {}
-    }
-    setPeriod(selected === "90" || selected === "all" ? selected : "30");
-  }, [query]);
-  function selectPeriod(next: RecapPeriod) {
-    setPeriod(next);
-    try {
-      window.localStorage.setItem("stackreplay.recap-period", next);
-    } catch {}
-    const query = new URLSearchParams(window.location.search);
-    query.set("period", next);
-    router.replace(`/app/recap?${query}${window.location.hash}`, { scroll: false });
-  }
-  function selectHistory(next: string) {
-    setId(next);
-    const query = new URLSearchParams(window.location.search);
-    query.set("import", next);
-    router.push(`/app/recap?${query}${window.location.hash}`, { scroll: false });
-  }
-  useEffect(() => {
-    let active = true;
-    getWorkerClient()
-      .listImports()
-      .then((rows) => {
-        if (active) {
-          setImports(rows);
-          setId((old) => old ?? rows[0]?.id);
-          setLoaded(true);
-        }
-      })
-      .catch(() => {
-        if (active) {
-          setError("Could not open local history.");
-          setLoaded(true);
-        }
-      });
-    return () => {
-      active = false;
-    };
-  }, []);
-  useEffect(() => {
-    if (!id) return;
-    let active = true;
-    const worker = new Worker("/stackreplay-recap-worker.js", { type: "module" });
-    setRecap(undefined);
-    setError(undefined);
-    worker.onmessage = (message: MessageEvent<{ recap?: Recap; error?: string }>) => {
-      if (active) {
-        setRecap(message.data.recap);
-        setError(message.data.error);
-      }
-    };
-    worker.onerror = () => {
-      if (active) setError("Could not calculate your recap. Reload to try again.");
-    };
-    getWorkerClient()
-      .exportImport(id)
-      .then((bytes) => {
-        if (active) worker.postMessage({ bytes, period, now, timeZone }, [bytes.buffer]);
-      })
-      .catch(() => {
-        if (active) setError("This history is unavailable. Choose another or scan again.");
-      });
-    return () => {
-      active = false;
-      worker.terminate();
-    };
-  }, [id, period, now, timeZone]);
   const paid = usePaidMultiplier(recap);
   async function download(portrait: boolean) {
     if (!recap) return;
