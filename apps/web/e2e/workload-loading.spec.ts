@@ -71,6 +71,87 @@ test("slow analysis has labeled placeholders without blank or hidden sections", 
   await expect(page.getByTestId("project-loading")).toHaveCount(0);
 });
 
+test("billing controls stay usable while full-history pricing is pending", async ({ page }) => {
+  await page.addInitScript(() => {
+    const NativeWorker = window.Worker;
+    const pending: (() => void)[] = [];
+    const requests: unknown[] = [];
+    let held = true;
+    Object.assign(window, {
+      apiMarketRequests: requests,
+      releaseApiMarket: () => {
+        held = false;
+        for (const release of pending.splice(0)) release();
+      },
+    });
+    window.Worker = class extends NativeWorker {
+      override postMessage(message: unknown) {
+        if ((message as { type: string }).type === "API_MARKET") {
+          requests.push(message);
+          if (held) {
+            pending.push(() => super.postMessage(message));
+            return;
+          }
+        }
+        super.postMessage(message);
+      }
+    };
+  });
+  await importDemo(page, "moderate");
+  await expect(page.getByTestId("overview-price-loading")).toBeVisible();
+  await page.getByTestId("billing-action").click();
+  await expect(page.getByTestId("review-period")).toBeVisible();
+  await expect(page.getByTestId("overview-price-loading")).toBeVisible();
+  // The editor can render its saved period without interrupting the overview job.
+  expect(
+    await page.evaluate(
+      () => (window as unknown as { apiMarketRequests: unknown[] }).apiMarketRequests.length,
+    ),
+  ).toBe(1);
+  await page.evaluate(() =>
+    (window as unknown as { releaseApiMarket: () => void }).releaseApiMarket(),
+  );
+  await pricingDone(page);
+  await expect(page.getByTestId("review-period")).toBeVisible();
+});
+
+test("failed overview pricing does not trap the billing editor in a loading state", async ({
+  page,
+}) => {
+  await page.addInitScript(() => {
+    const original = Worker.prototype.postMessage;
+    let failed = false;
+    Worker.prototype.postMessage = function (message, ...args: unknown[]) {
+      if (message?.type === "API_MARKET" && !failed) {
+        failed = true;
+        queueMicrotask(() =>
+          this.dispatchEvent(
+            new MessageEvent("message", {
+              data: {
+                type: "ERROR",
+                requestId: message.requestId,
+                error: {
+                  code: "STORAGE_UNAVAILABLE",
+                  title: "Unavailable",
+                  message: "Fixture pricing failure",
+                },
+              },
+            }),
+          ),
+        );
+        return;
+      }
+      return original.call(this, message, ...(args as [StructuredSerializeOptions]));
+    };
+  });
+  await importDemo(page, "moderate");
+  await expect(page.getByTestId("overview-api-total")).toHaveText("Pricing could not finish");
+  await page.getByTestId("billing-action").click();
+  await expect(page.getByTestId("review-period")).toBeVisible();
+  await expect(page.getByText("Preparing local review controls…", { exact: true })).toHaveCount(0);
+  await expect(page.getByTestId("overview-api-total")).toHaveText("Pricing could not finish");
+});
+
 test("failed analysis stops placeholders while pricing remains usable", async ({ page }) => {
   await page.addInitScript(() => {
     const original = Worker.prototype.postMessage;

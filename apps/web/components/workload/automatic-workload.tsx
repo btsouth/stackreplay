@@ -242,7 +242,8 @@ export function AutomaticWorkload({
     onResult(record.id, billingOpen && billing ? billing : overview);
   }, [record.id, onResult, overview, billing, billingOpen]);
   const hasSavedReview = !!local.choice.historyConfirmation || !!local.choice.historyConfirmed;
-  const mountBilling = !!overview && (billingLoaded || hasSavedReview);
+  // Local review controls do not depend on prices. Keep optimizer jobs sequential below.
+  const mountBilling = billingLoaded || hasSavedReview;
   const complete = billing?.review?.complete === true;
   const matchingScope =
     complete &&
@@ -531,6 +532,7 @@ export function AutomaticWorkload({
         {mountBilling ? (
           <MarketDecisionSurface
             record={record}
+            calculationReady={!!overview || error}
             onResult={receiveBilling}
             onBurden={setBurden}
             editOpen={billingOpen}

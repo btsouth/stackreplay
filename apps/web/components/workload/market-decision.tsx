@@ -46,9 +46,11 @@ export function MarketDecisionSurface({
   evidenceContent,
   onBurden,
   editOpen,
+  calculationReady = true,
 }: {
   onBurden?: ((burden: CapacityBurden | undefined) => void) | undefined;
   editOpen?: boolean;
+  calculationReady?: boolean;
   record: ImportRecord;
   workloadContent?: ReactNode;
   evidenceContent?: ReactNode;
@@ -100,7 +102,7 @@ export function MarketDecisionSurface({
     );
   }, [importId, decision, review, onResult, needsPeriod]);
   useEffect(() => {
-    if (!local.ready) return;
+    if (!local.ready || !calculationReady) return;
     const controller = new AbortController();
 
     setError(undefined);
@@ -125,7 +127,15 @@ export function MarketDecisionSurface({
           );
       });
     return () => controller.abort();
-  }, [importId, executionKey, local.ready, periodStart, periodEnd, choice.resourceInstanceId]);
+  }, [
+    importId,
+    executionKey,
+    local.ready,
+    calculationReady,
+    periodStart,
+    periodEnd,
+    choice.resourceInstanceId,
+  ]);
   const calculatedRange = marketRange(decision);
   const fullRange =
     calculatedRange?.priced === decision?.history?.calls ? calculatedRange : undefined;
