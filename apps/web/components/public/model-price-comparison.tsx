@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { PromoTag } from "@/components/public/promo-tag";
 import type { ModelPrices } from "@/lib/market-discovery";
 import { basePrice, priceNumber } from "@/lib/market-prices";
@@ -25,6 +25,8 @@ export function ModelPriceComparison({
   selected: readonly string[];
 }) {
   const [metric, setMetric] = useState<Metric>("output");
+  const [ready, setReady] = useState(false);
+  useEffect(() => setReady(true), []);
   const label = CATEGORIES.find(([id]) => id === metric)?.[1] ?? "Output";
   const modelById = new Map(models.map((model) => [model.id, model]));
   const rate = (id: string) => basePrice(prices[id] ?? [])?.rates[metric];
@@ -45,7 +47,13 @@ export function ModelPriceComparison({
     if (!model) return null;
     const value = rate(id);
     return (
-      <Link key={id} href={`/models/${id}`} className="market-price-bar" data-model-id={id}>
+      <Link
+        prefetch={false}
+        key={id}
+        href={`/models/${id}`}
+        className="market-price-bar"
+        data-model-id={id}
+      >
         <span className="market-price-bar-name">
           {model.name}
           <PromoTag promotion={basePrice(prices[id] ?? [])?.promotion} />
@@ -79,6 +87,7 @@ export function ModelPriceComparison({
         <fieldset className="market-tabs" aria-label="Price category">
           {CATEGORIES.map(([id, name]) => (
             <button
+              disabled={!ready}
               key={id}
               type="button"
               aria-pressed={metric === id}

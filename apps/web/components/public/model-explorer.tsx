@@ -329,7 +329,12 @@ export function ModelExplorer({
             Your selected models are compared below. View their published rates in the rate
             comparison.
           </p>
-          <button type="button" onClick={() => setSelected([])} className="market-link">
+          <button
+            disabled={!ready}
+            type="button"
+            onClick={() => setSelected([])}
+            className="market-link"
+          >
             Clear comparison
           </button>
         </div>
@@ -345,6 +350,7 @@ export function ModelExplorer({
         <div className="py-10" data-testid="model-empty">
           <p>No models match these filters.</p>
           <button
+            disabled={!ready}
             type="button"
             className="market-link"
             onClick={() => {
@@ -480,6 +486,7 @@ export function ModelExplorer({
       )}
       {layout !== "table" && visible.length > 12 && (
         <button
+          disabled={!ready}
           type="button"
           className="market-link my-4"
           data-layout-pending={pending("cards")}
