@@ -697,3 +697,9 @@
   text-decoration: underline;
   text-underline-offset: 3px;
 }
+/* The app's sticky header rule is for chrome, not public page headings. */
+.public-terminal .sr-page-heading {
+  position: static;
+  background: transparent;
+  backdrop-filter: none;
+}
