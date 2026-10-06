@@ -40,11 +40,12 @@ export function sharedRecap(snapshot: AnyShareSnapshot): SharedRecap {
     };
   if (snapshot.version === 1)
     return {
-      tokens: Object.values(snapshot.workload.tokenTotals).reduce<number>(
-        (sum, n) => sum + (n ?? 0),
-        0,
-      ),
+      tokens: Object.keys(snapshot.workload.tokenTotals).length
+        ? Object.values(snapshot.workload.tokenTotals).reduce<number>((sum, n) => sum + (n ?? 0), 0)
+        : undefined,
       usd: snapshot.economics?.apiListPriceEquivalent?.amount,
+      sessions: snapshot.workload.sessionCount,
+      rules: snapshot.versions.rulesAsOf,
       requests: snapshot.workload.eventCount,
       models: [],
     };

@@ -84,6 +84,19 @@ test("recap keeps the chosen period on reload and aligns with the shared shell",
   await expect(page.locator(".recap-info:has(:popover-open)")).toContainText("local timezone");
   await page.keyboard.press("Escape");
   await expect(page.locator(".recap-info:has(:popover-open)")).toHaveCount(0);
+  const allTimeValue = await page.locator(".recap-cost-number").innerText();
+  await navigate(page, "Stats");
+  await expect(page.getByTestId("stats-ready")).toHaveAttribute("data-period", "all");
+  await expect(page.getByTestId("overview-api-total")).toHaveText(allTimeValue);
+  await navigate(page, "Plans");
+  await expect(page.getByTestId("plans-ready")).toHaveAttribute("data-period", "all");
+  await expect(page.locator(".plan-headline strong")).toHaveText(allTimeValue);
+  await page.getByRole("radio", { name: "90 days", exact: true }).check();
+  await expect(page.getByTestId("plans-ready")).toHaveAttribute("data-period", "90");
+  const ninetyDayValue = await page.locator(".plan-headline strong").innerText();
+  await navigate(page, "Recap");
+  await expect(page.getByTestId("recap-ready")).toHaveAttribute("data-period", "90");
+  await expect(page.locator(".recap-cost-number")).toHaveText(ninetyDayValue);
 });
 
 test("Settings exports a scan and deletes only the selected one after confirmation", async ({
