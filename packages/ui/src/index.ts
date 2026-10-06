@@ -10,16 +10,6 @@ export {
   CardTitle,
 } from "./components/card";
 export { CatalogSubNav } from "./components/catalog-sub-nav";
-export {
-  ConfidenceBadge,
-  type ConfidenceBadgeProps,
-  type ConfidenceLevel,
-} from "./components/confidence-badge";
-export {
-  type ConstraintState,
-  ConstraintStatus,
-  type ConstraintStatusProps,
-} from "./components/constraint-status";
 export { type DataColumn, DataTable } from "./components/data-table";
 export { Input, type InputProps } from "./components/input";
 export { Metric, type MetricProps, type MetricTone } from "./components/metric";

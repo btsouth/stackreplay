@@ -36,12 +36,12 @@ describe("public navigation", () => {
     const removed = ["plans", "stack", "replay", "compare", "workload", "import"].map(
       (name) => `/app/${name}`,
     );
-    const hrefs = publicFooterGroups
-      .flatMap((group) => group.items.map((item) => item.href))
-      .concat(
-        publicNavItems.map((item) => item.href),
-        [primaryCta.href, returningCta.href],
-      );
+    const hrefs: string[] = [
+      ...publicFooterGroups.flatMap((group) => group.items.map((item) => item.href)),
+      ...publicNavItems.map((item) => item.href),
+      primaryCta.href,
+      returningCta.href,
+    ];
     for (const href of hrefs) expect(removed).not.toContain(href.split(/[?#]/u)[0]);
   });
   it("marks catalog details active without false prefixes", () => {
