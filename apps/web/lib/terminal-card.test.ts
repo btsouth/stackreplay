@@ -377,6 +377,25 @@ describe("readable activity and period stats", () => {
         ).toContainEqual({ label: "GITHUB CONTRIBUTIONS", value: "12" });
       }
   });
+  it("draws actual server color swatches rather than missing font glyphs", () => {
+    const html = renderToStaticMarkup(
+      createElement(TerminalLandscape, {
+        card: {
+          theme: "dark",
+          start: "2026-09-01",
+          end: "2026-09-30",
+          spark: [1000],
+          github: 1,
+          githubSpark: [1000],
+        },
+      }),
+    );
+    expect(html).toContain("AI TOKENS / DAY");
+    expect(html).toContain("GITHUB CONTRIBUTIONS / DAY");
+    expect(html).not.toContain("■");
+    expect(html).toContain("width:9px;height:9px");
+    expect(html).toContain('id="terminal-grid"');
+  });
   it("uses active period days, ongoing all-history streaks, and preserves old links", async () => {
     const period = { ...recap, period: "30" as const, streak: 47, longestStreak: 47 };
     const card = makeCard(period, DEFAULT_SELECTIONS, "dark");

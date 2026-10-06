@@ -62,7 +62,7 @@ export function TerminalShare({
     [error, setError] = useState<string>(),
     [link, setLink] = useState<{
       href: string;
-      card: PublicCard;
+      cardJson: string;
       synthetic: boolean | undefined;
     }>(),
     [copied, setCopied] = useState(false);
@@ -78,7 +78,10 @@ export function TerminalShare({
     () => makeCard(recap, selected, theme, paid, github, githubDays, headline),
     [recap, selected, theme, paid, github, githubDays, headline],
   );
-  const href = link?.card === card && link.synthetic === synthetic ? link.href : undefined;
+  // Parent renders may rebuild the same daily map. Invalidate only when the
+  // published figures change, rather than when a memoized object is recreated.
+  const cardJson = JSON.stringify(card);
+  const href = link?.cardJson === cardJson && link.synthetic === synthetic ? link.href : undefined;
   const toggles: [CardToggle, string][] = [
     ["tokens", "Total tokens"],
     ["usd", "API value"],
@@ -124,7 +127,7 @@ export function TerminalShare({
       const data = await response.json();
       if (!response.ok || typeof data.path !== "string")
         throw Error(data.error ?? "Could not create a share link.");
-      setLink({ href: new URL(data.path, window.location.origin).toString(), card, synthetic });
+      setLink({ href: new URL(data.path, window.location.origin).toString(), cardJson, synthetic });
       setCopied(false);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Could not create a share link.");

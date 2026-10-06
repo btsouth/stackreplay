@@ -77,6 +77,22 @@ test("a recap link can be stored as a short link that carries only its aggregate
   await page.goto(`/app/recap?import=${id}&period=30`);
   await expect(page.getByTestId("recap-ready")).toBeVisible({ timeout: 60_000 });
   await expect(page.getByTestId("recap-ready")).toHaveAttribute("data-period", "30");
+  await page.route("**/api/github/contributions?*", (route) =>
+    route.fulfill({
+      json: {
+        login: "btsouth",
+        fetchedAt: new Date().toISOString(),
+        total: 40,
+        days: { "2026-09-19": 40 },
+      },
+    }),
+  );
+  await page.getByRole("textbox", { name: "GitHub username" }).fill("btsouth");
+  await page.getByRole("button", { name: "Connect", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Disconnect", exact: true })).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "GITHUB CONTRIBUTIONS", exact: true }),
+  ).toBeEnabled();
   const posted = page.waitForRequest(
     (r) => r.url().endsWith("/api/share") && r.method() === "POST",
   );
@@ -88,6 +104,9 @@ test("a recap link can be stored as a short link that carries only its aggregate
   await expect(page.getByTestId("recap-share-open")).toBeVisible();
   const path = (await page.getByTestId("recap-share-open").getAttribute("href"))!;
   const shortId = new URL(path).pathname.replace("/s/", "");
+  // A parent render recreates the same GitHub map without changing the card.
+  await page.getByRole("textbox", { name: "GitHub username" }).fill("btsouth1");
+  await expect(page.getByTestId("recap-share-open")).toHaveAttribute("href", path);
   await expect(page.getByTestId("recap-share-copy")).toHaveText("Copy link");
   const intent = new URL((await page.getByTestId("recap-share-x").getAttribute("href"))!);
   expect(intent.origin + intent.pathname).toBe("https://x.com/intent/post");

@@ -28,6 +28,20 @@ export function TerminalLandscape({
         fontWeight: 500,
       }}
     >
+      <svg width={1200} height={378} style={{ position: "absolute", left: 0, top: 0 }}>
+        <title>Terminal grid</title>
+        <defs>
+          <pattern id="terminal-grid" width={40} height={40} patternUnits="userSpaceOnUse">
+            <path
+              d="M 40 0 H 0 V 40"
+              fill="none"
+              stroke={dark ? "#1c2022" : "#dedcd3"}
+              strokeWidth={1}
+            />
+          </pattern>
+        </defs>
+        <rect width={1200} height={378} fill="url(#terminal-grid)" />
+      </svg>
       <div
         style={{
           display: "flex",
@@ -91,7 +105,11 @@ export function TerminalLandscape({
           t.size,
           t.width / Math.max(1, text.length * (t.font === "sans" ? 0.56 : 0.6)),
         );
-        const parts = t.tight ? text.split(".") : [text];
+        // Geist's server font subset does not contain the square glyph. Draw
+        // the color swatch directly so the social PNG matches the canvas legend.
+        const legend = text.startsWith("■ ");
+        const label = legend ? text.slice(2) : text;
+        const parts = t.tight ? label.split(".") : [label];
         return (
           <div
             key={t.id}
@@ -108,6 +126,18 @@ export function TerminalLandscape({
               color: t.color ?? (t.signal ? signal : t.dim ? dim : fg),
             }}
           >
+            {legend && (
+              <span
+                style={{
+                  display: "flex",
+                  width: size * 0.5,
+                  height: size * 0.5,
+                  marginTop: size * 0.25,
+                  marginRight: size * 0.7,
+                  background: t.color,
+                }}
+              />
+            )}
             <span style={{ display: "flex" }}>{parts[0]}</span>
             {parts.length > 1 && (
               <span style={{ display: "flex" }}>
