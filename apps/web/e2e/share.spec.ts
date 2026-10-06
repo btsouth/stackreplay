@@ -37,7 +37,7 @@ test("each link has its own image, and the page names it", async ({ page, reques
   await expect(page.locator(".share-summary")).toHaveCount(0);
   await expect(page.locator('meta[property="og:image"]')).toHaveAttribute(
     "content",
-    new RegExp(`/s/${shared.replaceAll(".", "\\.")}/image$`, "u"),
+    new RegExp(`/s/${shared.replaceAll(".", "\\.")}/image\\?v=2$`, "u"),
   );
   await expect(page.locator('meta[name="twitter:card"]')).toHaveAttribute(
     "content",
@@ -45,7 +45,7 @@ test("each link has its own image, and the page names it", async ({ page, reques
   );
   await expect(page.getByRole("link", { name: "Download this card" })).toHaveAttribute(
     "href",
-    new RegExp(`/s/${shared.replaceAll(".", "\\.")}/image$`, "u"),
+    new RegExp(`/s/${shared.replaceAll(".", "\\.")}/image\\?v=2$`, "u"),
   );
 });
 

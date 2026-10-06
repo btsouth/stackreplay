@@ -122,6 +122,13 @@ export const shareWorkloadV2Schema = z.strictObject({
       /** Normalized daily contributions aligned with spark, only with GitHub selected. */
       githubSpark: z.array(z.number().int().min(0).max(1000)).max(64).optional(),
       streak: count.optional(),
+      /** Ongoing all-history run, distinct from older cards' longest streak. */
+      currentStreak: count.optional(),
+      /** Active calendar days in the selected period. */
+      aiDays: z
+        .strictObject({ active: count, total: count })
+        .refine((days) => days.active <= days.total)
+        .optional(),
       models: z
         .array(
           z.strictObject({

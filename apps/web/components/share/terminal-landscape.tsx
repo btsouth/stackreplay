@@ -76,7 +76,7 @@ export function TerminalLandscape({
                 fontFamily: t.font === "sans" ? "Geist Sans" : "Geist Mono",
                 fontSize: size,
                 lineHeight: 1.16,
-                color: t.signal ? signal : t.dim ? dim : fg,
+                color: t.color ?? (t.signal ? signal : t.dim ? dim : fg),
               }}
             >
               {t.lines.map((line) => (
@@ -105,7 +105,7 @@ export function TerminalLandscape({
               fontFamily: t.font === "sans" ? "Geist Sans" : "Geist Mono",
               fontSize: size,
               lineHeight: 1,
-              color: t.signal ? signal : t.dim ? dim : fg,
+              color: t.color ?? (t.signal ? signal : t.dim ? dim : fg),
             }}
           >
             <span style={{ display: "flex" }}>{parts[0]}</span>

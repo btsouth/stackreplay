@@ -26,7 +26,7 @@ function decimalRatio(value: string | undefined) {
 }
 const order = (a: string, b: string) => (a < b ? -1 : a > b ? 1 : 0);
 
-/** Facts from the displayed period only. IDs start with a family; one winner per family. */
+/** Period facts plus an ongoing all-history streak when it spans the whole period. */
 export function recapInsightCandidates(
   r: Recap,
   github?: CombinedActivity,
@@ -60,18 +60,23 @@ export function recapInsightCandidates(
   const wholePeriod =
     days.length === Math.round((Date.parse(r.end) - Date.parse(r.start)) / 86400000) + 1 &&
     longest === days.length;
+  const extended = wholePeriod && r.streak > days.length;
   if (longest >= 2)
     add(
       "streak:ai",
-      wholePeriod
-        ? `You used AI every day of this ${integer(longest)}-day period`
-        : `${integer(longest)} days in a row with AI in this period`,
-      `${integer(longest)} days`,
-      wholePeriod
-        ? "EVERY DAY OF THIS PERIOD"
-        : current === longest
-          ? "CURRENT AND LONGEST RUN THIS PERIOD"
-          : `LONGEST RUN · CURRENT ${integer(current)} DAYS`,
+      extended
+        ? `${integer(r.streak)} days in a row with AI, and counting`
+        : wholePeriod
+          ? `You used AI every day of this ${integer(longest)}-day period`
+          : `${integer(longest)} days in a row with AI in this period`,
+      `${integer(extended ? r.streak : longest)} days`,
+      extended
+        ? "CURRENT STREAK · INCLUDING BEFORE THIS PERIOD"
+        : wholePeriod
+          ? "EVERY DAY OF THIS PERIOD"
+          : current === longest
+            ? "CURRENT AND LONGEST RUN THIS PERIOD"
+            : `LONGEST RUN · CURRENT ${integer(current)} DAYS`,
       wholePeriod ? 100 : 95 + Math.min(longest, 30) / 10,
     );
 

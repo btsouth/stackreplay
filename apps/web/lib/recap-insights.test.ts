@@ -48,6 +48,18 @@ describe("period insight facts", () => {
         ?.headline,
     ).toBe("You used AI every day of this 30-day period");
   });
+  it("headlines a current run extending before a full selected period", () => {
+    const r = recap(Array.from({ length: 30 }, (_, i) => nextDay("2026-09-01", i)));
+    r.streak = 47;
+    r.longestStreak = 100;
+    expect(find(r, "streak:ai")).toMatchObject({
+      headline: "47 days in a row with AI, and counting",
+      figure: "47 days",
+      detail: "CURRENT STREAK · INCLUDING BEFORE THIS PERIOD",
+    });
+    r.streak = 0;
+    expect(find(r, "streak:ai")?.headline).toBe("You used AI every day of this 30-day period");
+  });
   it("uses lower-bound token shares, stable model ties and resolved names", () => {
     const r = recap();
     r.models = [model("b", 285), model("a", 285)];
