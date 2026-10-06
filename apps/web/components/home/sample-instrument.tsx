@@ -76,7 +76,7 @@ export function SampleInstrument({ recap: r }: { recap: Recap }) {
                 <>
                   AT LIST PRICES / NOT AN INVOICE
                   <br />
-                  {Math.round((r.priced / r.records) * 100)}% OF CALLS PRICED
+                  {Math.round((r.priced / r.records) * 100)}% OF CALLS HAVE A PRICE
                   {r.usdHigh !== r.usd && <> · UP TO {dollars(r.usdHigh)}</>}
                 </>
               }

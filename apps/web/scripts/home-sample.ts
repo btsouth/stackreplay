@@ -38,7 +38,7 @@ export function makeSample() {
     const weekday = new Date(midnight).getUTCDay();
     const intensity =
       day === 18 ? 3.2 : day === 6 ? 0 : day === 13 || day === 22 ? 0.08 : 0.4 + random() * 1.3;
-    const count = Math.round(4100 * intensity * (weekday === 0 || weekday === 6 ? 0.83 : 1));
+    const count = Math.round(4100 * intensity * (weekday === 0 || weekday === 6 ? 1.2 : 1));
     github[date] = count
       ? Math.round((8 + random() * 63) * Math.sqrt(intensity))
       : random() > 0.5
