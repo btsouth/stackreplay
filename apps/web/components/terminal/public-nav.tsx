@@ -38,17 +38,17 @@ export function TerminalPublicNav() {
     items
       .filter((item) => !inMenu || !catalogNavItems.some((c) => c.href === item.href))
       .map((item) => (
-      <Link
-        prefetch={false}
-        key={item.href}
-        href={item.href}
-        className={active(item.href) ? "on" : undefined}
-        aria-current={active(item.href) ? "page" : undefined}
-        onClick={() => setOpen(false)}
-      >
-        {item.label}
-      </Link>
-    ));
+        <Link
+          prefetch={false}
+          key={item.href}
+          href={item.href}
+          className={active(item.href) ? "on" : undefined}
+          aria-current={active(item.href) ? "page" : undefined}
+          onClick={() => setOpen(false)}
+        >
+          {item.label}
+        </Link>
+      ));
   return (
     <>
       <TerminalBrand href="/" />
@@ -79,20 +79,20 @@ export function TerminalPublicNav() {
             <p className="label terminal-menu-catalog-title">Catalog</p>
             <nav aria-label="Catalog" className="terminal-menu-catalog">
               {catalogNavItems.map((item) => (
-                  <Link
-                    prefetch={false}
-                    key={item.href}
-                    href={item.href}
-                    aria-current={
-                      pathname === item.href || pathname.startsWith(`${item.href}/`)
-                        ? "page"
-                        : undefined
-                    }
-                    onClick={() => setOpen(false)}
-                  >
-                    {item.label}
-                  </Link>
-                ))}
+                <Link
+                  prefetch={false}
+                  key={item.href}
+                  href={item.href}
+                  aria-current={
+                    pathname === item.href || pathname.startsWith(`${item.href}/`)
+                      ? "page"
+                      : undefined
+                  }
+                  onClick={() => setOpen(false)}
+                >
+                  {item.label}
+                </Link>
+              ))}
             </nav>
             <Dialog.Description className="dim">Your logs stay on your device.</Dialog.Description>
           </Dialog.Popup>
