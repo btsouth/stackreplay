@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 import { PartialScanNotice } from "@/components/import/evidence";
 import { combinedActivity } from "@/lib/github-activity";
 import type { Recap, RecapPeriod } from "@/lib/recap";
+import { recapInsights } from "@/lib/recap-insights";
 import { developerNames, harnessNames, providerNames } from "@/lib/recap-names";
 import {
   compact,
@@ -21,6 +22,7 @@ import type { PaidFigure } from "@/lib/use-paid-multiplier";
 import type { ImportRecord } from "@/lib/worker-protocol";
 import { isSyntheticWorkload } from "@/lib/workload-kind";
 import { DailyChart } from "./daily-chart";
+import { InsightStrip } from "./insights";
 import { BarList, Readout, Section, TightNumber } from "./primitives";
 import { TerminalShare } from "./share";
 
@@ -181,6 +183,7 @@ export function Overview({
           />
         </div>
       </div>
+      <InsightStrip insights={recapInsights(r, activity, paid)} />
       <Section
         number="01"
         title="Tokens in, code out"

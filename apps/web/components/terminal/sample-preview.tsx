@@ -1,5 +1,6 @@
-import { sampleRecap } from "@/lib/home/recap-sample";
+import { sampleInsights, sampleRecap } from "@/lib/home/recap-sample";
 import { compact, dollars, presentation } from "@/lib/terminal-presentation";
+import { InsightStrip } from "./insights";
 import { TightNumber } from "./primitives";
 export function SamplePreview() {
   const recap = sampleRecap;
@@ -32,6 +33,7 @@ export function SamplePreview() {
           <p className="label">ESTIMATE · NOT A BILL</p>
         </div>
       </div>
+      <InsightStrip insights={sampleInsights} />
     </section>
   );
 }
