@@ -229,3 +229,18 @@
     height: 260px;
   }
 }
+@media (max-width: 800px) {
+  .terminal-home .sec {
+    padding-top: 20px;
+    padding-bottom: 20px;
+  }
+  .terminal-home .sh {
+    margin-bottom: 16px;
+  }
+  .terminal-home .home-intro {
+    padding-top: 28px;
+  }
+  .terminal-home .sharegrid {
+    gap: 20px;
+  }
+}
