@@ -254,3 +254,9 @@
     gap: 20px;
   }
 }
+
+@media (max-width: 800px) {
+  .terminal.terminal-home .tablecell td:nth-child(n) {
+    width: auto;
+  }
+}

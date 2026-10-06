@@ -204,7 +204,12 @@ export function HistoryDiscovery({
   const arm = useCallback(() => {
     setPhase((current) => (current === "intro" ? "armed" : current));
     setDropNote(undefined);
-    requestAnimationFrame(() => headingRef.current?.focus());
+    const trigger = document.activeElement;
+    requestAnimationFrame(() => {
+      // Do not steal focus if the person already moved to a chooser control.
+      if (document.activeElement === trigger || document.activeElement === document.body)
+        headingRef.current?.focus();
+    });
   }, []);
 
   const runDiscovery = useCallback(

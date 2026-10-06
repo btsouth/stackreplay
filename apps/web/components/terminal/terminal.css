@@ -1446,7 +1446,7 @@
     color: var(--dim);
     padding: 8px 0;
   }
-  .terminal table,
+  .terminal .tablecell table,
   .terminal .tablecell tbody {
     display: block;
   }
@@ -1718,7 +1718,8 @@
 }
 .terminal .paid-link {
   white-space: nowrap;
-  font-size: 12px;
+  font: 12px / 1.6 var(--mono);
+  letter-spacing: normal;
 }
 .terminal .text-button {
   padding: 0;
