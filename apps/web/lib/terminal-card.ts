@@ -130,6 +130,9 @@ export function drawCard(
   const mono =
     getComputedStyle(document.documentElement).getPropertyValue("--font-geist-mono").trim() ||
     "monospace";
+  const sans =
+    getComputedStyle(document.documentElement).getPropertyValue("--font-geist-sans").trim() ||
+    "sans-serif";
   ctx.fillStyle = bg;
   ctx.fillRect(0, 0, w, h);
   ctx.strokeStyle = line;
@@ -153,8 +156,9 @@ export function drawCard(
     size: number,
     color = fg,
     align: CanvasTextAlign = "left",
+    font = mono,
   ) {
-    ctx.font = `500 ${size}px ${mono}`;
+    ctx.font = `500 ${size}px ${font}`;
     ctx.fillStyle = color;
     ctx.textAlign = align;
     ctx.fillText(value, x, y);
@@ -216,7 +220,7 @@ export function drawCard(
   if (board) {
     speeds.slice(0, 5).forEach((s, i) => {
       const y = 450 + i * 58;
-      text(s.name, pad, y, 24);
+      text(s.name, pad, y, 24, fg, "left", sans);
       text(s.median.toFixed(1), w - pad, y, 28, signal, "right");
     });
   }
@@ -232,7 +236,7 @@ export function drawCard(
       const x = story || square ? pad : pad + i * ((w - pad * 2) / 3);
       const y = story ? 1600 + i * 44 : square ? 922 + i * 34 : 580;
       const edge = story || square ? w - pad : x + (w - pad * 2) / 3 - 24;
-      text(cardName(m.id), x, y, story ? 22 : square ? 20 : 14, dim);
+      text(cardName(m.id), x, y, story ? 22 : square ? 20 : 14, dim, "left", sans);
       text(compact(m.tokenCount), edge, y, story ? 22 : square ? 20 : 14, dim, "right");
     });
   }

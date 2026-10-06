@@ -94,7 +94,7 @@ export function TerminalLandscape({
               key={m.id}
               style={{ display: "flex", width: 338, justifyContent: "space-between" }}
             >
-              <span>{cardName(m.id)}</span>
+              <span style={{ fontFamily: "Geist Sans" }}>{cardName(m.id)}</span>
               <span>{compact(m.tokenCount)}</span>
             </div>
           ))}
