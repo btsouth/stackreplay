@@ -1,6 +1,16 @@
 .terminal-home .home-intro {
   padding: 64px 0 28px;
 }
+@media (prefers-reduced-motion: reduce) {
+  .terminal-home,
+  .terminal-home *,
+  .terminal-home *::before,
+  .terminal-home *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}
 .terminal-home .home-prompt {
   color: var(--signal-text);
   margin-right: 8px;
