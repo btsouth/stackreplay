@@ -36,7 +36,10 @@ for (const theme of ["dark", "light"] as const) {
       await page.getByRole("button", { name: "+ Add a third plan" }).click();
       await expect(targets(page)).toHaveCount(3);
       await expect(page).toHaveURL(/[?&]third=/u);
-      await selectCatalogOption(page.getByLabel("Second plan"), "opencode-go-plus");
+      await selectCatalogOption(
+        page.getByRole("combobox", { name: "Second plan", exact: true }),
+        "opencode-go-plus",
+      );
       await expect(page).toHaveURL(/[?&]right=opencode-go-plus(&|$)/u);
       await expect(
         page.evaluate(() => document.documentElement.scrollWidth <= innerWidth),
@@ -66,11 +69,17 @@ for (const theme of ["dark", "light"] as const) {
 
     test("duplicate selections stay explicit and recoverable", async ({ page }) => {
       await page.goto("/compare?left=kiro-pro&right=devin-teams");
-      await selectCatalogOption(page.getByLabel("Second plan"), "kiro-pro");
+      await selectCatalogOption(
+        page.getByRole("combobox", { name: "Second plan", exact: true }),
+        "kiro-pro",
+      );
       await expect(page.getByText("Choose different plans to see a comparison.")).toBeVisible();
       await expect(page.getByTestId("compare-table")).toHaveCount(0);
       await expect(page).toHaveURL(/left=kiro-pro&right=kiro-pro/u);
-      await selectCatalogOption(page.getByLabel("Second plan"), "devin-teams");
+      await selectCatalogOption(
+        page.getByRole("combobox", { name: "Second plan", exact: true }),
+        "devin-teams",
+      );
       await expect(page.getByTestId("compare-table")).toBeVisible();
     });
   });
