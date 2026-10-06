@@ -10,7 +10,6 @@ import type { CatalogV1 } from "./catalog.js";
 import { hashCanonicalContent as hash } from "./content-hash.js";
 import {
   type ExecutionSelector,
-  type ExecutionVersion,
   executionOverlaySchema,
   executionVersionSchema,
 } from "./execution-authoring.js";
