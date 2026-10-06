@@ -13,7 +13,7 @@ export function SamplePreview() {
     max = Math.max(1, ...p.days.map((d) => d.total));
   return (
     <section className="sample-preview" aria-label="Sample overview preview">
-      <div className="sample-heading label">SAMPLE · FICTIONAL WORKLOAD</div>
+      <div className="sample-heading label">SAMPLE · FICTIONAL HISTORY</div>
       <div className="sample-grid">
         <div className="cell">
           <div className="label">Total tokens</div>
