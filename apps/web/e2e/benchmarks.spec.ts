@@ -277,6 +277,9 @@ for (const theme of ["dark", "light"] as const)
     }, theme);
     await page.emulateMedia({ colorScheme: theme, reducedMotion: "reduce" });
     await page.goto("/benchmarks");
+    await expect(
+      page.getByRole("button", { name: "Shared benchmarks", exact: true }),
+    ).toBeEnabled();
     await page.evaluate(
       (value) => document.documentElement.classList.toggle("dark", value === "dark"),
       theme,
