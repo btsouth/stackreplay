@@ -61,7 +61,7 @@ export async function GET(
               <div
                 style={{
                   width: `${(100 * m.tokens) / Math.max(1, r.models[0]?.tokens ?? 0)}%`,
-                  background: developerColors[m.family] ?? developerColors.other,
+                  background: developerColors[m.family ?? "other"] ?? developerColors.other,
                 }}
               />
             </div>
