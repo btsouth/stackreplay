@@ -127,7 +127,9 @@ export function drawCard(
     dim = dark ? "#8d9691" : "#5c625e",
     line = dark ? "#1c2022" : "#dedcd3",
     signal = dark ? "#ff6a1f" : "#e24e00";
-  const mono = getComputedStyle(canvas).getPropertyValue("--font-geist-mono").trim() || "monospace";
+  const mono =
+    getComputedStyle(document.documentElement).getPropertyValue("--font-geist-mono").trim() ||
+    "monospace";
   ctx.fillStyle = bg;
   ctx.fillRect(0, 0, w, h);
   ctx.strokeStyle = line;
@@ -161,7 +163,14 @@ export function drawCard(
   ctx.fillStyle = signal;
   ctx.fillRect(pad, pad - 19, 18, 18);
   text("STACKREPLAY", pad + 32, pad, 20, dim);
-  text(format === "square" ? "SPEED" : cardPeriod(card), w - pad, pad, 18, dim, "right");
+  text(
+    format === "square" && card.speed ? "SPEED" : cardPeriod(card),
+    w - pad,
+    pad,
+    18,
+    dim,
+    "right",
+  );
   const square = format === "square",
     story = format === "story";
   const title = square && card.speed ? card.speed.median.toFixed(1) : cardTitle(card);
@@ -194,34 +203,38 @@ export function drawCard(
       );
     });
   }
-  const metrics = cardMetrics(card);
-  const metricY = story ? 1010 : square ? 480 : 438;
-  if (square && card.speed && speeds?.length) {
-    speeds.slice(0, 7).forEach((s, i) => {
-      const y = metricY + i * 64;
+  const board = square && card.speed && speeds?.length;
+  const metrics = board
+    ? [
+        ...(card.totalTokens !== undefined
+          ? [{ label: "TOTAL TOKENS", value: compact(card.totalTokens) }]
+          : []),
+        ...cardMetrics(card).filter((m) => !m.label.endsWith(" SPEED")),
+      ]
+    : cardMetrics(card);
+  const metricY = story ? 1010 : square ? (board ? 740 : 480) : 438;
+  if (board) {
+    speeds.slice(0, 5).forEach((s, i) => {
+      const y = 450 + i * 58;
       text(s.name, pad, y, 24);
       text(s.median.toFixed(1), w - pad, y, 28, signal, "right");
     });
-  } else
-    metrics.forEach((m, i) => {
-      const columns = story ? 1 : 3,
-        x = pad + ((i % columns) * (w - pad * 2)) / columns,
-        y = metricY + Math.floor(i / columns) * (story ? 116 : 70);
-      text(m.value, x, y + 22, story ? 42 : 32);
-      text(m.label, x, y + 49, story ? 19 : 14, dim);
-    });
+  }
+  metrics.forEach((m, i) => {
+    const columns = story ? 1 : 3,
+      x = pad + ((i % columns) * (w - pad * 2)) / columns,
+      y = metricY + Math.floor(i / columns) * (story ? 92 : square ? 80 : 70);
+    text(m.value, x, y + 22, story ? 42 : 32);
+    text(m.label, x, y + 49, story ? 19 : 14, dim);
+  });
   if (card.models?.length) {
-    const y = story ? 1510 : square ? 970 : 580;
-    text(
-      card.models
-        .slice(0, story ? 5 : 3)
-        .map((m) => `${cardName(m.id)} ${compact(m.tokenCount)}`)
-        .join(" · "),
-      pad,
-      y,
-      story ? 20 : 14,
-      dim,
-    );
+    card.models.slice(0, story ? 5 : 3).forEach((m, i) => {
+      const x = story || square ? pad : pad + i * ((w - pad * 2) / 3);
+      const y = story ? 1600 + i * 44 : square ? 922 + i * 34 : 580;
+      const edge = story || square ? w - pad : x + (w - pad * 2) / 3 - 24;
+      text(cardName(m.id), x, y, story ? 22 : square ? 20 : 14, dim);
+      text(compact(m.tokenCount), edge, y, story ? 22 : square ? 20 : 14, dim, "right");
+    });
   }
   text("STACKREPLAY.COM", pad, h - 34, 16, dim);
   text("REPORTED USAGE · NOT A BILL", w - pad, h - 34, 14, dim, "right");

@@ -24,7 +24,7 @@ export const SCAN_STAGES: readonly {
     phase: "preparing",
     stage: "reconstruct",
     label: "Reconstruct",
-    note: "Removing duplicates, rebuilding sessions and chronology",
+    note: "Removing duplicates, counting sessions and dates",
   },
   { phase: "ready", stage: "ready", label: "History", note: "Your work, ready to explore" },
 ];

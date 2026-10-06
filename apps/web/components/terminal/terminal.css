@@ -1407,14 +1407,14 @@
     grid-column: span 2;
   }
   .terminal .shead {
-    grid-template-columns: 1fr 84px 52px 54px;
+    grid-template-columns: minmax(0, 1fr) 84px 52px 54px;
     gap: 6px;
   }
   .terminal .shead .axis2 {
     display: none;
   }
   .terminal .srow {
-    grid-template-columns: 1fr 84px 52px 54px;
+    grid-template-columns: minmax(0, 1fr) 84px 52px 54px;
     gap: 6px;
     padding: 14px 0;
   }
@@ -1671,5 +1671,20 @@
   .terminal .app-scan [data-testid="privacy-boundary"],
   .terminal .app-scan [data-testid="import-dropzone"] {
     padding: 20px;
+  }
+}
+@media (max-width: 360px) {
+  .terminal .shead,
+  .terminal .srow {
+    grid-template-columns: minmax(0, 1fr) 64px 44px 50px;
+  }
+  .terminal .terminal-header nav {
+    margin-left: 0;
+  }
+  .terminal .terminal-header .hright .live {
+    letter-spacing: 0;
+  }
+  .terminal .terminal-header .btn {
+    flex-shrink: 0;
   }
 }
