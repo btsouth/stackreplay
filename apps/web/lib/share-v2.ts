@@ -52,7 +52,13 @@ export function terminalShareV2(
     kind: "workload",
     ...(synthetic ? { synthetic: true as const } : {}),
     card,
-    workload: { calls: 0, spanDays: 0, activeDays: 0, knownTokens: card.tokens ?? 0, tools: [] },
+    workload: {
+      calls: 0,
+      spanDays: 0,
+      activeDays: 0,
+      knownTokens: card.totalTokens ?? 0,
+      tools: [],
+    },
     facts: [],
     versions: { catalog: BUNDLED_CATALOG_VERSION },
   };

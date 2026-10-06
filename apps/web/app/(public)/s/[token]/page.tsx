@@ -38,7 +38,7 @@ export default async function SharePage({ params }: Props) {
       decoded.snapshot.version === 2 && decoded.snapshot.kind === "workload"
         ? decoded.snapshot.card
         : undefined;
-  const tokens = card ? card.tokens : old.tokens,
+  const tokens = card ? card.totalTokens : old.tokens,
     usd = card ? card.usd : old.usd;
   return (
     <div className="terminal shared-terminal" data-testid="share-card-v2">

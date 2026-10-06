@@ -99,7 +99,7 @@ export const shareWorkloadV2Schema = z.strictObject({
       theme: z.enum(["dark", "light"]),
       start: isoDateV1Schema,
       end: isoDateV1Schema,
-      tokens: count.optional(),
+      totalTokens: count.optional(),
       usd: amount.optional(),
       speed: z
         .strictObject({

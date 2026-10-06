@@ -57,7 +57,7 @@ export function TerminalLandscape({
         {cardTitle(card)}
       </div>
       <div style={absolute(56, 278, { fontSize: 22, color: dim })}>
-        {card.tokens !== undefined ? "TOKENS OF AI CODING" : "YOUR AI CODING"}
+        {card.totalTokens !== undefined ? "TOKENS OF AI CODING" : "YOUR AI CODING"}
       </div>
       {card.spark?.map((v, i) => (
         <div

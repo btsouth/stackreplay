@@ -24,7 +24,7 @@ export async function GET(
     theme: "dark",
     start: "1970-01-01",
     end: "1970-01-01",
-    ...(old.tokens !== undefined ? { tokens: old.tokens } : {}),
+    ...(old.tokens !== undefined ? { totalTokens: old.tokens } : {}),
     ...(old.usd !== undefined ? { usd: old.usd } : {}),
     ...(old.streak !== undefined ? { streak: old.streak } : {}),
     models: old.models.map((m) => ({ id: m.id, tokenCount: m.tokens })),

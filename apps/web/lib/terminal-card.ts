@@ -48,7 +48,7 @@ export function makeCard(
     end: r.end,
     ...(selected.tokens
       ? {
-          tokens: r.total,
+          totalTokens: r.total,
           spark: p.days
             .filter((_, i) => i % step === 0)
             .map((d) => Math.round((d.total / max) * 1000)),
@@ -98,8 +98,8 @@ export function cardMetrics(card: PublicCard) {
   ];
 }
 export function cardTitle(card: PublicCard) {
-  return card.tokens !== undefined
-    ? compact(card.tokens)
+  return card.totalTokens !== undefined
+    ? compact(card.totalTokens)
     : card.speed
       ? `${card.speed.median.toFixed(1)} tok/s`
       : card.usd !== undefined
@@ -170,7 +170,7 @@ export function drawCard(
   text(
     square && card.speed
       ? `TOK/S · ${cardName(card.speed.id).toUpperCase()}`
-      : card.tokens !== undefined
+      : card.totalTokens !== undefined
         ? "TOKENS OF AI CODING"
         : "YOUR AI CODING",
     pad,
