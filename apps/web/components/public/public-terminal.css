@@ -610,6 +610,20 @@
 .public-terminal .market-header > aside {
   border-radius: 3px;
 }
+.public-terminal .provider-coverage-summary {
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  background: var(--panel);
+  padding: 16px;
+  margin-top: 16px;
+}
+.public-terminal .provider-coverage-summary summary {
+  cursor: pointer;
+  font: 11px / 1.6 var(--mono);
+}
+.public-terminal .provider-coverage-summary summary::marker {
+  color: var(--signal-text);
+}
 .public-terminal .market-section-title {
   justify-content: flex-start;
 }
