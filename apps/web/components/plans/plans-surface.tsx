@@ -21,6 +21,7 @@ import { buildMyStack } from "@/lib/my-stack";
 import type { PlanOption } from "@/lib/plan-explorer";
 import { catalogPlansAt } from "@/lib/public-catalog";
 import { compactNumber, recapUsd } from "@/lib/recap-card";
+import { harnessNames } from "@/lib/recap-deep";
 import { paidMultiplier, recapPlans } from "@/lib/recap-plans";
 import type { TargetKey } from "@/lib/routes";
 import { parseStackParam } from "@/lib/stack-analysis";
@@ -187,7 +188,7 @@ export function PlansSurface({ initialImportId }: { initialImportId?: string | u
     .filter((o) => o.kind !== "api" && !counts[`plan:${o.id}`])
     .slice(0, 6);
   const href = (params: Record<string, string>) =>
-    `/app/plans?${new URLSearchParams({ ...Object.fromEntries([...query].filter(([key]) => !["detail", "target", "api", "section", "options"].includes(key))), import: data.id ?? "", period: data.period, ...params })}`;
+    `/app/plans?${new URLSearchParams({ ...Object.fromEntries([...query].filter(([key]) => !["detail", "target", "api", "section", "options", ...(Object.keys(params).length ? [] : ["stack", "scope", "mode", "view", "decision"])].includes(key))), import: data.id ?? "", period: data.period, ...params })}`;
   return (
     <div
       className="recap-page explorer-page plans-flow"
@@ -197,7 +198,15 @@ export function PlansSurface({ initialImportId }: { initialImportId?: string | u
       <header className="recap-toolbar">
         <div>
           <p className="recap-eyebrow">Make room for your next idea</p>
-          <h1>{detail ? "A closer look" : comparing ? "Compare your options" : "Your plans"}</h1>
+          <h1>
+            {detail
+              ? "A closer look"
+              : proposal.length
+                ? "Your proposed plans"
+                : comparing
+                  ? "Compare your options"
+                  : "Your plans"}
+          </h1>
           <p className="explorer-intro">
             {detail
               ? detail.name
@@ -208,6 +217,17 @@ export function PlansSurface({ initialImportId }: { initialImportId?: string | u
         </div>
         <PeriodControl value={data.period} onChange={data.selectPeriod} />
       </header>
+      {query.get("scope") && (
+        <p className="plan-muted">
+          {query
+            .get("scope")
+            ?.split(",")
+            .map((id) => harnessNames[id])
+            .filter(Boolean)
+            .join(" + ") || "Selected tools"}{" "}
+          only.
+        </p>
+      )}
       {data.record && isSyntheticWorkload(data.record) && (
         <p className="plan-muted">Fictional demo. These numbers are sample data.</p>
       )}
@@ -496,7 +516,10 @@ function PlanCard({
 }) {
   return (
     <article className="plan-alternative" data-testid={`alternative-${option.id}`}>
-      <h3>{option.name}</h3>
+      <h3>
+        {option.name}
+        {option.quantity > 1 ? ` × ${option.quantity}` : ""}
+      </h3>
       <p className="plan-price">
         {option.kind === "api"
           ? "Pay as you go"
@@ -554,7 +577,10 @@ function PlanCard({
 function Usage({ option }: { option: PlanOption }) {
   return (
     <article className="plan-use">
-      <h3>{option.name}</h3>
+      <h3>
+        {option.name}
+        {option.quantity > 1 ? ` × ${option.quantity}` : ""}
+      </h3>
       {option.error ? (
         <p>This plan’s limits couldn’t be checked for this history.</p>
       ) : (

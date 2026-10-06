@@ -1,6 +1,6 @@
 "use client";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { PlanOption } from "./plan-explorer";
 import type { Recap, RecapPeriod } from "./recap";
 import { getWorkerClient } from "./worker-client";
@@ -20,6 +20,9 @@ export function useRecapData(
   const [period, setPeriod] = useState<RecapPeriod>("30");
   const [recap, setRecap] = useState<Recap>();
   const [options, setOptions] = useState<PlanOption[]>();
+  const computed = useRef<{ key: string; recap: Recap; options?: PlanOption[] | undefined }>(
+    undefined,
+  );
   const countsKey = counts ? JSON.stringify(counts) : undefined;
   const requestedKey = JSON.stringify(requested);
   const sources = query.get("scope") ?? "";
@@ -55,6 +58,21 @@ export function useRecapData(
   }, []);
   useEffect(() => {
     if (!id) return;
+    const key = JSON.stringify([id, period, now, timeZone, countsKey, sources]);
+    const previous = computed.current;
+    // Opening an already-calculated alternative changes the URL, not the data.
+    // Keep the controls mounted rather than flashing a second calculation.
+    if (
+      previous?.key === key &&
+      JSON.parse(requestedKey).every((target: string) =>
+        previous.options?.some((option) => option.id === target),
+      )
+    ) {
+      setError(undefined);
+      setRecap(previous.recap);
+      setOptions(previous.options);
+      return;
+    }
     let active = true;
     const worker = new Worker("/stackreplay-recap-worker.js", { type: "module" });
     setRecap(undefined);
@@ -64,6 +82,8 @@ export function useRecapData(
       event: MessageEvent<{ recap?: Recap; options?: PlanOption[]; error?: string }>,
     ) => {
       if (active) {
+        if (event.data.recap && !event.data.error)
+          computed.current = { key, recap: event.data.recap, options: event.data.options };
         setRecap(event.data.recap);
         setOptions(event.data.options);
         setError(event.data.error);

@@ -67,6 +67,38 @@ test("Plans details and comparison keep the selected history and browser navigat
   await expect(page.getByTestId("plans-comparison").locator("article")).toHaveCount(2);
 });
 
+test("legacy plan and stack details keep tool choice and quantities, with a path back", async ({
+  page,
+}) => {
+  await gotoImport(page);
+  await page.getByTestId("demo-moderate").click();
+  await expect(page.getByTestId("recap-ready")).toBeVisible({ timeout: 60000 });
+  const id = new URL(page.url()).searchParams.get("import");
+  await page.goto(
+    `/app/replay?import=${id}&target=anthropic-claude-max-5x&scope=claude-code&period=all`,
+  );
+  await expect(page.getByTestId("plan-detail")).toBeVisible({ timeout: 60000 });
+  await expect(page.getByText("Claude Code only.", { exact: true })).toBeVisible();
+  await page.getByRole("link", { name: "Back to your plans", exact: true }).click();
+  await expect(page.locator(".plan-headline")).toBeVisible({ timeout: 60000 });
+  expect(new URL(page.url()).searchParams.has("scope")).toBe(false);
+  await page.goto(
+    `/app/replay?import=${id}&stack=anthropic-claude-max-5x*2,openai-chatgpt-pro&period=all`,
+  );
+  await expect(page.getByRole("heading", { name: "Your proposed plans", exact: true })).toBeVisible(
+    { timeout: 60000 },
+  );
+  await expect(
+    page.getByTestId("alternative-anthropic-claude-max-5x").getByRole("heading"),
+  ).toHaveText("Claude Max 5x × 2");
+  await expect(
+    page.getByTestId("alternative-anthropic-claude-max-5x").locator(".plan-price"),
+  ).toContainText("$200");
+  await page.getByRole("link", { name: "Back to your plans", exact: true }).click();
+  await expect(page.locator(".plan-headline")).toBeVisible({ timeout: 60000 });
+  expect(new URL(page.url()).searchParams.has("stack")).toBe(false);
+});
+
 test("saved and temporary scans keep a path through recap, Stats and Plans", async ({ page }) => {
   await gotoImport(page);
   await expect(page.getByTestId("intake-surface")).toHaveAttribute("data-ready", "true");
