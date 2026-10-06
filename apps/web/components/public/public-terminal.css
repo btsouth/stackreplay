@@ -7,6 +7,12 @@
   counter-reset: public-section;
 }
 .public-terminal {
+  --background: var(--bg);
+  --surface: var(--panel);
+  --surface-2: var(--raise);
+  --foreground: var(--fg);
+  --muted-foreground: var(--dim);
+  --accent: var(--signal-text);
   --recap-money-foreground: var(--signal-text);
   --warning: var(--signal-text);
   --negative: var(--signal-text);
