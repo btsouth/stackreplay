@@ -217,10 +217,10 @@ export function Overview({
             />
           )}
           <Readout
-            label="Current streak · all time"
+            label="Current streak"
             value={integer(r.streak)}
             unit="days"
-            note={`LONGEST ${r.longestStreak} DAYS · ALL TIME`}
+            note={`ALL TIME · LONGEST ${integer(r.longestStreak)}`}
           />
           <Readout
             label="Sessions"
@@ -275,55 +275,60 @@ export function Overview({
               days={p.days.map((d) => ({ date: d.date, value: d.total }))}
               github={ghDays}
             />
-            {gh.state !== "ready" && (
-              <form
-                className="connect"
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  void gh.connect(login);
-                }}
-              >
-                <label htmlFor="github-login">GitHub username</label>
-                <input
-                  id="github-login"
-                  value={login}
-                  onChange={(e) => setLogin(e.target.value)}
-                  placeholder="username"
-                  autoComplete="off"
-                  required
-                />
-                <button className="btn" type="submit" disabled={gh.state === "loading"}>
-                  {gh.state === "loading" ? "Connecting…" : "Connect"}
-                </button>
-                {gh.error && <p role="alert">{gh.error}</p>}
-              </form>
-            )}
           </div>
-          <div className="actside">
-            <Readout
-              label="GitHub contributions"
-              value={activity ? integer(activity.contributions) : "Connect GitHub"}
-            />
-            <Readout
-              label="Tokens per contribution"
-              value={
-                activity?.tokensPerContribution
-                  ? compact(activity.tokensPerContribution)
-                  : "No count yet"
-              }
-            />
-            <Readout
-              label="Days with AI and GitHub"
-              value={activity ? activity.longestJointStreak : "Connect to compare"}
-              unit={activity ? "days" : undefined}
-              note={activity ? "LONGEST RUN" : undefined}
-            />
-            <Readout
-              label="Most GitHub contributions in a day"
-              value={activity?.bestDay ? integer(activity.bestDay.count) : "See your best day"}
-              note={activity?.bestDay ? dateLabel(activity.bestDay.date).toUpperCase() : undefined}
-            />
-          </div>
+          {!activity ? (
+            <div className="actside connect-side">
+              <div className="cell">
+                <div className="label">GitHub</div>
+                <p className="connect-copy">
+                  Add your GitHub username to mirror your public contributions under the token bars
+                  and see how the two line up.
+                </p>
+                <form
+                  className="connect"
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    void gh.connect(login);
+                  }}
+                >
+                  <label htmlFor="github-login">GitHub username</label>
+                  <input
+                    id="github-login"
+                    value={login}
+                    onChange={(e) => setLogin(e.target.value)}
+                    placeholder="username"
+                    autoComplete="off"
+                    required
+                  />
+                  <button className="btn" type="submit" disabled={gh.state === "loading"}>
+                    {gh.state === "loading" ? "Connecting…" : "Connect"}
+                  </button>
+                  {gh.error && <p role="alert">{gh.error}</p>}
+                </form>
+              </div>
+            </div>
+          ) : (
+            <div className="actside">
+              <Readout label="GitHub contributions" value={integer(activity.contributions)} />
+              <Readout
+                label="Tokens per contribution"
+                value={
+                  activity.tokensPerContribution ? compact(activity.tokensPerContribution) : "None"
+                }
+              />
+              <Readout
+                label="Days with AI and GitHub"
+                value={activity.longestJointStreak}
+                unit="days"
+                note="LONGEST RUN"
+              />
+              <Readout
+                label="Most GitHub contributions in a day"
+                value={activity.bestDay ? integer(activity.bestDay.count) : "None"}
+                note={activity.bestDay ? dateLabel(activity.bestDay.date).toUpperCase() : undefined}
+              />
+            </div>
+          )}
         </div>
       </Section>
       <Section
@@ -557,7 +562,7 @@ export function Overview({
                         : coverage === "partial"
                           ? "partly priced"
                           : dollars(m.usd)}{" "}
-                      · {integer(r.explorer?.modelSessions[m.id] ?? 0)} sessions ·{" "}
+                      · {plural(r.explorer?.modelSessions[m.id] ?? 0, "session", "sessions")} ·{" "}
                       {speed ? `${speed.median.toFixed(1)} tok/s` : "timing unreported"} ·{" "}
                       {first ? dateLabel(first.date).toUpperCase() : "first use unreported"}
                     </p>
@@ -566,16 +571,40 @@ export function Overview({
               })}
             </section>
             {p.tail.length > 0 && (
-              <div className="tail">
-                <span className="label">+ {p.tail.length} more</span>
-                {p.tail.map((m) => (
-                  <span className={`tl${unresolvedModel(m.id, m.name) ? " dim" : ""}`} key={m.id}>
-                    <i style={{ background: p.colors.get(m.id) }} />
-                    {name(m.id)}
-                    <b>{compact(m.total)}</b>
-                  </span>
-                ))}
-              </div>
+              <details className="tail" open>
+                <summary className="label">Unidentified labels ({p.tail.length})</summary>
+                <p className="tail-note">
+                  Log entries whose model the catalog does not name. No identity is guessed.
+                </p>
+                {p.tail.map((m) => {
+                  const s = p.speeds.find((speed) => speed.id === m.id);
+                  const first = r.deep?.firstSeen.find((f) => f.id === m.id);
+                  const sessions = r.explorer?.modelSessions[m.id] ?? 0;
+                  const coverage = pricingCoverage(m);
+                  return (
+                    <span className={`tl${unresolvedModel(m.id, m.name) ? " dim" : ""}`} key={m.id}>
+                      <i style={{ background: p.colors.get(m.id) }} />
+                      <b>{name(m.id)}</b>
+                      <span>{compact(m.total)} tokens</span>
+                      <span>{plural(sessions, "session", "sessions")}</span>
+                      <span>{s ? `${s.median.toFixed(1)} tok/s` : "timing unreported"}</span>
+                      <span>
+                        {first
+                          ? `first used ${dateLabel(first.date).toUpperCase()}`
+                          : "first use unreported"}
+                      </span>
+                      <span>
+                        {coverage === "none"
+                          ? "unpriced"
+                          : coverage === "partial"
+                            ? "partly priced"
+                            : dollars(m.usd)}
+                      </span>
+                      <span>{developerNames[m.family] ?? "developer unknown"}</span>
+                    </span>
+                  );
+                })}
+              </details>
             )}
           </div>
         </div>

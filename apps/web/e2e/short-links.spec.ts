@@ -112,7 +112,7 @@ test("a recap link can be stored as a short link that carries only its aggregate
   const intent = new URL((await page.getByTestId("recap-share-x").getAttribute("href"))!);
   expect(intent.origin + intent.pathname).toBe("https://x.com/intent/post");
   expect(intent.searchParams.get("url")).toBe(path);
-  expect(intent.searchParams.get("text")).toMatch(/tokens of AI coding in 13 days/u);
+  expect(intent.searchParams.get("text")).toMatch(/processed tokens in 13 days/u);
   expect(intent.searchParams.get("text")).not.toMatch(/[–—#]/u);
   await page.getByTestId("recap-share-copy").click();
   await expect(page.getByTestId("recap-share-copy")).toHaveText("Copied");
@@ -134,8 +134,8 @@ test("a recap link can be stored as a short link that carries only its aggregate
   const head = html.split("</head>")[0]!;
   expect(head).toContain('name="twitter:card" content="summary_large_image"');
   expect(head).not.toMatch(/noindex|nofollow/u);
-  expect(head).toMatch(/property="og:title" content="[^"]*tokens of AI coding in 13 days/u);
-  expect(head).toMatch(/name="twitter:description" content="[^"]*tokens of AI coding/u);
+  expect(head).toMatch(/property="og:title" content="[^"]*processed tokens in 13 days/u);
+  expect(head).toMatch(/name="twitter:description" content="[^"]*processed tokens/u);
   const ogImage = /<meta property="og:image" content="([^"]+)"/u.exec(html)?.[1];
   expect(ogImage).toBe(`https://stackreplay.com/s/${shortId}/image?v=2`);
   expect(head).toContain(`name="twitter:image" content="${ogImage}"`);

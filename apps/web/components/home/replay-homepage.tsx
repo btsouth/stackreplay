@@ -62,10 +62,10 @@ export function ReplayHomepage() {
               <dd>A Web Worker in your browser counts your history on this device.</dd>
             </div>
             <div className="cell">
-              <dt className="label">LEAVES ONLY BY CHOICE</dt>
+              <dt className="label">WHAT LEAVES</dt>
               <dd>
-                Nothing, unless you create a share link or connect a GitHub username for its public
-                contribution calendar.
+                Nothing from your logs. A share link uploads only your card's numbers, GitHub gets
+                only your username, and the site counts page visits with Cloudflare Web Analytics.
               </dd>
             </div>
           </dl>

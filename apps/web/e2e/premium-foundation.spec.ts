@@ -134,7 +134,14 @@ test("public and app mobile menus trap focus, close on Escape and return focus",
     const dialog = page.getByRole("dialog");
     await expect(dialog).toBeVisible();
     if (path === "/") {
-      for (const name of ["Models", "Providers", "Benchmarks", "Plans", "Compare", "Updates"]) {
+      // Models leads the menu's top links; the catalog list holds the rest, once each.
+      await expect(
+        dialog.getByRole("navigation", { name: "Public" }).getByRole("link", {
+          name: "Models",
+          exact: true,
+        }),
+      ).toBeVisible();
+      for (const name of ["Providers", "Benchmarks", "Plans", "Compare", "Updates"]) {
         await expect(
           dialog
             .getByRole("navigation", { name: "Catalog" })

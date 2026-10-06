@@ -1,4 +1,5 @@
-import type { CSSProperties, ReactNode } from "react";
+"use client";
+import { type CSSProperties, type ReactNode, useState } from "react";
 import { compact } from "@/lib/terminal-presentation";
 /** Keep the mono decimal glyph close to its neighbouring digits. */
 export function TightNumber({ value }: { value: string | number }) {
@@ -90,10 +91,12 @@ export function BarList({
   label: string;
   rows: { id?: string; name: string; total: number }[];
 }) {
+  const [open, setOpen] = useState(false);
   const total = rows.reduce((sum, r) => sum + r.total, 0);
   const shown = rows.filter((r) => r.total / Math.max(1, total) >= 0.0001).slice(0, 8);
   const remaining = rows.filter((r) => !shown.includes(r));
   const max = Math.max(1, ...shown.map((r) => r.total));
+  const noun = label.split(" · ")[0]!.toLowerCase();
   return (
     <div className="cell lcol">
       <span className="label">{label}</span>
@@ -110,7 +113,12 @@ export function BarList({
       ) : (
         <p className="dim">No recorded totals.</p>
       )}
-      {remaining.length > 0 && (
+      {remaining.length > 0 && !open && (
+        <button type="button" className="bar-tail bar-tail-more" onClick={() => setOpen(true)}>
+          Show all {rows.length} {noun} ↓
+        </button>
+      )}
+      {remaining.length > 0 && open && (
         <div className="tail bar-tail">
           {remaining.map((r) => (
             <span className="tl" key={r.id ?? r.name}>
@@ -118,6 +126,9 @@ export function BarList({
               <b>{compact(r.total)}</b>
             </span>
           ))}
+          <button type="button" className="bar-tail-more" onClick={() => setOpen(false)}>
+            Collapse ↑
+          </button>
         </div>
       )}
     </div>

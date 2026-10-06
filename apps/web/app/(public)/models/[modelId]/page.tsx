@@ -318,9 +318,7 @@ export default async function ModelPage({ params }: Props) {
         <ModelBenchmarks data={loadPublicBenchmarks()} modelId={model.id} />
       )}
       <div className="market-section-title" id="where-to-use">
-        <span>
-          {model.kind === "family" ? "01" : specifications ? "03" : "02"} / Where you can use it
-        </span>
+        <span>Where you can use it</span>
         <span>
           {apis.length
             ? `${apis.length} API ${apis.length === 1 ? "route" : "routes"}`

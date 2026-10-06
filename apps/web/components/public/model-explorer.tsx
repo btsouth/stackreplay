@@ -78,6 +78,7 @@ export function ModelExplorer({
   const [direction, setDirection] = useState<SortDirection>("ascending");
   const [inSubscription, setInSubscription] = useState(false);
   const [withApiPrice, setWithApiPrice] = useState(false);
+  const [filtersOpen, setFiltersOpen] = useState(true);
   const [expanded, setExpanded] = useState(false);
   const [selected, setSelected] = useState<string[]>([]);
   const [selectionRestored, setSelectionRestored] = useState(false);
@@ -126,6 +127,7 @@ export function ModelExplorer({
     setDirection(state.direction);
     setInSubscription(state.included);
     setWithApiPrice(state.priced);
+    setFiltersOpen(matchMedia("(min-width: 801px)").matches);
     document.documentElement.removeAttribute("data-model-layout");
     document.documentElement.removeAttribute("data-model-filters");
   }, [developers]);
@@ -259,27 +261,36 @@ export function ModelExplorer({
             })}
           </CatalogSelect>
         </div>
-        <fieldset className="market-filter-checks">
-          <legend>Access</legend>
-          <label>
-            <input
-              type="checkbox"
-              disabled={!ready}
-              checked={inSubscription}
-              onChange={(e) => setInSubscription(e.target.checked)}
-            />
-            Included in a subscription
-          </label>
-          <label>
-            <input
-              type="checkbox"
-              disabled={!ready}
-              checked={withApiPrice}
-              onChange={(e) => setWithApiPrice(e.target.checked)}
-            />
-            Published API price
-          </label>
-        </fieldset>
+        <details
+          className="market-filters-more"
+          open={filtersOpen}
+          onToggle={(event) => setFiltersOpen(event.currentTarget.open)}
+        >
+          <summary>More filters</summary>
+          <div className="market-filters-more-body">
+            <fieldset className="market-filter-checks">
+              <legend>Access</legend>
+              <label>
+                <input
+                  type="checkbox"
+                  disabled={!ready}
+                  checked={inSubscription}
+                  onChange={(e) => setInSubscription(e.target.checked)}
+                />
+                Included in a subscription
+              </label>
+              <label>
+                <input
+                  type="checkbox"
+                  disabled={!ready}
+                  checked={withApiPrice}
+                  onChange={(e) => setWithApiPrice(e.target.checked)}
+                />
+                Published API price
+              </label>
+            </fieldset>
+          </div>
+        </details>
       </div>
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border">
         <div className="market-tabs">

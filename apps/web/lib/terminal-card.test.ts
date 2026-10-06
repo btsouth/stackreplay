@@ -179,6 +179,7 @@ describe("speed board compatibility", () => {
     for (const format of ["landscape", "square", "story"] as const) {
       const texts = cardLayout(card, format).texts;
       expect(texts.find((t) => t.id === "hero")?.text).toBe("AI CODING");
+      // Speed only ever appears as the opt-in list, never as the hero.
       expect(texts.find((t) => t.id === "speed-name-0")?.text).toBe("Claude Opus 5.5");
       expect(texts.find((t) => t.id === "speed-value-0")?.text).toBe("87.1");
     }
@@ -421,5 +422,72 @@ describe("readable activity and period stats", () => {
     expect(
       cardMetrics({ theme: "dark", start: recap.start, end: recap.end, streak: 47 }),
     ).toContainEqual({ label: "LONGEST STREAK", value: "47 days" });
+  });
+});
+
+describe("honest card typography", () => {
+  const all = Object.fromEntries(
+    Object.keys(DEFAULT_SELECTIONS).map((key) => [key, true]),
+  ) as typeof DEFAULT_SELECTIONS;
+  const stress = () => {
+    const card = makeCard(
+      recap,
+      all,
+      "dark",
+      { text: "33×", monthlyUsd: "300", accounts: 2, days: 30 },
+      1234,
+      new Map(recap.days.map((d, i) => [d.date, i % 5 ? i + 1 : 0])),
+    );
+    card.models = Array.from({ length: 5 }, (_, i) => ({
+      id: `model-${i}`,
+      tokenCount: recap.total / (i + 2),
+      family: "openai",
+    }));
+    card.speeds = Array.from({ length: 14 }, (_, i) => ({ id: `model-${i}`, median: 100 - i }));
+    return card;
+  };
+  it("keeps every label at or above the format floor", () => {
+    const card = stress();
+    for (const [format, minimum] of [
+      ["landscape", 18],
+      ["square", 20],
+      ["story", 26],
+    ] as const)
+      for (const t of cardLayout(card, format).texts)
+        expect(t.size, `${format} ${t.id}`).toBeGreaterThanOrEqual(minimum);
+  });
+  it("labels the headline tokens with the computed cached-context share", () => {
+    const card = makeCard(recap, DEFAULT_SELECTIONS, "dark", undefined, 123);
+    expect(card.cacheShare).toBe(Math.round(((recap.deep?.buckets.read ?? 0) / recap.total) * 100));
+    for (const format of ["landscape", "square", "story"] as const)
+      expect(cardLayout(card, format).texts.find((t) => t.id === "caption")?.text).toBe(
+        `TOKENS OF AI CODING · ${card.cacheShare}% CACHED CONTEXT`,
+      );
+    const old = cardLayout(
+      { theme: "dark", start: recap.start, end: recap.end, totalTokens: 1000 },
+      "landscape",
+    ).texts.find((t) => t.id === "caption");
+    expect(old?.text).toBe("TOKENS OF AI CODING");
+  });
+  it("labels the dollar figure as a list-price estimate with its request coverage", () => {
+    const card = makeCard(recap, DEFAULT_SELECTIONS, "dark");
+    expect(card.pricedRequests).toBe(recap.priced);
+    // Same denominator as the overview's "N% of requests priced".
+    expect(card.requests).toBe(recap.records);
+    const coverage = `${Math.round((recap.priced / recap.records) * 100)}% PRICED`;
+    // Landscape and square carry the estimate on the footer line.
+    for (const format of ["landscape", "square"] as const)
+      expect(cardLayout(card, format).texts.find((t) => t.id === "footer-note")?.text).toBe(
+        `LIST-PRICE ESTIMATE · ${coverage} · NOT A BILL`,
+      );
+    expect(cardLayout(card, "story").texts.find((t) => t.id === "footer-coverage")?.text).toBe(
+      `API LIST-PRICE ESTIMATE · ${coverage}`,
+    );
+    expect(
+      cardLayout(
+        { theme: "dark", start: recap.start, end: recap.end, usd: "10" },
+        "landscape",
+      ).texts.find((t) => t.id === "footer-note")?.text,
+    ).toBe("LIST-PRICE ESTIMATE · COVERAGE UNREPORTED · NOT A BILL");
   });
 });

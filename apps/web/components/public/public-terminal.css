@@ -786,3 +786,117 @@
   color: var(--signal-text);
   transition: none;
 }
+
+/* Sort and access stay one tap away on phones without pushing results down. */
+.public-terminal .market-filters-more {
+  flex-basis: 100%;
+}
+.public-terminal .market-filters-more > summary {
+  display: none;
+}
+.public-terminal .market-filters-more-body {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 12px 20px;
+}
+.public-terminal .market-filters-more-body > .catalog-control {
+  font: 11px / 1.6 var(--mono);
+  gap: 6px;
+  color: var(--dim);
+  flex-basis: 155px;
+}
+@media (max-width: 800px) {
+  .public-terminal .market-filters-more > summary {
+    display: list-item;
+    cursor: pointer;
+    min-height: 36px;
+    font: 11px / 1.6 var(--mono);
+    color: var(--signal-text);
+  }
+  .public-terminal .market-filters-more:not([open]) > .market-filters-more-body {
+    display: none;
+  }
+  .public-terminal .market-filters-more-body {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+  .public-terminal .market-filters-more-body > .catalog-control {
+    flex-basis: auto;
+    width: 100%;
+  }
+  .public-terminal .models-discovery-page .market-filters {
+    padding: 12px;
+    gap: 10px 12px;
+    margin-bottom: 12px;
+  }
+}
+
+/* Benchmarks: a tighter header and control stack so a score reaches the fold. */
+@media (min-width: 801px) {
+  .public-terminal .bench-header {
+    gap: 2rem;
+    padding: 0.5rem 0 1rem;
+  }
+  .public-terminal .bench-header h1 {
+    font-size: clamp(2rem, 3vw, 3rem);
+    margin: 0.4rem 0 0.5rem;
+  }
+  .public-terminal .bench-source-card {
+    padding: 16px 20px;
+  }
+  .public-terminal .bench-toolbar,
+  .public-terminal .bench-view-controls {
+    padding: 10px 16px;
+    gap: 8px;
+  }
+  .public-terminal .bench-categories {
+    padding: 6px 0;
+    gap: 6px;
+  }
+  .public-terminal .bench-table-guide {
+    margin: 8px 0;
+  }
+  .public-terminal .bench-picker {
+    margin: 8px 0;
+  }
+}
+
+/* Phones: get the first model on the first screen. */
+@media (max-width: 640px) {
+  .public-terminal .market-header,
+  .public-terminal .public-opening,
+  .public-terminal .sr-page-heading {
+    margin-bottom: 12px;
+    padding-bottom: 12px;
+  }
+  .public-terminal :is(.sr-page-heading h1, .market-header h1) {
+    font-size: 30px;
+    margin: 6px 0 10px;
+  }
+  .public-terminal .market-filters {
+    padding: 12px 14px;
+    gap: 10px 12px;
+    margin-bottom: 12px;
+  }
+  .public-terminal .market-filters > :is(label, .catalog-control) {
+    flex: 1 1 calc(50% - 6px);
+  }
+  .public-terminal .market-filters > :is(label, .catalog-control).grow {
+    flex-basis: 100%;
+  }
+  .public-terminal .market-filters .sr-select,
+  .public-terminal .market-filters .sr-select * {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .public-terminal .sr-segmented {
+    flex-wrap: nowrap;
+    flex-shrink: 0;
+  }
+  .public-terminal .sr-segmented span {
+    padding: 8px 12px;
+  }
+}
