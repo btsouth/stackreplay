@@ -108,16 +108,16 @@ export function combinedActivity(calendar: GitHubCalendar, aiDays: AiDay[]): Com
     } else {
       run = 0;
     }
-    if (bestDay === undefined || day.contributions > bestDay.count) {
+    if (day.contributions > 0 && (bestDay === undefined || day.contributions > bestDay.count)) {
       bestDay = { date: day.date, count: day.contributions };
     }
   }
 
-  // The last history day is usually today and may simply not have run yet.
-  // Ending a streak there does not count, so walk back from the day before.
+  // The last history day is usually today and may not have both kinds of work
+  // yet. An unfinished today never ends the streak, so start from yesterday.
   let index = days.length - 1;
   const last = days[index];
-  if (last !== undefined && (last.tokens > 0 || last.contributions > 0) === false) {
+  if (last !== undefined && !(last.tokens > 0 && last.contributions > 0)) {
     index -= 1;
   }
   let jointStreak = 0;

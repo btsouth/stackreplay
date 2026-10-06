@@ -144,6 +144,17 @@ describe("combinedActivity", () => {
       ]),
     );
     expect(todayBlank.jointStreak).toBe(2);
+
+    const todayTokensOnly = combinedActivity(
+      calendar({ "2026-01-01": 1, "2026-01-02": 1 }),
+      ai([
+        ["2026-01-01", 10],
+        ["2026-01-02", 10],
+        ["2026-01-03", 10],
+      ]),
+    );
+    expect(todayTokensOnly.jointStreak).toBe(2);
+    expect(combinedActivity(calendar({}), ai([["2026-01-01", 10]])).bestDay).toBeUndefined();
   });
 
   it("keeps the longest joint streak across a break", () => {
