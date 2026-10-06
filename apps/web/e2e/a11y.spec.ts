@@ -1,7 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, type Page, test } from "@playwright/test";
 import { encodeShareToken } from "@stackreplay/share";
-import { importDemo, runReplay } from "./helpers";
+import { importDemo } from "./helpers";
 
 /**
  * Accessibility (M3 brief): WCAG 2.2 AA target on the new surfaces, in both
@@ -57,7 +57,7 @@ test.describe("import surface accessibility", () => {
     await expect(page.getByTestId("recap-ready")).toHaveAttribute("data-period", "all");
     await page.getByRole("link", { name: "Explore your stats" }).focus();
     await page.keyboard.press("Enter");
-    await expect(page.getByTestId("automatic-workload")).toBeVisible();
+    await expect(page.getByTestId("stats-ready")).toBeVisible();
   });
 
   test("import errors are announced", async ({ page }) => {
@@ -72,80 +72,60 @@ test.describe("import surface accessibility", () => {
   });
 });
 
-test.describe("replay surface accessibility", () => {
-  test("passes axe for a served workload in dark mode", async ({ page }) => {
-    await page.emulateMedia({ colorScheme: "dark", reducedMotion: "reduce" });
-    await importDemo(page, "heavy");
-    await page.goto("/app/plans?section=replay&mode=custom");
-    await runReplay(page, "example-cloud-pro");
-    await expectNoSeriousViolations(page);
-  });
-
-  test("passes axe for exceeded constraints in light mode", async ({ page }) => {
-    await page.emulateMedia({ colorScheme: "light", reducedMotion: "reduce" });
-    await importDemo(page, "heavy");
-    await page.goto("/app/plans?section=replay&mode=custom");
-    await runReplay(page, "example-cloud-pro");
-    await expectNoSeriousViolations(page);
-  });
-
-  test("passes axe for unknown coverage", async ({ page }) => {
-    await page.emulateMedia({ colorScheme: "dark", reducedMotion: "reduce" });
-    await importDemo(page, "multistack");
-    await page.goto("/app/plans?section=replay&mode=custom");
-    await runReplay(page, "example-cloud-starter");
-    await expectNoSeriousViolations(page);
-  });
-
-  test("status meaning is never carried by color alone", async ({ page }) => {
-    await importDemo(page, "heavy");
-    await page.goto("/app/plans?section=replay&mode=custom");
-    await runReplay(page, "example-cloud-pro");
-    const trace = page.getByTestId("constraint-trace");
-    // Status is a word, not a colour, so every state reads without contrast.
-    await expect(trace).toContainText("within limits");
-    await expect(trace).toContainText("exceeded");
-  });
-
-  test("the timeline exposes a text alternative", async ({ page }) => {
-    await importDemo(page, "heavy");
-    await page.goto("/app/plans?section=replay&mode=custom");
-    await runReplay(page, "example-cloud-pro");
-    const chart = page.getByTestId("timeline-chart");
-    await expect(chart).toHaveAttribute("role", "img");
-    const label = await chart.getAttribute("aria-label");
-    expect(label).toContain("Replay timeline");
-    expect(label?.length ?? 0).toBeGreaterThan(40);
-  });
-
-  test("violation detail is reachable with the keyboard", async ({ page }) => {
-    await importDemo(page, "heavy");
-    await page.goto("/app/plans?section=replay&mode=custom");
-    await runReplay(page, "example-cloud-pro");
-    const summary = page.getByTestId("violations").locator("summary").first();
-    await summary.focus();
-    await page.keyboard.press("Enter");
-    await expect(page.getByTestId("violations")).toContainText("Attempted demand");
-  });
-
-  test("interactive rows are big enough to aim at", async ({ page }) => {
-    await importDemo(page, "heavy");
-    await page.goto("/app/plans?section=replay&mode=custom");
-    await runReplay(page, "example-cloud-pro");
-    // 44px is the familiar minimum for a touch target, and a disclosure row that
-    // is any shorter is hard to hit with a thumb or a shaky pointer.
-    const heights = await page.evaluate(() => {
-      const round = (node: Element) => Math.round(node.getBoundingClientRect().height);
-      return {
-        planRows: [...document.querySelectorAll("[data-plan-option]")].map(round),
-        summaries: [...document.querySelectorAll("[data-testid='violations'] summary")].map(round),
-      };
-    });
-    expect(heights.planRows.length).toBeGreaterThan(0);
-    expect(heights.summaries.length).toBeGreaterThan(0);
-    for (const height of [...heights.planRows, ...heights.summaries]) {
-      expect(height).toBeGreaterThanOrEqual(44);
+test.describe("app surface accessibility", () => {
+  for (const theme of ["dark", "light"] as const) {
+    for (const route of ["recap", "stats", "settings"] as const) {
+      test(`${route} passes axe in ${theme} mode`, async ({ page }) => {
+        await page.emulateMedia({ colorScheme: theme, reducedMotion: "reduce" });
+        await importDemo(page, "heavy");
+        const id = new URL(page.url()).searchParams.get("import");
+        await page.goto(`/app/${route}?import=${id}`);
+        await expect(
+          route === "settings"
+            ? page.getByTestId("settings-saved")
+            : page.getByTestId(`${route}-ready`),
+        ).toBeVisible({ timeout: 60_000 });
+        await expectNoSeriousViolations(page);
+      });
     }
+  }
+
+  test("what you pay is operable with the keyboard and passes axe with plans entered", async ({
+    page,
+  }) => {
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await page.goto("/app/settings");
+    const trigger = page.getByRole("combobox", { name: "Add a plan" });
+    await trigger.focus();
+    await page.keyboard.press("Enter");
+    await page
+      .getByRole("option", { name: /^Claude Max 5x ·/u })
+      .first()
+      .focus();
+    await page.keyboard.press("Enter");
+    const more = page.getByRole("button", { name: "More Claude Max 5x accounts" });
+    await more.focus();
+    await page.keyboard.press("Space");
+    await expect(page.getByTestId("what-you-pay-total")).toHaveText(
+      "2 accounts · $200/month total",
+    );
+    await expectNoSeriousViolations(page);
+  });
+
+  test("interactive controls are big enough to aim at on a phone", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== "mobile", "touch viewport only");
+    await page.goto("/app/settings");
+    await page.getByRole("combobox", { name: "Add a plan" }).click();
+    await page
+      .getByRole("option", { name: /^Claude Max 5x ·/u })
+      .first()
+      .click();
+    const heights = await page
+      .getByTestId("what-you-pay")
+      .locator("button")
+      .evaluateAll((nodes) => nodes.map((node) => Math.round(node.getBoundingClientRect().height)));
+    expect(heights.length).toBeGreaterThan(0);
+    for (const height of heights) expect(height).toBeGreaterThanOrEqual(44);
   });
 });
 
@@ -271,7 +251,7 @@ test.describe("public site accessibility", () => {
     for (const theme of ["dark", "light"] as const) {
       await page.emulateMedia({ colorScheme: theme, reducedMotion: "reduce" });
       await page.goto(`/s/${token}`);
-      await expect(page.getByTestId("share-card")).toBeVisible();
+      await expect(page.getByTestId("share-card-v2")).toBeVisible();
       await expectNoSeriousViolations(page);
     }
   });

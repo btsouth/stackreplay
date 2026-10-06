@@ -1,83 +1,47 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
-import { encodeShareTokenV2, type ShareReplayV2 } from "@stackreplay/share";
-import { createShareToken, importDemo, runReplay } from "./premium-app-helpers";
+import { encodeShareTokenV2 } from "@stackreplay/share";
+import { buildArchetypeExport } from "@stackreplay/test-fixtures";
+import { buildRecap } from "../lib/recap";
+import { recapShareV2 } from "../lib/share-v2";
 
 /**
- * Phase 5: every link has its own image drawn from its own aggregate data, the
- * panel leads with a preview and offers the image and a post, and the public
- * page leads with the verdict.
+ * Every link has its own image drawn from its own aggregate data, and the
+ * public page leads with the recap numbers.
  */
 
-const replay: ShareReplayV2 = {
-  version: 2,
-  kind: "replay",
-  verdict: {
-    version: 1,
-    target: {
-      kind: "subscription",
-      name: "Copilot Pro+",
-      providerName: "GitHub",
-      price: { amount: "39", interval: "month" },
-      capacity: "numeric",
-    },
-    mode: "exact",
-    substitutions: [],
-    scope: { kind: "all", recordedCalls: 5_000 },
-    calls: {
-      total: 5_000,
-      withinAllowance: 1_127,
-      overage: 3_718,
-      blocked: 0,
-      unavailable: 150,
-      undecided: 5,
-      unrecognized: 5,
-    },
-    servedMakers: ["Anthropic", "OpenAI"],
-    unavailableMakers: ["DeepSeek", "Z.AI"],
-    namedBy: "maker",
-    periodDays: 35,
-    runOut: {
-      limit: "credits",
-      behaviour: "overage",
-      dates: [
-        { date: "2026-08-25", day: 6, undecidedBefore: 0 },
-        { date: "2026-09-05", day: 17, undecidedBefore: 0 },
-      ],
-      windows: 2,
-    },
-    money: { planPrice: "39", overage: "473.48" },
-  },
-  target: {
-    type: "subscription",
-    id: "github-copilot-pro-plus",
-    versionId: "github-copilot-pro-plus@2026-09-21",
-    verificationStatus: "verified",
-    lastVerifiedAt: "2026-09-21",
-    sources: [],
-  },
-  versions: { engine: "0.0.4", catalog: "catalog", methodology: "m1", rulesAsOf: "2026-09-24" },
-};
+const recap = buildRecap(
+  buildArchetypeExport("mixed").events,
+  "all",
+  "2026-09-24T12:00:00Z",
+  "America/New_York",
+);
+
+async function token(): Promise<string> {
+  return await encodeShareTokenV2(recapShareV2(recap));
+}
 
 test("each link has its own image, and the page names it", async ({ page, request }) => {
-  const token = await encodeShareTokenV2(replay);
-  const image = await request.get(`/s/${token}/image`);
+  const shared = await token();
+  const image = await request.get(`/s/${shared}/image`);
   expect(image.status()).toBe(200);
   expect(image.headers()["content-type"]).toBe("image/png");
   expect((await image.body()).byteLength).toBeGreaterThan(10_000);
 
-  await page.goto(`/s/${token}`);
-  await expect(page.getByRole("heading", { level: 1 })).toContainText(
-    "Copilot Pro+ credits would have run out on Aug 25 (day 6)",
-  );
-  await expect(page.getByTestId("share-figure")).toHaveText("Aug 25");
+  await page.goto(`/s/${shared}`);
+  await expect(page.getByRole("heading", { level: 1 })).toContainText("A chapter in AI coding");
+  await expect(page.getByTestId("share-figure")).toHaveText(/^\$[\d,]+$/u);
   await expect(page.locator('meta[property="og:image"]')).toHaveAttribute(
     "content",
-    new RegExp(`/s/${token.replaceAll(".", "\\.")}/image$`, "u"),
+    new RegExp(`/s/${shared.replaceAll(".", "\\.")}/image$`, "u"),
   );
   await expect(page.locator('meta[name="twitter:card"]')).toHaveAttribute(
     "content",
     "summary_large_image",
+  );
+  await expect(page.getByRole("link", { name: "Download this card" })).toHaveAttribute(
+    "href",
+    new RegExp(`/s/${shared.replaceAll(".", "\\.")}/image$`, "u"),
   );
 });
 
@@ -87,26 +51,12 @@ test("an unreadable link still gets an image, not an error", async ({ request })
   expect(image.headers()["content-type"]).toBe("image/png");
 });
 
-test("the panel offers the image and a suggested post once a link exists", async ({ page }) => {
-  await importDemo(page, "moderate");
-  await page.goto("/app/plans?section=replay&mode=custom");
-  await runReplay(page, "example-cloud-pro");
-  await createShareToken(page);
-  const download = page.waitForEvent("download");
-  await page.getByTestId("share-download").click();
-  expect((await download).suggestedFilename()).toBe("stackreplay-replay.png");
-  await expect(page.getByTestId("share-post-text")).toContainText(
-    "StackReplay replayed my recorded AI coding work against",
-  );
-  await expect(page.getByTestId("share-post-text")).toContainText(/\/s\/[A-Za-z0-9_-]{22}\b/u);
-});
-
 for (const theme of ["dark", "light"] as const) {
-  test(`public V2 share card remains readable in ${theme}`, async ({ page }) => {
-    const token = await encodeShareTokenV2(replay);
+  test(`public share card remains readable in ${theme}`, async ({ page }) => {
+    const shared = await token();
     await page.addInitScript((theme) => localStorage.setItem("stackreplay-theme", theme), theme);
-    await page.goto(`/s/${token}`);
-    await expect(page.getByTestId("share-headline")).toBeVisible();
+    await page.goto(`/s/${shared}`);
+    await expect(page.getByTestId("share-card-v2")).toBeVisible();
     expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
   });
 }

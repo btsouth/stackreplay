@@ -1,4 +1,3 @@
-import { ENGINE_VERSION, REPLAY_METHODOLOGY_VERSION } from "@stackreplay/replay-engine";
 import { PageHeader, Panel } from "@stackreplay/ui";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -17,7 +16,7 @@ const catalogSections = [
   {
     heading: "What the catalog covers",
     body: [
-      "StackReplay brings together AI model releases, API list prices and subscription plans so you can compare access and costs, then explore what fits your own coding workload. The catalog includes model developers and providers that offer access to their models; those are different roles.",
+      "StackReplay brings together AI model releases, API list prices and subscription plans so you can compare access and costs, then see the story of your own AI coding next to them. The catalog includes model developers and providers that offer access to their models; those are different roles.",
       "The pages show the sourced records in the repository, including current and legacy releases. They are not a complete list of the market or a recommendation of every listed product. Models and plans have different levels of pricing, access and benchmark coverage. Fictional demo records are kept out of the public catalog.",
     ],
   },
@@ -25,14 +24,14 @@ const catalogSections = [
     heading: "What checked and verified mean",
     body: [
       "A checked date records when a source or claim was reviewed. It is not the model's release date or a promise that the provider has not changed anything since. Each source link shows its own checked date, and prices, plan terms, benchmarks and updates can have different review dates.",
-      "Verified means the catalog records supporting evidence for that claim. Measured and estimated are separate labels, and unknown stays unknown. A verified benchmark is a checked reported result, not a test run by StackReplay. A plan's published product terms can be checked more recently than its executable Replay rules.",
+      "Verified means the catalog records supporting evidence for that claim. Measured and estimated are separate labels, and unknown stays unknown. A verified benchmark is a checked reported result, not a test run by StackReplay. A plan's published product terms can be checked more recently than its prices.",
     ],
   },
   {
     heading: "Where prices and plan terms come from",
     body: [
       "Price and plan pages link the recorded sources, including provider pricing pages and product documentation. API list prices have effective dates and can differ by endpoint, service tier, cache policy or usage conditions. The main model price uses accepted standard-tier API list-price records; other tiers and conditions are shown separately where recorded.",
-      "Subscription pages keep published prices, model access and usage terms separate from rules that Replay can calculate. An unpublished numerical allowance stays unpublished. Relative allowances and qualitative limits do not become invented token or request budgets. List prices exclude discounts, taxes and negotiated deals and need not match your invoice.",
+      "Subscription pages keep published prices, model access and usage terms separate. An unpublished numerical allowance stays unpublished. Relative allowances and qualitative limits do not become invented token or request budgets. List prices exclude discounts, taxes and negotiated deals and need not match your invoice.",
     ],
   },
   {
@@ -54,90 +53,59 @@ const catalogSections = [
 
 const sections = [
   {
-    heading: "What a replay is",
-    body: [
-      "A replay asks how a different plan would have handled the same recorded work. It uses published model access, allowance periods, token and request limits, credit pools, promotions and what happens after a limit.",
-      "It is a scenario, not a bill or a promise of what a provider will charge. Providers can change their rules or apply unpublished limits. Each result explains which published rules it used and where the evidence is incomplete.",
-    ],
-  },
-  {
-    heading: "Local scan and workload analysis",
+    heading: "Local scan and counting",
     body: [
       "StackReplay reads the supported coding-tool files you select in a browser worker. It builds a scan and counts requests, busiest periods, projects, models and token categories on this device. Raw history files stay on the device. Saving the scan in this browser is optional.",
-      "Project folder names label projects in this browser only. A portable scan export uses project hashes, and a share link carries aggregate replay figures rather than project names, sessions or events. The scan shows files it could not read and model identities it could not resolve; those gaps remain visible in analysis and Replay.",
-      "When you save a workload built from a Claude Code history, StackReplay reads the account section of the Claude Code profile beside it (.claude.json) on this device. It keeps the account's name, email, plan type and rate-limit tier, and the account ID only as a salted hash; nothing else from the file is kept. These stay in this browser, hidden until you show them, are never part of a workload export or share link, are never sent anywhere, and Clear local data removes them. Codex sign-in files are never opened.",
-    ],
-  },
-  {
-    heading: "Exact and Translated Replay",
-    body: [
-      "Exact Replay uses the recorded model identities and chronology. If a target does not serve a recorded model, StackReplay shows that gap instead of silently choosing another model.",
-      "Translated Replay runs only after you choose model substitutions. The scenario assumes the same recorded token counts and request times. It does not claim the substituted models would use the same tokens, behave the same way or produce equivalent work. Results name the substitutions and remain distinct from Exact Replay.",
-      "Events whose model identity cannot be resolved remain unknown. You can explicitly leave them out to inspect the resolved part of a workload; the result states that narrower scope.",
+      "Project folder names label projects in this browser only. A portable scan export uses project hashes, and a share link carries aggregate figures rather than project names, sessions or events. The scan shows files it could not read and model identities it could not resolve; those gaps stay visible.",
+      "StackReplay never opens sign-in files or account profiles, and it does not guess which plan you have from your history.",
     ],
   },
   {
     heading: "One definition per figure",
     body: [
-      "A call is one recorded model request, which the scan records as one event. A day is a calendar day in your browser's timezone, on the workload page, in Replay and in Compare alike; the workload page can switch every figure to UTC at once.",
-      "The busiest five-hour window is ranked by calls. The heaviest five-hour window by tokens can be a different window, and it is always named as such. A sentence about a window never mixes figures from two windows.",
-      "Output is the output bucket only. Reasoning tokens are a separate bucket and are never added into output. Models are the catalog models a workload resolved to; identifiers StackReplay could not resolve are counted separately as unresolved IDs, never as models.",
-      "A call a target handles is served within its allowance, served as overage (billed above the allowance), not served (a model the target does not run, or refused by a limit), or undecided (the evidence cannot say, most often because its model ID is not recognized). Undecided calls are counted, never assigned to one of the other outcomes.",
-    ],
-  },
-  {
-    heading: "Work attempted and work served",
-    body: [
-      "Every event counts as attempted demand, including events a limit rejects. Only events a plan actually serves advance accepted consumption. This is what makes a hard stop visible: a workload can attempt far more than a plan accepts, and a replay reports both numbers rather than silently discarding the rejected work.",
+      "A call is one recorded model request, which the scan records as one event. A day is a calendar day in your browser's timezone, in the recap and in Stats alike.",
+      "Output is the output bucket only. Reasoning tokens are a separate bucket and are never added into output. Models are the catalog models a history resolved to; identifiers StackReplay could not resolve are counted separately as unresolved IDs, never as models.",
     ],
   },
   {
     heading: "Avoiding double counting",
     body: [
-      "Coding tools count tokens differently. Some include cache reads in input; others report them separately. Some include reasoning in output. StackReplay uses the source’s documented accounting to avoid double counting. If those relationships are missing or contradictory, the result stays unknown.",
-      "When a source does not record a category, the replay says unknown. It does not estimate a value and present it as measured.",
-    ],
-  },
-  {
-    heading: "Windows and reset behaviour",
-    body: [
-      "Allowances follow the plan’s published reset periods. A rolling period moves with request times; a calendar period follows the provider’s stated calendar. The scenario distinguishes a pause until reset, a refused request, paid overage and limits that can be reported but not enforced from available evidence.",
-    ],
-  },
-  {
-    heading: "Coverage and confidence",
-    body: [
-      "Coverage is reported on three separate dimensions: requests, usage and models. They are never blended into one number, because a replay can know perfectly well how many requests happened while knowing very little about the tokens inside them.",
-      "Confidence describes the evidence behind a result. It is not a product rating. A partial result names the missing facts.",
+      "Coding tools count tokens differently. Some include cache reads in input; others report them separately. Some include reasoning in output. StackReplay uses the source’s documented accounting to avoid double counting. If those relationships are missing or contradictory, the figure stays unknown.",
+      "When a source does not record a category, StackReplay says unknown. It does not estimate a value and present it as measured.",
     ],
   },
   {
     heading: "Money",
     body: [
-      "Money uses exact decimal arithmetic. Every calculated amount states its basis: the fixed plan price, plan price plus documented overage, or cost at API prices. Published prices and confirmed payments remain separate.",
-      "You can inspect tokens by model and category, the published rate, each subtotal and the rate’s source and effective date. Displayed rows are rounded to cents so their sum matches the total.",
+      "Money uses exact decimal arithmetic. Every amount states its basis: cost at API prices, or the monthly price of a plan you entered. Published prices and your own bills are separate things.",
     ],
   },
   {
-    heading: "Direct API targets",
+    heading: "Cost at API prices",
     body: [
-      "A replay can also target a provider's published API list prices instead of a subscription plan. This scenario prices each recorded request at the rates in force on the selected rules date. Request times determine any published time-based rate, such as an off-peak schedule. It does not simulate subscription allowance limits.",
-      "Availability still comes from the catalog: a model is priced only when the catalog records the selected provider as offering it. A model with no list-price record, a record that is not in force at the rules date, or a token category the record does not cover is reported as a gap rather than filled in. No cost is shown unless the whole workload could be priced, because a partial sum would be read as what the workload would have cost. Discounts, provisioned capacity, taxes, minimums and negotiated rates are not modelled, and a real invoice can differ.",
+      "The recap prices each recorded request at the model developer's published API list rates. Request times determine any published time-based rate, such as an off-peak schedule. It is a measure of scale, not a bill, and it does not model subscription allowances.",
+      "A model is priced only when the catalog records a list price for it. A request whose model has no list price, or whose usage is incomplete, is left out and counted: the recap says how many of your requests were priced. Discounts, provisioned capacity, taxes, minimums and negotiated rates are not modelled, and a real invoice can differ.",
     ],
   },
   {
-    heading: "Reproducing a result",
+    heading: "What you pay",
     body: [
-      "Every result records the engine version, the result schema version, the catalog version, the methodology version, the date the target rules were taken as of, and the plan version used. A replay is reproducible from those, and a share link carries them so a shared result can be audited.",
+      "This is optional. If you enter the subscriptions you pay for in Settings, the recap and Stats divide the whole-dollar API-price figure by those plans' published monthly prices, prorated to the period (the days in it over 30.4 days a month), and show the result as how many times what you paid.",
+      "It uses published list prices, not your invoices, and it leaves out taxes, discounts, plan changes and separate API charges. Nothing about plans appears until you enter one, and what you enter stays in this browser.",
     ],
   },
   {
-    heading: "What a replay does not do",
+    heading: "Reproducing a figure",
     body: [
-      "A temporary workload can be replayed without saving it. Raw history files do not leave the browser during a scan or replay. Creating a public share link is an explicit action: only the aggregate result shown in the share preview is uploaded and stored, so the link can be short. Raw history is never uploaded.",
-      "The hosted site uses Cloudflare Web Analytics for page visits and performance metrics. It records page paths, including public share URLs, but removes query strings and fragments. Request referrers contain only the site origin. Imported history files, prompts, responses and local workload records are not sent to analytics.",
-      "It does not claim to know unpublished provider behaviour, and it does not turn an unknown into a number.",
-      "It does not compare plans by blending unrelated dimensions into a score. If two plans differ in ways a single number cannot express, the replay reports both.",
+      "Every recap records the catalog version and the date its list prices were taken as of, and a share link carries them so a shared figure can be checked.",
+    ],
+  },
+  {
+    heading: "What StackReplay does not do",
+    body: [
+      "Raw history files do not leave the browser during a scan. A share link contains only the aggregate numbers shown on its card, and creating one is an explicit action. Raw history is never uploaded.",
+      "The hosted site uses Cloudflare Web Analytics for page visits and performance metrics. It records page paths, including public share URLs, but removes query strings and fragments. Request referrers contain only the site origin. Imported history files, prompts, responses and local scan records are not sent to analytics.",
+      "It does not claim to know unpublished provider behaviour, and it does not turn an unknown into a number. It does not advise which plan to buy: plan limits are not published in a form that would make that honest.",
     ],
   },
 ] as const;
@@ -170,18 +138,16 @@ export default function MethodologyPage() {
           <p className="sr-eyebrow">Kept in your browser</p>
           <h2>Raw history stays here.</h2>
           <p>
-            History files, prompts, responses and local scan records are not uploaded for a recap or
-            replay. Saving a scan in this browser is optional. Temporary scans are usable until
-            reload.
+            History files, prompts, responses and local scan records are not uploaded for a recap.
+            Saving a scan in this browser is optional. Temporary scans are usable until reload.
           </p>
         </Panel>
         <Panel>
           <p className="sr-eyebrow">Shared only by choice</p>
           <h2>You choose the preview.</h2>
           <p>
-            A public share link sends the aggregate figures shown in its preview to the share
-            service. It never includes raw logs, project names or account details. A downloaded card
-            can be shared by you.
+            A share link holds only the aggregate figures shown on its card. It never includes raw
+            logs, project names or account details. A downloaded card can be shared by you.
           </p>
         </Panel>
       </div>
@@ -194,9 +160,9 @@ export default function MethodologyPage() {
         </p>
         <h3>Cost at API prices</h3>
         <p>
-          API equivalent prices recorded token categories at published API rates. It is a scenario,
-          not actual spend, an invoice or savings. Confirmed subscription payments are separate and
-          only appear after you confirm them.
+          API equivalent prices recorded token categories at published API rates. It is an estimate,
+          not actual spend, an invoice or savings. The plans you pay for are separate, optional and
+          only appear after you enter them in Settings.
         </p>
         <h3>Cache and speed</h3>
         <p>
@@ -207,7 +173,7 @@ export default function MethodologyPage() {
         <nav aria-label="Methodology sections">
           <a href="#privacy">Privacy details ↓</a>
           <a href="#catalog-sourcing">Catalog sources ↓</a>
-          <a href="#replay-methodology">Replay assumptions ↓</a>
+          <a href="#calculation-methodology">Calculation details ↓</a>
         </nav>
       </section>
       <section id="catalog-sourcing">
@@ -227,26 +193,21 @@ export default function MethodologyPage() {
         ))}
       </div>
 
-      <section id="replay-methodology" className="flex scroll-mt-24 flex-col gap-3">
-        <h2 className="text-xl font-semibold text-foreground">Workload replay and accounting</h2>
+      <section id="calculation-methodology" className="flex scroll-mt-24 flex-col gap-3">
+        <h2 className="text-xl font-semibold text-foreground">How the figures are worked out</h2>
         <p className="max-w-3xl text-sm text-muted-foreground">
-          The details below explain how your recorded workload is simulated against documented
-          rules.
+          The details below explain how your recorded history is counted and priced.
         </p>
-        <details className="text-xs text-muted-foreground">
-          <summary>Technical versions for reproducing a replay</summary>
-          <p>
-            Engine {ENGINE_VERSION} · methodology {REPLAY_METHODOLOGY_VERSION} · catalog{" "}
-            {shortCatalogVersion(catalog.catalogVersion)}
-          </p>
-        </details>
+        <p className="text-xs text-muted-foreground">
+          Catalog {shortCatalogVersion(catalog.catalogVersion)}
+        </p>
       </section>
 
       <div className="flex flex-col gap-6">
         {sections.map((section) => (
           <section
             key={section.heading}
-            id={section.heading === "What a replay does not do" ? "privacy" : undefined}
+            id={section.heading === "What StackReplay does not do" ? "privacy" : undefined}
             className="flex scroll-mt-24 flex-col gap-2"
           >
             <h2 className="text-lg font-medium text-foreground">{section.heading}</h2>

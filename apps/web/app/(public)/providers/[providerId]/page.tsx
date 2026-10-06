@@ -209,9 +209,7 @@ export default async function ProviderPage({ params }: Props) {
                 <p className="mt-2 text-sm text-warning">{plan.publishedTerms.availabilityNote}</p>
               )}
               {plan.kind === "public_offer" && (
-                <p className="market-muted mt-2">
-                  Informational offer · Workload Replay unavailable.
-                </p>
+                <p className="market-muted mt-2">Informational offer.</p>
               )}
               <p className="market-muted mt-2">
                 {plan.kind === "public_offer" ? "Offer observed" : "Plan checked"}{" "}

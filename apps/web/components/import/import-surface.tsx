@@ -663,9 +663,9 @@ export function ImportSurface({
                     the limit, choose a smaller date folder, such as a Codex year or month. OpenCode
                     CLI and desktop share their session database: close OpenCode before selecting
                     its folder, and include opencode.db-wal if present. OpenCode database files and
-                    the combined snapshot are limited to 128 MB; use a CLI export for larger
-                    histories. ChatGPT web conversations do not have a local sessions folder; a
-                    ChatGPT data export is not replay-grade usage evidence.
+                    the combined copy are limited to 128 MB; use a CLI export for larger histories.
+                    ChatGPT web conversations do not have a local sessions folder; a ChatGPT data
+                    export is not usage evidence.
                   </p>
                 </div>
               </details>
@@ -976,13 +976,14 @@ export function ImportSurface({
                       <Link
                         href={`/app/recap?import=${entry.id}`}
                         data-testid={`open-import-${entry.id}`}
-                        aria-label={`Open ${entry.label}${imports.length > 1 ? `, scan ${index + 1} of ${imports.length}` : ""}`}
+                        aria-label={`Open my recap for ${entry.label}${imports.length > 1 ? `, scan ${index + 1} of ${imports.length}` : ""}`}
                         className={`${buttonVariants({ size: "sm" })} min-h-11 sm:min-h-0`}
                       >
                         Open my recap
                       </Link>
                       <Link
                         href={`/app/stats?import=${entry.id}`}
+                        aria-label={`Explore my stats for ${entry.label}${imports.length > 1 ? `, scan ${index + 1} of ${imports.length}` : ""}`}
                         className={`${buttonVariants({ variant: "secondary", size: "sm" })} min-h-11 justify-center sm:min-h-0`}
                       >
                         Explore my stats
@@ -1005,7 +1006,7 @@ export function ImportSurface({
                           More
                         </summary>
                         <p className="py-1 font-mono text-[11px] text-muted-foreground">
-                          Snapshot {entry.id.slice(0, 6)}
+                          Scan {entry.id.slice(0, 6)}
                         </p>
                         <Button
                           type="button"
@@ -1013,10 +1014,10 @@ export function ImportSurface({
                           size="sm"
                           className="text-negative"
                           data-testid={`delete-import-${entry.id}`}
-                          aria-label={`Delete snapshot ${entry.id.slice(0, 6)} of ${entry.label}`}
+                          aria-label={`Delete scan ${entry.id.slice(0, 6)} of ${entry.label}`}
                           onClick={() => void removeImport(entry.id)}
                         >
-                          Delete snapshot
+                          Delete scan
                         </Button>
                       </details>
                     </div>
@@ -1049,8 +1050,8 @@ export function ImportSurface({
             )}
             {importsState === "loaded" && imports.length > 1 ? (
               <p className="text-xs leading-relaxed text-muted-foreground">
-                Each build is a separate local snapshot. Similar counts do not prove identical
-                calls, so snapshots are never merged by appearance.
+                Each scan is kept separately. Similar counts do not prove identical calls, so scans
+                are never merged by appearance.
               </p>
             ) : null}
           </section>

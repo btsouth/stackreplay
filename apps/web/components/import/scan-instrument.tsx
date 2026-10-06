@@ -26,7 +26,7 @@ export const SCAN_STAGES: readonly {
     label: "Reconstruct",
     note: "Removing duplicates, rebuilding sessions and chronology",
   },
-  { phase: "ready", stage: "ready", label: "Workload", note: "Your work, ready to explore" },
+  { phase: "ready", stage: "ready", label: "History", note: "Your work, ready to explore" },
 ];
 
 const count = new Intl.NumberFormat("en-US");
@@ -126,9 +126,9 @@ export function ScanInstrument({
         </p>
         <p className="sr-micro text-muted-foreground">
           {stage === "ready"
-            ? "Workload ready"
+            ? "History ready"
             : stage === "finishing"
-              ? "Finishing your workload"
+              ? "Finishing your history"
               : running
                 ? `Reading ${sourceName ?? "your selection"} on this device`
                 : "Waiting for a folder"}
@@ -137,9 +137,9 @@ export function ScanInstrument({
 
       <p className="sr-only" role="status">
         {stage === "ready"
-          ? `Workload ready${summary === undefined ? "" : `: ${count.format(summary.eventCount)} ${summary.eventCount === 1 ? "call" : "calls"}`}`
+          ? `History ready${summary === undefined ? "" : `: ${count.format(summary.eventCount)} ${summary.eventCount === 1 ? "call" : "calls"}`}`
           : stage === "finishing"
-            ? "Finishing your workload."
+            ? "Finishing your history."
             : running
               ? `Scan stage: ${SCAN_STAGES[activeIndex]?.label ?? "Discover"}. ${SCAN_STAGES[activeIndex]?.note ?? ""}`
               : ""}
@@ -175,7 +175,7 @@ export function ScanInstrument({
                 <span className="sr-micro">{entry.label}</span>
                 <small>
                   {stage === "finishing" && index === SCAN_STAGES.length - 1
-                    ? "Preparing your workload"
+                    ? "Preparing your history"
                     : entry.note}
                 </small>
               </li>
@@ -186,8 +186,8 @@ export function ScanInstrument({
 
       {stage === "ready" && summary !== undefined ? (
         <div className="sr-scan-body">
-          {/* These same recorded facts lead the Workload hero after handoff. */}
-          <h2 className="sr-scan-title">Workload ready</h2>
+          {/* These same recorded facts lead the recap after handoff. */}
+          <h2 className="sr-scan-title">History ready</h2>
           <p className="sr-scan-range">
             {shortDate(summary.firstEventAt) === undefined
               ? "No dated calls"
@@ -198,7 +198,7 @@ export function ScanInstrument({
           </p>
           <dl className="sr-scan-facts" data-testid="scan-ready-facts">
             <Fact label="distinct responses / calls" value={count.format(summary.eventCount)} />
-            <Fact label="known tokens" value={tokens(summary.tokens.known)} />
+            <Fact label="tokens" value={tokens(summary.tokens.known)} />
             <Fact
               label="projects"
               value={summary.projectCount === 0 ? "N/A" : count.format(summary.projectCount)}

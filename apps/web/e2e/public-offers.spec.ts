@@ -1,5 +1,4 @@
 import { expect, test } from "@playwright/test";
-import { importDemo, setRulesAsOf } from "./helpers";
 import { expectCatalogSelection, selectCatalogOption } from "./public-controls";
 
 for (const [id, name] of [
@@ -112,9 +111,7 @@ test("Devin Teams seat estimate is bounded to its accepted published formula", a
   await expect(calculator.getByRole("link", { name: /Devin pricing and FAQ/u })).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await expect(page.getByText("Teams fee", { exact: true })).toBeVisible();
-  await expect(
-    page.getByText("Published offer only; workload replay is unavailable.", { exact: true }),
-  ).toBeVisible();
+  await expect(page.getByText("Published offer only.", { exact: true })).toBeVisible();
 });
 
 test("a full sibling comparison preserves the detail history entry", async ({ page }) => {
@@ -183,22 +180,4 @@ test("shared comparison normalization preserves its hash and restored choices", 
     page.getByRole("combobox", { name: "Second plan", exact: true }),
     "devin-pro",
   );
-});
-
-test("explicit public offer Replay targets cannot run or select another plan", async ({ page }) => {
-  await importDemo(page, "moderate");
-  for (const id of [
-    "devin-free",
-    "devin-pro",
-    "devin-max",
-    "devin-teams",
-    "google-code-assist-standard",
-    "google-code-assist-enterprise",
-  ]) {
-    await page.goto(`/app/plans?section=replay&mode=custom&target=${id}`);
-    await setRulesAsOf(page, "2026-10-03");
-    await expect(page.getByTestId("run-replay")).toBeDisabled();
-    await expect(page.locator('[data-testid^="plan-"][aria-pressed="true"]')).toHaveCount(0);
-    await expect(page.getByTestId("replay-result")).toHaveCount(0);
-  }
 });

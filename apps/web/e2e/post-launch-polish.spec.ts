@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { importDemo, openReviewEvidence, openWorkloadTools, waitForWorkload } from "./helpers";
+import { importDemo } from "./helpers";
 
 test("home copy scopes history and API value", async ({ page }) => {
   await page.goto("/");
@@ -42,57 +42,30 @@ test("Moderate week leads with a sourced list-price value and stays labelled dem
   page,
 }) => {
   await importDemo(page, "moderate");
-  await openReviewEvidence(page);
-  await page.getByTestId("legacy-workload").evaluate((el: HTMLDetailsElement) => {
-    el.open = true;
-  });
-  await expect(page.getByTestId("workload-opening").getByTestId("value-figure")).toBeVisible();
-  await openReviewEvidence(page);
-  await page.getByTestId("legacy-workload").evaluate((el: HTMLDetailsElement) => {
-    el.open = true;
-  });
-  await expect(page.getByTestId("workload-opening")).toContainText("published API list prices");
-  await waitForWorkload(page);
-  await openReviewEvidence(page);
-  await page.getByTestId("legacy-workload").evaluate((el: HTMLDetailsElement) => {
-    el.open = true;
-  });
-  await expect(page.getByTestId("workload-opening").getByTestId("value-figure")).toBeVisible();
-  await expect(page.getByTestId("workload-opening")).toContainText(/demo|synthetic/iu);
+  await expect(page.getByTestId("stats-ready")).toContainText("Fictional demo");
+  const id = new URL(page.url()).searchParams.get("import");
+  await page.goto(`/app/recap?import=${id}`);
+  await expect(page.getByTestId("recap-ready")).toBeVisible({ timeout: 60_000 });
+  await expect(page.locator(".recap-cost-number")).toBeVisible();
+  await expect(page.locator(".recap-hero-caption")).toContainText("API prices");
 });
 
-test("mobile analysis control ends before the Share section", async ({ page }) => {
-  await page.setViewportSize({ width: 390, height: 844 });
-  await importDemo(page, "moderate");
-  await waitForWorkload(page);
-  await openReviewEvidence(page);
-  await expect(page.getByTestId("measure-bar")).toBeVisible();
-  await page.getByTestId("section-pressure").scrollIntoViewIfNeeded();
-  await expect(page.getByTestId("measure-bar")).toBeInViewport();
-  await openWorkloadTools(page);
-  await page.locator("#share").scrollIntoViewIfNeeded();
-  await expect(page.locator("#share")).toBeInViewport();
-  const bar = await page.getByTestId("measure-bar").boundingBox();
-  expect(bar).not.toBeNull();
-  expect((bar?.y ?? 0) + (bar?.height ?? 0)).toBeLessThan(0);
-});
-
-test("plan names wrap inside the Settings selector at 390px", async ({ page }) => {
+test("plan names wrap inside What you pay at 390px", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/app/settings");
-  await page.getByTestId("settings-manual-plans").getByText("Advanced / choose manually").click();
-  const labels = page.getByTestId("settings-plans").locator("label");
-  await expect(labels.first()).toBeVisible();
-  const measures = await labels.evaluateAll((nodes) =>
-    nodes.map((label) => {
-      const name = label.querySelector("span");
-      return {
-        name: name?.textContent ?? "",
-        overflow: (name?.scrollWidth ?? 0) > (name?.clientWidth ?? 0) + 1,
-        truncated: name?.classList.contains("truncate") ?? false,
-      };
-    }),
-  );
-  expect(measures.length).toBeGreaterThan(0);
-  expect(measures.every((item) => !item.overflow && !item.truncated)).toBe(true);
+  await page.getByRole("combobox", { name: "Add a plan" }).click();
+  const names = await page.getByRole("option").allInnerTexts();
+  const longest = names.reduce((a, b) => (b.length > a.length ? b : a), "");
+  await page.getByRole("option", { name: longest, exact: true }).click();
+  const row = page.getByTestId("what-you-pay").locator("li").first();
+  await expect(row).toBeVisible();
+  const measure = await row
+    .locator("span")
+    .first()
+    .evaluate((name) => ({
+      overflow: name.scrollWidth > name.clientWidth + 1,
+      truncated: name.classList.contains("truncate"),
+    }));
+  expect(measure).toEqual({ overflow: false, truncated: false });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });

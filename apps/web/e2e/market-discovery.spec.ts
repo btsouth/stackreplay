@@ -1,6 +1,6 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
-import { gotoReplayImport, waitForWorkload } from "./helpers";
+import { gotoImport, waitForWorkload } from "./helpers";
 import { expectCatalogSelection, selectCatalogOption } from "./public-controls";
 
 test("featured rates keep deliberate Claude and OpenAI pairs on the same price scale", async ({
@@ -173,7 +173,7 @@ for (const theme of ["dark", "light"] as const) {
 }
 
 test("native Sonnet 5.5 history receives the published cache-duration range", async ({ page }) => {
-  await gotoReplayImport(page);
+  await gotoImport(page);
   const record = JSON.stringify({
     type: "assistant",
     uuid: "synthetic-sonnet55",
@@ -197,8 +197,10 @@ test("native Sonnet 5.5 history receives the published cache-duration range", as
     buffer: Buffer.from(record),
   });
   await waitForWorkload(page);
-  await expect(page.getByTestId("overview-api-total")).toHaveText("$2.51 – $3.26");
-  await expect(page.getByTestId("overview-scale")).toContainText("100%");
+  await expect(page.getByTestId("overview-api-total")).toHaveText("$3");
+  const id = new URL(page.url()).searchParams.get("import");
+  await page.goto(`/app/recap?import=${id}`);
+  await expect(page.locator(".recap-priced-coverage")).toContainText("100%");
 });
 
 test("model capabilities filter and selected specifications are useful without opening evidence", async ({

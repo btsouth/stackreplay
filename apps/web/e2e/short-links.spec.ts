@@ -4,14 +4,7 @@ import {
   CLAUDE_CODE_SESSION,
   CODEX_ROLLOUT,
 } from "../../../packages/adapters/src/fixtures/content";
-import {
-  captureRequests,
-  createShareLink,
-  gotoImport,
-  openReviewEvidence,
-  openWorkloadTools,
-  waitForWorkload,
-} from "./premium-app-helpers";
+import { gotoImport, waitForWorkload } from "./premium-app-helpers";
 
 /**
  * Short share links, end to end in a real browser.
@@ -58,14 +51,6 @@ async function scanMarkedHistory(page: Page): Promise<void> {
     { name: "rollout-zz.jsonl", mimeType: "application/jsonl", buffer: Buffer.from(markedCodex()) },
   ]);
   await waitForWorkload(page);
-  await waitForWorkload(page);
-  await openReviewEvidence(page);
-  await page.getByTestId("legacy-workload").evaluate((el: HTMLDetailsElement) => {
-    el.open = true;
-  });
-  await expect(page.getByTestId("workload-opening").getByTestId("workload-value")).toBeVisible({
-    timeout: 60_000,
-  });
 }
 
 function expectNoMarkers(text: string): void {
@@ -73,62 +58,51 @@ function expectNoMarkers(text: string): void {
   expect(text).not.toMatch(/\/home\/|\.jsonl/u);
 }
 
-test("a workload link is short, uploads only its aggregate token and renders from storage", async ({
+test("a recap link can be stored as a short link that carries only its aggregate token", async ({
   page,
   request,
 }) => {
   test.setTimeout(120_000);
   await scanMarkedHistory(page);
-  // The project name is really in this browser's local analysis...
-  await expect(page.getByTestId("section-projects")).toContainText(MARKERS.project);
-
-  const requests = captureRequests(page);
-  await openWorkloadTools(page);
-  await expect(page.getByTestId("share-upload-note")).toHaveText(
-    "Only the aggregate result shown in this preview is uploaded when you create a public link. Your raw history stays on this device.",
-  );
-  const link = await createShareLink(page);
-
-  // ...and none of it leaves: one upload, carrying one aggregate token.
-  const uploads = requests.filter((entry) => (entry.body ?? "").length > 0);
-  expect(uploads.map((entry) => `${entry.method} ${new URL(entry.url).pathname}`)).toEqual([
-    "POST /api/share",
-  ]);
-  expect(Object.keys(link.body as object)).toEqual(["token"]);
-  expectNoMarkers(uploads[0]?.body ?? "");
-  const decoded = await decodeAnyShareToken(link.token);
+  const id = new URL(page.url()).searchParams.get("import");
+  await page.goto(`/app/recap?import=${id}`);
+  await expect(page.getByTestId("recap-ready")).toBeVisible({ timeout: 60_000 });
+  await page.getByTestId("recap-share-create").click();
+  const href = (await page.getByTestId("recap-share-open").getAttribute("href")) ?? "";
+  const token = decodeURIComponent(href.replace("/s/", ""));
+  const decoded = await decodeAnyShareToken(token);
   expect(decoded.ok && decoded.snapshot.version === 2 && decoded.snapshot.kind).toBe("workload");
   expectNoMarkers(decoded.ok ? JSON.stringify(decoded.snapshot) : "");
 
-  // A short, opaque, same-site URL.
-  expect(link.url).toMatch(new RegExp(`^${new URL(page.url()).origin}/s/[A-Za-z0-9_-]{22}$`, "u"));
-  expect(link.url.length).toBeLessThan(60);
+  const origin = `http://localhost:${process.env.STACKREPLAY_E2E_PORT ?? "3100"}`;
+  const stored = await request.post("/api/share", {
+    headers: { "content-type": "application/json", origin },
+    data: { token },
+  });
+  expect(stored.status()).toBe(201);
+  const { id: shortId, path } = (await stored.json()) as { id: string; path: string };
+  expect(shortId).toMatch(/^[A-Za-z0-9_-]{22}$/u);
+  expect(path).toBe(`/s/${shortId}`);
 
-  // The public page renders from the stored snapshot, with nothing private.
-  const response = await request.get(`/s/${link.id}`);
+  // The public page renders from the stored token, with nothing private.
+  const response = await request.get(`/s/${shortId}`);
   expect(response.status()).toBe(200);
   const html = await response.text();
   expectNoMarkers(html);
   const ogImage = /<meta property="og:image" content="([^"]+)"/u.exec(html)?.[1];
-  expect(ogImage).toBe(`https://stackreplay.com/s/${link.id}/image`);
-  await page.goto(`/s/${link.id}`);
-  await expect(page.getByTestId("share-card-v2")).toContainText("priced calls only");
-  await expect(page.getByTestId("share-card-v2")).toContainText(
-    "Current subscriptions are not included",
-  );
+  expect(ogImage).toBe(`https://stackreplay.com/s/${shortId}/image`);
+  await page.goto(`/s/${shortId}`);
+  await expect(page.getByTestId("share-card-v2")).toBeVisible();
   expectNoMarkers(await page.locator("main").innerText());
+  const shortTokens = await page.getByTestId("share-tokens").innerText();
 
-  // Its image is drawn from the same stored snapshot.
-  const image = await request.get(`/s/${link.id}/image`);
+  const image = await request.get(`/s/${shortId}/image`);
   expect(image.status()).toBe(200);
   expect(image.headers()["content-type"]).toBe("image/png");
 
-  // The same result as a self-contained link still reads exactly as before.
-  await page.goto(`/s/${link.token}`);
-  await expect(page.getByTestId("share-card-v2")).toBeVisible();
-  const longHeadline = await page.getByTestId("share-headline").innerText();
-  await page.goto(`/s/${link.id}`);
-  await expect(page.getByTestId("share-headline")).toHaveText(longHeadline);
+  // The same result as a self-contained link reads exactly the same.
+  await page.goto(`/s/${token}`);
+  await expect(page.getByTestId("share-tokens")).toHaveText(shortTokens);
 });
 
 test("an unknown or malformed short id is a friendly page and a fallback image", async ({
@@ -171,24 +145,4 @@ test("the share store accepts only a same-site request carrying one aggregate to
     data: "token=2.x.y",
   });
   expect(form.status()).toBe(415);
-});
-
-test("when the store cannot be reached, a self-contained link is offered instead", async ({
-  page,
-}) => {
-  test.setTimeout(120_000);
-  await scanMarkedHistory(page);
-  await page.route("**/api/share", (route) =>
-    route.fulfill({ status: 503, json: { error: "Short links are unavailable right now." } }),
-  );
-  await openWorkloadTools(page);
-  const panel = page.getByTestId("share-panel");
-  await panel.getByTestId("share-create").click();
-  await expect(panel.getByRole("alert")).toContainText("A short link could not be created");
-  await panel.getByTestId("share-use-long-link").click();
-  await expect(panel.getByTestId("share-open")).toBeVisible();
-  const url = (await panel.getByTestId("share-url").textContent()) ?? "";
-  expect(url).toContain("/s/2.");
-  await page.goto(url);
-  await expect(page.getByTestId("share-card-v2")).toBeVisible();
 });

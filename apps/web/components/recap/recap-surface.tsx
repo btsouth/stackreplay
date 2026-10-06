@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { AppPageSkeleton } from "@/components/app/app-page-state";
+import { PartialScanNotice } from "@/components/import/evidence";
 import type { Recap, RecapPeriod } from "@/lib/recap";
 import { renderRecapCard } from "@/lib/recap-card";
 import { recapShareV2 } from "@/lib/share-v2";
@@ -178,6 +179,17 @@ export function RecapSurface({ initialImportId }: { initialImportId?: string | u
       {recap &&
         (recap.records ? (
           <div data-testid="recap-ready" data-period={recap.period}>
+            {imports.find((r) => r.id === id) && (
+              <PartialScanNotice
+                record={imports.find((r) => r.id === id) as ImportRecord}
+                briefing
+                action={
+                  <a className="text-sm text-accent" href="/app/scan">
+                    Scan again
+                  </a>
+                }
+              />
+            )}
             <RecapStory
               recap={recap}
               period={period}

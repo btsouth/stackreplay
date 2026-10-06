@@ -69,7 +69,7 @@ function Facts({ values }: { values: [string, string][] }) {
                 timezone. Hermes aggregates without per-call timestamps mark the days they were
                 first and last seen. Tokens and costs stay on the recorded end date. Current streak
                 counts back from today, or from yesterday until today's first activity. Longest
-                streak uses all supplied history. The period filter only scopes volume, costs and
+                streak uses all supplied history. The period filter only changes volume, costs and
                 charts.
               </Info>
             )}
@@ -256,7 +256,7 @@ export function RecapStory({
           <Heading
             number="03 / API EQUIVALENT"
             title="The scale behind the work."
-            note="Current list prices. A scenario, not an invoice."
+            note="Current list prices. An estimate, not an invoice."
           />
           <div className="recap-cost-layout">
             <div>
@@ -278,7 +278,7 @@ export function RecapStory({
                     <span className="recap-info-paragraph">
                       Unreported cache-write lifetimes yield {recapUsd(recap.usd)} to{" "}
                       {recapUsd(recap.usdHigh)}. The headline uses the lower documented cache-write
-                      scenario.
+                      assumption.
                     </span>
                   )}
                   <span className="recap-info-paragraph">
@@ -315,7 +315,7 @@ export function RecapStory({
                   {recapUsd(topCost.usd)}
                   <Info label="About the model API equivalent">
                     {topCost.priced.toLocaleString()} of {topCost.records.toLocaleString()} records
-                    priced. Unknown prices and incomplete usage are excluded. A scenario, not an
+                    priced. Unknown prices and incomplete usage are excluded. An estimate, not an
                     invoice.
                   </Info>
                 </small>
@@ -329,7 +329,7 @@ export function RecapStory({
                   {recapUsd(peakCost.usd)}
                   <Info label="About the day API equivalent">
                     Only records with established prices and complete usage contribute to this
-                    value. A scenario, not an invoice.
+                    value. An estimate, not an invoice.
                   </Info>
                 </small>
               </div>

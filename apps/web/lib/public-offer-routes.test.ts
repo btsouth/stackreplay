@@ -66,8 +66,9 @@ describe("public offer routes and prices", () => {
       for (const html of [detail, directory, compare]) {
         expect(html).toContain(price.amount);
         expect(html).toContain(price.unit);
-        expect(html).toContain("Published offer only; workload replay is unavailable.");
+        expect(html).toContain("Published offer only.");
         expect(html).not.toContain(`/app/scan?target=${id}`);
+        expect(html).not.toContain("replay");
         expect(html).not.toContain("0 models included");
       }
       expect(detail).not.toContain('data-testid="version-table"');

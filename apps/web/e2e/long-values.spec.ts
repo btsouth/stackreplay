@@ -1,7 +1,6 @@
 import { expect, type Page, test } from "@playwright/test";
 import { stackReplayExportV1Schema } from "@stackreplay/schema";
 import { buildDemoExport } from "@stackreplay/test-fixtures";
-import { chooseOption, expectSelectValue } from "./app-select-helpers";
 import { gotoImport, inspectLatestImport } from "./helpers";
 
 const modelId = `provider/${"long-model-id-".repeat(14)}`;
@@ -53,27 +52,20 @@ test("schema-valid long workload and model identities remain usable at 390px", a
 
   const rows = page.getByTestId("stored-imports").locator(":scope > li");
   await expect(rows).toHaveCount(2);
-  await expect(rows.getByRole("link", { name: /^Replay first-observed-workload/u })).toBeVisible();
+  await expect(
+    rows.getByRole("link", { name: /^Open my recap for first-observed-workload/u }),
+  ).toBeVisible();
   const second = rows.filter({ hasText: "second-observed-workload" });
   await second.getByText("More").click();
   await expect(
-    second.getByRole("button", { name: /^Delete snapshot .*second-observed-workload/u }),
+    second.getByRole("button", { name: /^Delete scan .*second-observed-workload/u }),
   ).toBeVisible();
 
-  await page.goto("/app/plans?section=replay&mode=custom");
-  await expect(page.getByTestId("workload-strip")).toBeVisible();
-  const select = page.getByTestId("workload-select");
-  await expect(select).toBeVisible();
-  await select.getByRole("combobox").click();
-  await expect(page.getByRole("option")).toHaveCount(2);
-  const otherValue = await page.getByRole("option").first().getAttribute("data-value");
-  await page.keyboard.press("Escape");
-  await expect(page.getByTestId("model-identities")).toContainText(modelId);
-  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-  await expectInsideViewport(page, "workload-select");
-  await expectInsideViewport(page, "run-replay");
-  if (otherValue === null) throw new Error("stored workload has no select value");
-  await chooseOption(select, otherValue);
-  await expectSelectValue(select, otherValue);
+  const href = await rows
+    .first()
+    .getByRole("link", { name: /^Explore my stats/u })
+    .getAttribute("href");
+  await page.goto(href ?? "/app/stats");
+  await expect(page.getByTestId("stats-ready")).toBeVisible({ timeout: 60_000 });
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });

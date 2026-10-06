@@ -1,5 +1,5 @@
 import AxeBuilder from "@axe-core/playwright";
-import { expect, test } from "@playwright/test";
+import { expect, type Page, test } from "@playwright/test";
 import { stackWorkloadFile } from "./fixtures/stack-workload";
 import { captureRequests, gotoImport } from "./premium-app-helpers";
 
@@ -65,61 +65,63 @@ for (const temporary of [false, true])
   });
 test("empty state has a direct scan action", async ({ page }) => {
   await page.goto("/app/recap");
-  await expect(page.getByRole("link", { name: "Find my AI histories" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Scan my history" })).toBeVisible();
   await expect(page.getByTestId("recap-ready")).toHaveCount(0);
 });
 
-test("payment comparison requires confirmation and persists local choices", async ({ page }) => {
+async function addPlan(page: Page, name: string) {
+  const trigger = page.getByRole("combobox", { name: "Add a plan" });
+  await trigger.click();
+  await page.getByRole("option", { name: new RegExp(`^${name} ·`, "u") }).click();
+}
+
+test("what you pay in Settings drives Nx what you paid in the recap and Stats", async ({
+  page,
+}) => {
   await page.clock.install({ time: new Date("2026-10-04T12:00:00Z") });
   await gotoImport(page);
-  await page.evaluate(() =>
-    localStorage.setItem(
-      "stackreplay.account-identity.v1",
-      JSON.stringify({
-        version: 1,
-        accounts: {
-          ["claude-code:sr_" + "a".repeat(32)]: {
-            account: "ca_" + "b".repeat(32),
-            organizationType: "claude_max",
-            rateLimitTier: "default_claude_max_5x",
-          },
-        },
-      }),
-    ),
-  );
   await page.getByTestId("import-file-input").setInputFiles(fixture);
   await expect(page.getByTestId("recap-ready")).toBeVisible({ timeout: 60000 });
-  await expect(page.locator(".recap-hero-caption")).toContainText("of AI coding at API prices");
+  const id = new URL(page.url()).searchParams.get("import");
+  const api = Number((await page.locator(".recap-cost-number").innerText()).replace(/[$,]/gu, ""));
+  // Nothing about plans or payment shows until a plan is entered.
   await expect(page.locator(".recap-plan-comparison")).toHaveCount(0);
-  await expect(page.getByLabel("Show what I paid")).not.toBeChecked();
-  await page.getByLabel("Show what I paid").check();
-  await expect(page.getByRole("checkbox", { name: /Max 5/u })).toBeChecked();
-  await expect(page.locator(".recap-payment-total").first()).toContainText("$100/month");
-  await expect(page.locator(".recap-plan-comparison")).toHaveCount(0);
-  await page.getByRole("button", { name: "Confirm what I paid" }).click();
-  await expect(page.locator(".recap-plan-comparison")).toContainText("× what I paid");
+  await expect(page.getByTestId("recap-ready")).not.toContainText(/what you paid|subscription/iu);
+
+  await page.goto("/app/settings#what-you-pay");
+  await expect(page.getByTestId("what-you-pay-empty")).toBeVisible();
+  await addPlan(page, "Claude Max 5x");
+  await page.getByRole("button", { name: "More Claude Max 5x accounts" }).click();
+  await expect(page.getByTestId("what-you-pay-summary")).toHaveText("Claude Max 5x ×2");
+  await expect(page.getByTestId("what-you-pay-total")).toHaveText("2 accounts · $200/month total");
+  await addPlan(page, "ChatGPT Pro 100");
+  await expect(page.getByTestId("what-you-pay-summary")).toHaveText(
+    "Claude Max 5x ×2 · ChatGPT Pro 100",
+  );
+  await expect(page.getByTestId("what-you-pay-total")).toHaveText("3 accounts · $300/month total");
+
+  // 30 days: the $300 a month is prorated to 30 of 30.4 days.
+  const expected = (days: number) => {
+    const ratio = (api * 30.4) / (300 * days);
+    return ratio >= 9.95 ? `${Math.round(ratio)}×` : `${ratio.toFixed(1)}×`;
+  };
+  await page.goto(`/app/recap?import=${id}`);
+  await expect(page.getByTestId("recap-paid")).toHaveText(`${expected(30)} what you paid`);
+  await page.getByRole("radio", { name: "90 days", exact: true }).check();
+  await expect(page.getByTestId("recap-ready")).toHaveAttribute("data-period", "90");
+  await expect(page.getByTestId("recap-paid")).toContainText("what you paid");
+  await page.goto(`/app/stats?import=${id}&period=30`);
+  await expect(page.getByTestId("overview-paid")).toHaveText(expected(30));
   await page.reload();
-  await expect(page.getByTestId("recap-ready")).toBeVisible();
-  await expect(page.getByLabel("Show what I paid")).toBeChecked();
-  await expect(page.locator(".recap-plan-comparison")).toContainText("× what I paid");
-  await page.getByText("Confirm your plans", { exact: true }).click();
-  await page.getByRole("checkbox", { name: /ChatGPT Plus/u }).check();
-  await expect(page.locator(".recap-plan-comparison")).toHaveCount(0);
-  await expect(page.locator(".recap-payment-total").first()).toContainText("$120/month");
-  await page.getByRole("button", { name: "Confirm what I paid" }).click();
-  await expect(page.locator(".recap-plan-comparison")).toContainText("× what I paid");
-  await page.getByLabel("Show what I paid").uncheck();
-  await expect(page.locator(".recap-plan-comparison")).toHaveCount(0);
-  await page.reload();
-  await expect(page.getByLabel("Show what I paid")).not.toBeChecked();
-  await page.getByLabel("Show what I paid").check();
-  await page.getByText("Confirm your plans", { exact: true }).click();
-  await page.getByRole("checkbox", { name: /ChatGPT Plus/u }).uncheck();
-  await page.getByRole("checkbox", { name: /Max 5/u }).uncheck();
-  await page.reload();
-  await expect(page.getByTestId("recap-ready")).toBeVisible();
-  await expect(page.getByRole("checkbox", { name: /Max 5/u })).not.toBeChecked();
-  await expect(page.locator(".recap-plan-comparison")).toHaveCount(0);
+  await expect(page.getByTestId("overview-paid")).toHaveText(expected(30));
+
+  await page.goto("/app/settings#what-you-pay");
+  await page.getByRole("button", { name: "Remove Claude Max 5x" }).click();
+  await page.getByRole("button", { name: "Remove ChatGPT Pro 100" }).click();
+  await expect(page.getByTestId("what-you-pay-empty")).toBeVisible();
+  await page.goto(`/app/stats?import=${id}`);
+  await expect(page.getByTestId("stats-ready")).toBeVisible();
+  await expect(page.getByTestId("overview-paid")).toHaveCount(0);
 });
 
 test("streaks use full local history while the period scopes totals", async ({ page }) => {

@@ -47,9 +47,9 @@ test("home states scoped checks and methodology starts with the local privacy pr
   await expect(page.locator("main")).toContainText("Illustrative comparison");
   await page.goto("/methodology");
   await expect(page.getByRole("heading", { level: 2 }).first()).toHaveText("The files you choose.");
-  await page.getByRole("link", { name: "Replay assumptions ↓" }).click();
-  await expect(page).toHaveURL(/#replay-methodology$/);
+  await page.getByRole("link", { name: "Calculation details ↓" }).click();
+  await expect(page).toHaveURL(/#calculation-methodology$/);
   await expect(
-    page.getByRole("heading", { name: "Workload replay and accounting", exact: true }),
+    page.getByRole("heading", { name: "How the figures are worked out", exact: true }),
   ).toBeVisible();
 });

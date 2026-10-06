@@ -3,7 +3,6 @@ import {
   captureRequests,
   importDemo,
   PRIVATE_MARKERS,
-  runReplay,
   WORKLOAD_MARKERS,
   waitForWorkload,
 } from "./premium-app-helpers";
@@ -12,18 +11,23 @@ import {
  * Network privacy (M3 brief).
  *
  * This asserts observable browser behaviour rather than the absence of an API
- * route: every request made during import and replay is recorded, and no
+ * route: every request made during scan, recap and share is recorded, and no
  * request body may carry imported events, token history, or any project or
  * session hash. Next.js asset and navigation traffic is expected and is
  * distinguished by carrying none of those markers.
  */
 
-test("no imported data is uploaded during import or replay", async ({ page }) => {
+test("no imported data is uploaded during scan, recap, stats or sharing", async ({ page }) => {
   const requests = captureRequests(page);
 
   await importDemo(page, "moderate");
-  await page.goto("/app/plans?section=replay&mode=custom");
-  await runReplay(page, "example-cloud-pro");
+  const id = new URL(page.url()).searchParams.get("import");
+  await page.goto(`/app/recap?import=${id}`);
+  await expect(page.getByTestId("recap-ready")).toBeVisible({ timeout: 60_000 });
+  await page.getByTestId("recap-share-create").click();
+  await expect(page.getByTestId("recap-share-open")).toBeVisible();
+  await page.goto("/app/settings");
+  await expect(page.getByTestId("settings-saved")).toBeVisible();
 
   const offenders = requests.filter((request) => {
     if (request.body === null || request.body.length === 0) return false;
@@ -47,7 +51,7 @@ test("no imported data is uploaded during import or replay", async ({ page }) =>
   );
   expect(markerInHeaders.map((request) => request.url)).toEqual([]);
 
-  // Nothing is posted anywhere: import and replay send no request bodies at all.
+  // Nothing is posted anywhere: scan, recap and share send no request bodies at all.
   const withBody = requests.filter((request) => (request.body ?? "").length > 0);
   expect(withBody.map((request) => `${request.method} ${request.url}`)).toEqual([]);
 
@@ -101,7 +105,7 @@ test("the privacy claim survives a large import", async ({ page }, testInfo) => 
 test("every page is served under a policy that blocks outbound connections", async ({
   request,
 }) => {
-  for (const path of ["/", "/app", "/app/plans?section=replay", "/s/not-a-token"]) {
+  for (const path of ["/", "/app", "/app/stats", "/s/not-a-token"]) {
     const response = await request.get(path);
     const headers = response.headers();
     const policy = headers["content-security-policy"] ?? "";

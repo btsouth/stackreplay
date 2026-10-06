@@ -23,18 +23,11 @@ async function navigate(page: Page, name: string) {
     await page.getByRole("dialog").getByRole("link", { name, exact: true }).click();
   } else await page.getByRole("banner").getByRole("link", { name, exact: true }).click();
   await expect(page).toHaveURL(new RegExp(`/app/${name.toLowerCase()}(?:\\?|$)`));
-  const title =
-    name === "Recap"
-      ? "Your coding recap"
-      : name === "Stats"
-        ? "Your stats"
-        : name === "Plans"
-          ? "Your plans"
-          : name;
+  const title = name === "Recap" ? "Your coding recap" : name === "Stats" ? "Your stats" : name;
   await expect(page).toHaveTitle(new RegExp(title));
 }
 
-test("a temporary scan remains usable through recap, Stats and Plans", async ({ page }) => {
+test("a temporary scan remains usable through recap, Stats and Settings", async ({ page }) => {
   const requests: string[] = [];
   page.on("request", (request) => {
     if (request.method() !== "GET") requests.push(request.url());
@@ -44,20 +37,6 @@ test("a temporary scan remains usable through recap, Stats and Plans", async ({ 
   await navigate(page, "Stats");
   await expect(page.getByTestId("overview-api-total")).toContainText("$");
   expect(new URL(page.url()).searchParams.get("import")).toBe(id);
-  await navigate(page, "Plans");
-  await expect(page.locator(".plan-headline")).toContainText("$2,949", { timeout: 60_000 });
-  await expect(page.getByRole("button", { name: "Save plans", exact: true })).toBeVisible();
-  const alternatives = page.locator("[data-testid^=alternative-]");
-  const optionId = (await alternatives.first().getAttribute("data-testid"))?.replace(
-    "alternative-",
-    "",
-  );
-  await alternatives.first().getByRole("link", { name: "See details", exact: true }).click();
-  await expect(page.getByTestId("plan-detail")).toBeVisible();
-  expect(new URL(page.url()).searchParams.get("detail")).toBe(optionId);
-  expect(new URL(page.url()).searchParams.get("import")).toBe(id);
-  await page.goBack();
-  await expect(page.locator(".plan-headline")).toBeVisible();
   await navigate(page, "Settings");
   await expect(page.getByTestId(`settings-scan-${id}`)).toContainText("Temporary, until reload");
   expect(requests).toEqual([]);
@@ -86,7 +65,7 @@ test("recap keeps the chosen period on reload and aligns with the shared shell",
   await expect(page.locator(".recap-info:has(:popover-open)")).toHaveCount(0);
 });
 
-test("Stats and Plans share the recap period and exact API value", async ({ page }) => {
+test("Stats shares the recap period and exact API value", async ({ page }) => {
   await load(page);
   await page.getByRole("radio", { name: "All time", exact: true }).check();
   await expect(page.getByTestId("recap-ready")).toHaveAttribute("data-period", "all");
@@ -94,12 +73,9 @@ test("Stats and Plans share the recap period and exact API value", async ({ page
   await navigate(page, "Stats");
   await expect(page.getByTestId("stats-ready")).toHaveAttribute("data-period", "all");
   await expect(page.getByTestId("overview-api-total")).toHaveText(allTimeValue);
-  await navigate(page, "Plans");
-  await expect(page.getByTestId("plans-ready")).toHaveAttribute("data-period", "all");
-  await expect(page.locator(".plan-headline strong")).toHaveText(allTimeValue);
   await page.getByRole("radio", { name: "90 days", exact: true }).check();
-  await expect(page.getByTestId("plans-ready")).toHaveAttribute("data-period", "90");
-  const ninetyDayValue = await page.locator(".plan-headline strong").innerText();
+  await expect(page.getByTestId("stats-ready")).toHaveAttribute("data-period", "90");
+  const ninetyDayValue = await page.getByTestId("overview-api-total").innerText();
   await navigate(page, "Recap");
   await expect(page.getByTestId("recap-ready")).toHaveAttribute("data-period", "90");
   await expect(page.locator(".recap-cost-number")).toHaveText(ninetyDayValue);
@@ -130,7 +106,7 @@ test("Settings exports a scan and deletes only the selected one after confirmati
 for (const theme of ["dark", "light"] as const) {
   test(`first-time app pages offer recovery in ${theme}`, async ({ page }) => {
     await page.addInitScript((theme) => localStorage.setItem("stackreplay-theme", theme), theme);
-    for (const route of ["stats", "recap", "plans", "settings", "scan"]) {
+    for (const route of ["stats", "recap", "settings", "scan"]) {
       await page.goto(`/app/${route}`);
       await expect(page.getByRole("main").getByRole("heading", { level: 1 })).toBeVisible();
       await expect(page.getByRole("main")).not.toContainText("Restoring your recorded work");
@@ -144,7 +120,7 @@ for (const theme of ["dark", "light"] as const) {
       await page.setViewportSize({ width, height: 1000 });
       await page.addInitScript((theme) => localStorage.setItem("stackreplay-theme", theme), theme);
       await load(page);
-      for (const destination of ["Stats", "Plans", "Settings", "Recap"]) {
+      for (const destination of ["Stats", "Settings", "Recap"]) {
         await navigate(page, destination);
         await expect(page.getByRole("main").getByRole("heading", { level: 1 })).toBeVisible();
         await expect(page.locator("main select")).toHaveCount(0);
@@ -161,13 +137,12 @@ for (const theme of ["dark", "light"] as const) {
   }
 }
 
-test("Plans names the selected fictional history", async ({ page }) => {
+test("Stats names the selected fictional history", async ({ page }) => {
   await gotoImport(page);
   await page.getByTestId("demo-moderate").click();
   await expect(page.getByTestId("recap-ready")).toBeVisible({ timeout: 60_000 });
-  await navigate(page, "Plans");
-  await expect(page.getByTestId("plans-ready")).toContainText("Fictional demo");
-  await expect(page.getByTestId("plans-ready")).not.toContainText("No workload selected");
+  await navigate(page, "Stats");
+  await expect(page.getByTestId("stats-ready")).toContainText("Fictional demo");
 });
 
 test("a missing Stats scan is identified even when no other history is saved", async ({ page }) => {

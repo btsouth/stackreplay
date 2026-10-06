@@ -1,4 +1,7 @@
-/** Product copy contract. Match whole Replay as a feature name, preserving the StackReplay brand. */
+/**
+ * Product copy contract. Match whole Replay as a feature name, preserving the StackReplay brand
+ * and the tagline "Your AI coding, replayed."
+ */
 export const bannedTerms = [
   "workload",
   "Replay",
@@ -16,7 +19,10 @@ export const bannedTerms = [
   "known processed",
   "pricing coverage",
   "snapshot",
-  "scope:",
+  "scope",
+  "scenario",
+  "days it would run out",
+  "limit evidence",
   "frontier mapping",
   "America/",
   "accepted pricing",

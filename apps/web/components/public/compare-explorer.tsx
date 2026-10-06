@@ -252,7 +252,7 @@ function InspectContent({
         {plan.limits.length === 0 ? (
           <p className="mt-1 text-muted-foreground">
             {plan.publishedTerms
-              ? "Published allowances are shown in the usage row. They are not yet executable replay constraints."
+              ? "Published allowances are shown in the usage row. They are not numeric limits."
               : "No numeric limit is recorded here."}
           </p>
         ) : (
@@ -588,17 +588,8 @@ function TargetHeader({
         <p className="mt-3 text-sm text-warning">{plan.publishedTerms.availabilityNote}</p>
       )}
       {plan.kind === "public_offer" ? (
-        <p className="mt-3 text-sm text-muted-foreground">
-          Published offer only; workload replay is unavailable.
-        </p>
-      ) : (
-        <Link
-          className="mt-1 inline-flex min-h-11 items-center text-sm text-accent underline underline-offset-4"
-          href={`/app/scan?target=${encodeURIComponent(plan.id)}`}
-        >
-          Replay your workload here ↗
-        </Link>
-      )}
+        <p className="mt-3 text-sm text-muted-foreground">Published offer only.</p>
+      ) : null}
       <CompactPlanFacts
         plan={plan}
         facts={facts}

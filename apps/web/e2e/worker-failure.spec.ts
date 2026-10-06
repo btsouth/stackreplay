@@ -22,8 +22,8 @@ test("a Worker that cannot start reports a safe error instead of waiting forever
 
   const error = page.getByTestId("import-error");
   await expect(error).toBeVisible({ timeout: 60_000 });
-  await expect(error).toContainText("The replay Worker could not be started.");
-  await expect(error).toContainText("did not load the local replay Worker");
+  await expect(error).toContainText("The scan Worker could not be started.");
+  await expect(error).toContainText("did not load the local scan Worker");
   // No raw internals, no stack trace, no file content in the message.
   await expect(error).not.toContainText("stackreplay-worker.js");
   await expect(page.getByTestId("import-working")).toHaveCount(0);

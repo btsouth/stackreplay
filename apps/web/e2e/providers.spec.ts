@@ -50,7 +50,7 @@ test("shared provider role and tool filters normalize and label plan scope", asy
   await expect(page.getByTestId("provider-row")).toHaveCount(1);
 });
 
-test("provider offers preserve compound and licensed units without Replay links", async ({
+test("provider offers preserve compound and licensed units without links into the app", async ({
   page,
 }) => {
   await page.goto("/providers/devin");
@@ -59,9 +59,7 @@ test("provider offers preserve compound and licensed units without Replay links"
     page.getByText("$80/month base + $40/month per full developer seat", { exact: true }),
   ).toBeVisible();
   await expect(page.getByText("No developed models recorded.", { exact: true })).toBeVisible();
-  await expect(
-    page.getByText("Informational offer · Workload Replay unavailable.", { exact: true }),
-  ).toHaveCount(4);
+  await expect(page.getByText("Informational offer.", { exact: true })).toHaveCount(4);
   await expect(page.locator('a[href^="/app/scan?target=devin"]')).toHaveCount(0);
   await expect(page.getByRole("heading", { name: "Publisher offer sources" })).toBeVisible();
   await expect(page.getByTestId("source-list")).toHaveCount(5);

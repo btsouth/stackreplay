@@ -12,9 +12,6 @@ import {
   captureRequests,
   gotoImport,
   openConnectIndividually,
-  openReplayDetails,
-  setRulesAsOf,
-  visitReplay,
   waitForWorkload,
 } from "./premium-app-helpers";
 
@@ -42,7 +39,7 @@ async function history(info: TestInfo) {
 }
 
 for (const archive of [false, true]) {
-  test(`OpenCode ${archive ? "ZIP" : "database + WAL"} reaches Workload, confirms explicitly, reloads and replays`, async ({
+  test(`OpenCode ${archive ? "ZIP" : "database + WAL"} reaches Stats as its own tool, saves no plan, and reloads`, async ({
     page,
   }, info) => {
     const { bytes, wal } = await history(info);
@@ -63,39 +60,17 @@ for (const archive of [false, true]) {
           ],
     );
     await waitForWorkload(page);
-    await expect(page.getByTestId("discovery-group-opencode")).toContainText("OpenCode activity");
-    await expect(page.getByTestId("discovery-group-opencode")).toContainText("2 calls");
-    await expect(page.getByTestId("discovery-plan-opencode-go")).not.toBeChecked();
-    expect(await page.evaluate(() => localStorage.getItem("stackreplay.current-stack"))).toBeNull();
-    await page.getByTestId("discovery-plan-opencode-go").click();
-    await page.getByRole("button", { name: "Confirm stack", exact: true }).click();
-    await page.reload();
-    await waitForWorkload(page);
-    expect(
-      await page.evaluate(() =>
-        JSON.parse(localStorage.getItem("stackreplay.current-stack") ?? "[]"),
-      ),
-    ).toEqual(["plan:opencode-go"]);
-    await visitReplay(page);
-    await expect(page.getByTestId("plan-opencode-go")).toBeVisible();
-    await expect(page.getByTestId("plan-command-code-goat")).toBeVisible();
-    await page.getByTestId("plan-command-code-goat").click();
-    await expect(page.getByTestId("plan-replay-unavailable")).toContainText(
-      "Capacity Replay is unavailable",
+    await page.getByRole("tab", { name: "Tools" }).click();
+    await expect(page.getByRole("table", { name: "Tools in this period" })).toContainText(
+      "OpenCode",
     );
-    await expect(page.getByTestId("run-replay")).toBeDisabled();
-    await page.getByTestId("plan-command-code-goat").press("Enter");
-    await expect(page.getByTestId("replay-error")).toHaveCount(0);
-    await expect(page.getByTestId("translation-required")).toHaveCount(0);
-    await setRulesAsOf(page, "2026-09-29");
-    await page.getByTestId("target-kind-api").click();
-    await page.getByTestId("provider-openai").click();
-    await page.getByTestId("run-replay").click();
-    await expect(page.getByTestId("replay-result")).toBeVisible();
-    await openReplayDetails(page);
-    await expect(page.getByTestId("unserved-models")).toHaveCount(0);
-    await page.goto("/app/settings");
-    await expect(page.getByTestId("settings-plans-summary")).toHaveText("OpenCode Go");
+    await page.reload();
+    await expect(page.getByTestId("stats-ready")).toBeVisible({ timeout: 60_000 });
+    // Nothing is assumed about what the person pays.
+    expect(await page.evaluate(() => localStorage.getItem("stackreplay.current-stack"))).toBeNull();
+    expect(
+      await page.evaluate(() => localStorage.getItem("stackreplay.stack-subscriptions.v2")),
+    ).toBeNull();
     expect(JSON.stringify(requests)).not.toMatch(
       /OPENCODE_PRIVATE_PROMPT|OPENCODE_PRIVATE_KEY|ses_alpha|msg_alpha/u,
     );
@@ -107,9 +82,7 @@ for (const archive of [false, true]) {
   });
 }
 
-test("OpenCode and Command Code share stack, settings and Compare behavior with independent families", async ({
-  page,
-}, info) => {
+test("OpenCode and Command Code appear as independent tools in Stats", async ({ page }, info) => {
   const { bytes, wal } = await history(info);
   await gotoImport(page);
   await page.getByTestId("source-file-input").setInputFiles([
@@ -127,42 +100,10 @@ test("OpenCode and Command Code share stack, settings and Compare behavior with 
     },
   ]);
   await waitForWorkload(page);
-  await page.getByTestId("discovery-plan-opencode-go-plus").click();
-  await page.getByTestId("discovery-plan-command-code-goat").click();
-  await page.getByRole("button", { name: "Confirm stack", exact: true }).click();
-  await page.goto("/app/settings");
-  await expect(page.getByTestId("settings-plans-summary")).toContainText("OpenCode Go Plus");
-  await expect(page.getByTestId("settings-plans-summary")).toContainText("Command Code GOAT");
-  await page.goto("/app/plans?section=compare&view=billing");
-  await page.getByTestId("legacy-compare").evaluate((element: HTMLDetailsElement) => {
-    element.open = true;
-  });
-  await page.getByTestId("compare-decision-stack").click();
-  await expect(page.getByTestId("stack-comparison")).toContainText("OpenCode Go Plus");
-  await expect(page.getByTestId("stack-comparison")).toContainText("Command Code GOAT");
-  await expect(page.getByTestId("compare-price")).toContainText("$50.00/month");
-  await page.evaluate(() => {
-    const stack = JSON.parse(localStorage.getItem("stackreplay.current-stack") ?? "[]");
-    localStorage.setItem(
-      "stackreplay.current-stack",
-      JSON.stringify([
-        ...stack,
-        "plan:anthropic-claude-pro",
-        "plan:openai-chatgpt-plus",
-        "plan:cursor-pro",
-      ]),
-    );
-    window.dispatchEvent(new Event("stackreplay-current-stack"));
-  });
-  await page.getByTestId("stack-plan-picker").evaluate((element: HTMLDetailsElement) => {
-    element.open = true;
-  });
-  await page.getByTestId("stack-plan-opencode-go").check();
-  expect(
-    await page.evaluate(() =>
-      JSON.parse(localStorage.getItem("stackreplay.current-stack") ?? "[]"),
-    ),
-  ).toHaveLength(6);
+  await page.getByRole("tab", { name: "Tools" }).click();
+  const tools = page.getByRole("table", { name: "Tools in this period" });
+  await expect(tools).toContainText("OpenCode");
+  await expect(tools).toContainText("Command Code");
 });
 
 test("individual OpenCode and Command Code connection controls remain accessible on mobile and desktop", async ({
@@ -176,7 +117,7 @@ test("individual OpenCode and Command Code connection controls remain accessible
   await page.getByTestId("connect-opencode").click();
   await (await chooser).setFiles(root);
   await waitForWorkload(page);
-  await expect(page.getByTestId("discovery-group-opencode")).toBeVisible();
+  await expect(page.getByTestId("stats-ready")).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   expect(
     (

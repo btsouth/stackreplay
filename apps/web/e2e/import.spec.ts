@@ -122,7 +122,7 @@ test("imports a ~100k-event export without blocking the interface", async ({ pag
   await visitImportManager(page);
   await page.getByTestId("demo-moderate").click();
   await waitForWorkload(page);
-  await expect(page.getByTestId("overview-scale")).toContainText("900");
+  await expect(page.getByTestId("stats-ready")).toBeVisible();
   await expect(page.getByTestId("import-error")).toHaveCount(0);
   await expect(page.getByTestId("import-working")).toHaveCount(0);
 

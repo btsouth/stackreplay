@@ -37,7 +37,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title: p?.name ?? "Plan not found",
     description:
       p?.kind === "public_offer"
-        ? `${p.name}: ${publicPlanPriceText(p)}. Published offer; workload replay is unavailable.`
+        ? `${p.name}: ${publicPlanPriceText(p)}. Published offer.`
         : `${p?.name ?? "Plan"}: published price, model access, compatible tools and usage terms.`,
     path: `/plans/${planId}`,
   });
@@ -261,7 +261,7 @@ export default async function PlanPage({ params }: Props) {
           <p className="market-muted">
             {plan.kind === "catalog_plan" && plan.limits.length
               ? "Published rules are available for this plan."
-              : "Published price and access do not establish a deterministic workload allowance."}
+              : "Published price and access do not establish a numeric allowance."}
           </p>
           <ul className="space-y-4" data-testid="qualitative-limits">
             {plan.kind === "catalog_plan" &&

@@ -208,7 +208,7 @@ test.describe("compare page on a phone", () => {
 
     const googleAvailability =
       "From September 4, 2026, billing accounts without an active Gemini Code Assist subscription must contact sales. Existing active subscriptions are unaffected.";
-    const googleReplayStatus = "Published offer only; workload replay is unavailable.";
+    const googleReplayStatus = "Published offer only.";
     await expect(
       google.getByTestId("compare-price").getByText("$54", { exact: true }),
     ).toBeVisible();

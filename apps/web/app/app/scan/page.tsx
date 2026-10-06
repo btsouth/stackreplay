@@ -6,7 +6,7 @@ import { PageHeader } from "@/components/page-header";
 export const metadata: Metadata = {
   title: "Scan your history",
   description:
-    "Load supported AI history files, a folder, ZIP archive, or a StackReplay workload in your browser.",
+    "Load supported AI history files, a folder, ZIP archive, or a StackReplay export in your browser.",
 };
 
 export default function ScanPage() {

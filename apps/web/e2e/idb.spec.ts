@@ -2,13 +2,10 @@ import { rm, stat, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { expect, test } from "@playwright/test";
+import { BUNDLED_CATALOG_VERSION, bundledModelIdentity } from "@stackreplay/catalog/bundled";
 import { buildDemoExport } from "@stackreplay/test-fixtures";
-import {
-  gotoImport,
-  importDemo,
-  openReviewEvidence,
-  openWorkloadTools,
-} from "./premium-app-helpers";
+import { summarizeExport } from "../lib/workload-summary";
+import { gotoImport, importDemo } from "./premium-app-helpers";
 
 /** How many records and payloads the browser's own database holds. */
 async function readStoreCounts(page: import("@playwright/test").Page): Promise<{
@@ -52,11 +49,11 @@ test("an imported workload survives a reload", async ({ page }) => {
   await expect(page.getByTestId("stored-imports")).toBeVisible();
   await expect(page.getByTestId("no-stored-imports")).toHaveCount(0);
 
-  await page.goto("/app/plans?section=replay");
-  await expect(page.getByTestId("strategy-suggestions")).toBeVisible();
+  await page.getByRole("link", { name: "Open my recap" }).click();
+  await expect(page.getByTestId("recap-ready")).toBeVisible({ timeout: 60_000 });
 });
 
-test("a delayed storage lookup never appears empty or sends Replay through Import", async ({
+test("a delayed storage lookup never appears empty or sends the recap through Scan", async ({
   page,
 }) => {
   await importDemo(page, "moderate");
@@ -87,16 +84,10 @@ test("a delayed storage lookup never appears empty or sends Replay through Impor
   await expect(page.getByTestId("no-stored-imports")).toHaveCount(0);
   await expect(page.getByTestId("stored-imports")).toBeVisible();
 
-  await page.goto(workloadHref ?? "/app/stats");
+  await page.goto((workloadHref ?? "/app/recap").replace("/app/recap", "/app/stats"));
   await expect(page.getByTestId("workload-restoring")).toBeVisible();
   await expect(page.getByTestId("workload-empty")).toHaveCount(0);
-  await openReviewEvidence(page);
-  await openWorkloadTools(page);
-  await expect(page.getByTestId("workload-replay-cta")).toBeVisible();
-  await page.getByTestId("workload-replay-cta").click();
-  await expect(page.getByTestId("replay-restoring")).toBeVisible();
-  await expect(page.getByTestId("replay-empty")).toHaveCount(0);
-  await expect(page.getByTestId("strategy-suggestions")).toBeVisible();
+  await expect(page.getByTestId("stats-ready")).toBeVisible({ timeout: 60_000 });
 });
 
 test("deleting a workload removes it from storage, not just from the view", async ({ page }) => {
@@ -155,8 +146,8 @@ test("two imports coexist without overwriting each other", async ({ page }) => {
 
 test("a corrupted payload is rejected when opened and then removed", async ({ page }) => {
   await importDemo(page, "moderate");
-  // Corrupt after the automatic import analysis has finished reading the payload.
-  await expect(page.getByTestId("overview-api-total")).toHaveText("$5.93 – $6.10");
+  // Corrupt after the import has finished and the page has read the payload.
+  await expect(page.getByTestId("stats-ready")).toBeVisible();
 
   // Replace the stored payload with something incompatible, as an older or
   // broken writer would have left behind.
@@ -184,11 +175,8 @@ test("a corrupted payload is rejected when opened and then removed", async ({ pa
   // Listing reads metadata and payload keys only; the full payload is checked
   // when opened, without cloning every saved workload merely to list them.
   await expect(page.getByTestId("stored-imports")).toBeVisible();
-  await page.getByRole("link", { name: "Open workload" }).click();
-  // Automatic analysis may reject and remove it before the explicit open resolves.
-  await expect(page.getByTestId("workload-error")).toContainText(
-    /stored workload cannot be read|no longer stored in this browser/,
-  );
+  await page.getByRole("link", { name: "Open my recap" }).click();
+  await expect(page.getByRole("alert")).toContainText(/unavailable|no longer stored/);
   await page.goto("/app/scan");
   await expect(page.getByTestId("no-stored-imports")).toBeVisible();
   const count = () =>
@@ -275,4 +263,102 @@ test("clearing local data during an import leaves nothing stored", async ({ page
     // `force` covers the case where the write itself never landed.
     await rm(path, { force: true });
   }
+});
+
+const localDatabaseShape = (page: import("@playwright/test").Page) =>
+  page.evaluate(async () => {
+    const open = indexedDB.open("stackreplay");
+    const database = await new Promise<IDBDatabase>((resolve, reject) => {
+      open.onsuccess = () => resolve(open.result);
+      open.onerror = () => reject(open.error);
+    });
+    try {
+      return { version: database.version, stores: [...database.objectStoreNames].sort() };
+    } finally {
+      database.close();
+    }
+  });
+
+test("a version 1 local database upgrades in place and keeps the saved workload", async ({
+  page,
+}) => {
+  // A genuine canonical pair, built the same way the importer builds one. The
+  // database is seeded at version 1 (imports + payloads only) on a document that
+  // does not run the app, so the production open is provably the first writer to
+  // ask for version 3 and the migration, not a fresh install, is what runs.
+  const exported = buildDemoExport("moderate");
+  const record = {
+    id: "0123456789abcdef0123456789abcdef",
+    label: "v1 demo import",
+    createdAt: "2026-09-22T12:00:00.000Z",
+    eventCount: exported.events.length,
+    summary: summarizeExport(exported, BUNDLED_CATALOG_VERSION, bundledModelIdentity()),
+  };
+
+  await page.route("**/__seed__", (route) =>
+    route.fulfill({ contentType: "text/html", body: "<!doctype html><title>seed</title>" }),
+  );
+  await page.goto("/__seed__");
+  const seeded = await page.evaluate(
+    async ({ record, exported }) => {
+      const database = await new Promise<IDBDatabase>((resolve, reject) => {
+        const request = indexedDB.open("stackreplay", 1);
+        request.onupgradeneeded = () => {
+          const db = request.result;
+          db.createObjectStore("imports", { keyPath: "id" });
+          db.createObjectStore("payloads", { keyPath: "id" });
+        };
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+      });
+      try {
+        await new Promise<void>((resolve, reject) => {
+          const transaction = database.transaction(["imports", "payloads"], "readwrite");
+          transaction.objectStore("imports").put(record);
+          transaction.objectStore("payloads").put({ id: record.id, exported });
+          transaction.oncomplete = () => resolve();
+          transaction.onerror = () => reject(transaction.error);
+          transaction.onabort = () => reject(transaction.error);
+        });
+        return { version: database.version, stores: [...database.objectStoreNames].sort() };
+      } finally {
+        database.close();
+      }
+    },
+    { record, exported },
+  );
+  expect(seeded).toEqual({ version: 1, stores: ["imports", "payloads"] });
+  await page.unroute("**/__seed__");
+
+  // The app opens version 3 for the first time here; it must migrate, not reset.
+  await page.goto("/app/scan");
+  await expect(page.getByTestId("stored-imports")).toBeVisible();
+  await expect(page.getByTestId("stored-imports")).toContainText(record.label);
+
+  const upgraded = await localDatabaseShape(page);
+  expect(upgraded.version).toBe(3);
+  expect(upgraded.stores).toContain("workload-results");
+
+  const preserved = await page.evaluate(async (id) => {
+    const open = indexedDB.open("stackreplay");
+    const database = await new Promise<IDBDatabase>((resolve, reject) => {
+      open.onsuccess = () => resolve(open.result);
+      open.onerror = () => reject(open.error);
+    });
+    try {
+      const transaction = database.transaction(["imports", "payloads"], "readonly");
+      const read = (store: string) =>
+        new Promise((resolve, reject) => {
+          const request = transaction.objectStore(store).get(id);
+          request.onsuccess = () => resolve(request.result);
+          request.onerror = () => reject(request.error);
+        });
+      const [storedRecord, storedPayload] = await Promise.all([read("imports"), read("payloads")]);
+      return { storedRecord, storedPayload };
+    } finally {
+      database.close();
+    }
+  }, record.id);
+  expect(preserved.storedRecord).toEqual(record);
+  expect(preserved.storedPayload).toEqual({ id: record.id, exported });
 });

@@ -1,7 +1,7 @@
 import { mkdir } from "node:fs/promises";
 import { join } from "node:path";
 import { expect, type Page, test } from "@playwright/test";
-import { createShareToken, importDemo, runReplay } from "./helpers";
+import { importDemo } from "./helpers";
 
 /**
  * Deterministic screenshots for human review (M3 brief).
@@ -16,17 +16,6 @@ const outputDir = process.env.STACKREPLAY_SCREENSHOT_DIR ?? join("test-results",
 async function shoot(page: Page, name: string) {
   await mkdir(outputDir, { recursive: true });
   await page.screenshot({ path: join(outputDir, `${name}.png`), fullPage: true });
-}
-
-/**
- * The result chart loads after the result itself (the charting code is a
- * dynamic import). A screenshot taken on result visibility alone captures an
- * empty chart box, so replay shots wait for the rendered chart first.
- */
-async function awaitChart(page: Page) {
-  await expect(page.getByTestId("timeline-chart").locator("svg")).toBeVisible({
-    timeout: 30_000,
-  });
 }
 
 test.describe("M3 screenshots", () => {
@@ -44,64 +33,25 @@ test.describe("M3 screenshots", () => {
     await shoot(page, "import-desktop-light");
   });
 
-  test("replay desktop dark", async ({ page }, testInfo) => {
+  test("recap and stats desktop dark", async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== "desktop", "desktop capture");
     await page.emulateMedia({ colorScheme: "dark", reducedMotion: "reduce" });
     await importDemo(page, "moderate");
-    await page.goto("/app/plans?section=replay&mode=custom");
-    await runReplay(page, "example-cloud-pro");
-    await awaitChart(page);
-    await shoot(page, "replay-desktop-dark");
+    await shoot(page, "stats-desktop-dark");
+    const id = new URL(page.url()).searchParams.get("import");
+    await page.goto(`/app/recap?import=${id}`);
+    await expect(page.getByTestId("recap-ready")).toBeVisible({ timeout: 60_000 });
+    await shoot(page, "recap-desktop-dark");
   });
 
-  test("replay desktop light", async ({ page }, testInfo) => {
-    test.skip(testInfo.project.name !== "desktop", "desktop capture");
-    await page.emulateMedia({ colorScheme: "light", reducedMotion: "reduce" });
-    await importDemo(page, "moderate");
-    await page.goto("/app/plans?section=replay&mode=custom");
-    await runReplay(page, "example-cloud-pro");
-    await awaitChart(page);
-    await shoot(page, "replay-desktop-light");
-  });
-
-  test("replay mobile dark", async ({ page }, testInfo) => {
+  test("recap mobile dark", async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== "mobile", "mobile capture");
     await page.emulateMedia({ colorScheme: "dark", reducedMotion: "reduce" });
     await importDemo(page, "moderate");
-    await page.goto("/app/plans?section=replay&mode=custom");
-    await runReplay(page, "example-cloud-pro");
-    await awaitChart(page);
-    await shoot(page, "replay-mobile-dark");
-  });
-
-  test("replay mobile light", async ({ page }, testInfo) => {
-    test.skip(testInfo.project.name !== "mobile", "mobile capture");
-    await page.emulateMedia({ colorScheme: "light", reducedMotion: "reduce" });
-    await importDemo(page, "moderate");
-    await page.goto("/app/plans?section=replay&mode=custom");
-    await runReplay(page, "example-cloud-pro");
-    await awaitChart(page);
-    await shoot(page, "replay-mobile-light");
-  });
-
-  test("replay with exceeded constraints", async ({ page }, testInfo) => {
-    test.skip(testInfo.project.name !== "desktop", "desktop capture");
-    await page.emulateMedia({ colorScheme: "dark", reducedMotion: "reduce" });
-    await importDemo(page, "heavy");
-    await page.goto("/app/plans?section=replay&mode=custom");
-    await runReplay(page, "example-cloud-pro");
-    await awaitChart(page);
-    await shoot(page, "replay-exceeded-desktop-dark");
-  });
-
-  test("replay with unknown coverage", async ({ page }, testInfo) => {
-    test.skip(testInfo.project.name !== "desktop", "desktop capture");
-    await page.emulateMedia({ colorScheme: "dark", reducedMotion: "reduce" });
-    await importDemo(page, "multistack");
-    await page.goto("/app/plans?section=replay&mode=custom");
-    await runReplay(page, "example-cloud-starter");
-    await awaitChart(page);
-    await shoot(page, "replay-unknown-desktop-dark");
+    const id = new URL(page.url()).searchParams.get("import");
+    await page.goto(`/app/recap?import=${id}`);
+    await expect(page.getByTestId("recap-ready")).toBeVisible({ timeout: 60_000 });
+    await shoot(page, "recap-mobile-dark");
   });
 });
 
@@ -141,13 +91,14 @@ test.describe("M4 screenshots", () => {
     test(`share page desktop ${theme}`, async ({ page }, testInfo) => {
       test.skip(testInfo.project.name !== "desktop", "desktop capture");
       await page.emulateMedia({ colorScheme: theme, reducedMotion: "reduce" });
-      // A share link is created in the app from a real replay; the capture
-      // starts there instead of from a homepage example.
+      // A share link is created in the app from a recap; the capture starts
+      // there instead of from a homepage example.
       await importDemo(page, "moderate");
-      await page.goto("/app/plans?section=replay&mode=custom");
-      await runReplay(page, "example-cloud-pro");
-      const token = await createShareToken(page);
-      await page.goto(`/s/${token}`);
+      const id = new URL(page.url()).searchParams.get("import");
+      await page.goto(`/app/recap?import=${id}`);
+      await expect(page.getByTestId("recap-ready")).toBeVisible({ timeout: 60_000 });
+      await page.getByTestId("recap-share-create").click();
+      await page.getByTestId("recap-share-open").click();
       await expect(page.getByTestId("share-card-v2")).toBeVisible();
       await shoot(page, `share-desktop-${theme}`);
     });

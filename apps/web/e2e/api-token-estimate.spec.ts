@@ -68,7 +68,7 @@ test("exact scenario, source dates and validation remain adjacent", async ({ pag
   await expect(section).toContainText(
     "Include any reasoning tokens billed as output. No inferred multiplier.",
   );
-  await expect(section).toContainText("A scenario, not an invoice or measured workload.");
+  await expect(section).toContainText("An estimate, not an invoice or measured usage.");
   await expect(section).toContainText(
     "Excludes taxes, discounts, caching, media and other charges.",
   );

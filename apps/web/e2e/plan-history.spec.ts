@@ -1,6 +1,5 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, type Page, test } from "@playwright/test";
-import { importDemo, setRulesAsOf, visitReplay } from "./premium-app-helpers";
 
 /**
  * Plan terms and history (OpenAI DevDay, Sep 29, 2026).
@@ -150,76 +149,6 @@ test.describe("plan changes where plans are compared", () => {
         .filter({ hasText: "ChatGPT Pro 200" })
         .getByTestId("plan-terms-notice"),
     ).toHaveText("Revised usage allowance since Sep 29, 2026 →");
-  });
-});
-
-test.describe("Replay binds a subscription result to the plan terms it used", () => {
-  test("uses market terms by default, and grandfathered terms only when asked", async ({
-    page,
-  }) => {
-    await importDemo(page, "moderate");
-    await visitReplay(page);
-    await setRulesAsOf(page, "2026-09-28");
-    await page.getByTestId("plan-openai-chatgpt-pro-20x").click();
-    const terms = page.getByTestId("replay-plan-terms");
-    await expect(terms.locator(":scope > summary")).toContainText("Current terms");
-    await expect(page.getByTestId("replay-plan-cohort")).toHaveCount(0);
-    await page.getByTestId("run-replay").click();
-    await expect(page.getByTestId("replay-result")).toBeVisible({ timeout: 60_000 });
-    await expect(page.getByTestId("result-plan-terms")).toHaveText(
-      " · terms before the Sep 29, 2026 revision",
-    );
-
-    await setRulesAsOf(page, "2026-10-01");
-    await expect(terms.locator(":scope > summary")).toContainText(
-      "Current market terms, revised Sep 29, 2026 · ≈50% of the previous API-equivalent spend",
-    );
-    await terms.locator(":scope > summary").click();
-    await expect(terms.getByTestId("plan-timeline-step")).toHaveCount(4);
-    await page.getByTestId("run-replay").click();
-    await expect(page.getByTestId("result-plan-terms")).toHaveText(
-      " · terms effective Sep 29, 2026",
-      { timeout: 60_000 },
-    );
-
-    const cohort = page.getByTestId("replay-plan-cohort");
-    await expect(cohort).toContainText("Existing subscriber?");
-    await cohort.locator("input").check();
-    await expect(terms.locator(":scope > summary")).toContainText(
-      "Eligible existing subscribers: previous allowance through Oct 29, 2026",
-    );
-    await page.getByTestId("run-replay").click();
-    await expect(page.getByTestId("result-plan-terms")).toHaveText(
-      " · eligible existing subscribers' previous allowance through Oct 29, 2026",
-      { timeout: 60_000 },
-    );
-
-    await setRulesAsOf(page, "2026-10-30");
-    await page.getByTestId("run-replay").click();
-    await expect(page.getByTestId("result-plan-terms")).toHaveText(
-      " · terms effective Sep 29, 2026",
-      { timeout: 60_000 },
-    );
-  });
-
-  test("prices a Direct API replay at a chosen processing tier, never a coming-soon one", async ({
-    page,
-  }) => {
-    await importDemo(page, "moderate");
-    await visitReplay(page);
-    await setRulesAsOf(page, "2026-09-29");
-    await page.getByTestId("target-kind-api").click();
-    await page.getByTestId("provider-openai").click();
-    const picker = page.getByTestId("service-tier-picker");
-    await expect(picker).toContainText("Ultrafast coming soon for GPT-6.1 Sol");
-    await expect(page.getByTestId("service-tier-standard")).toBeChecked();
-    await page.getByTestId("service-tier-fast").check();
-    await expect(page.getByTestId("service-tier-note")).toContainText(
-      "the Standard price is not used instead",
-    );
-    await page.getByTestId("run-replay").click();
-    await expect(page.getByTestId("replay-result")).toBeVisible({ timeout: 60_000 });
-    await expect(page.getByTestId("result-service-tier")).toContainText("Fast processing");
   });
 });
 

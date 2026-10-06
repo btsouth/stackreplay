@@ -112,7 +112,7 @@ export function ApiTokenEstimate({ rate }: { rate: ApiTokenEstimateRate }) {
           )}
         </div>
         <p className="mt-5 text-xs leading-relaxed text-muted-foreground">
-          A scenario, not an invoice or measured workload. Excludes taxes, discounts, caching, media
+          An estimate, not an invoice or measured usage. Excludes taxes, discounts, caching, media
           and other charges.
         </p>
       </div>

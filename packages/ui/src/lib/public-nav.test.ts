@@ -32,6 +32,18 @@ describe("public navigation", () => {
     const hrefs = publicFooterGroups.flatMap((group) => group.items.map((item) => item.href));
     for (const item of catalogNavItems) expect(hrefs).toContain(item.href);
   });
+  it("never links to a removed app page", () => {
+    const removed = ["plans", "stack", "replay", "compare", "workload", "import"].map(
+      (name) => `/app/${name}`,
+    );
+    const hrefs = publicFooterGroups
+      .flatMap((group) => group.items.map((item) => item.href))
+      .concat(
+        publicNavItems.map((item) => item.href),
+        [primaryCta.href, returningCta.href],
+      );
+    for (const href of hrefs) expect(removed).not.toContain(href.split(/[?#]/u)[0]);
+  });
   it("marks catalog details active without false prefixes", () => {
     expect(isPublicNavItemActive("/providers/anthropic", "/catalog")).toBe(true);
     expect(isPublicNavItemActive("/providers-extra", "/catalog")).toBe(false);

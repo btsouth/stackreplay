@@ -11,6 +11,9 @@ describe("app navigation", () => {
     expect(scanAction).toEqual({ label: "Scan my history", href: "/app/scan" });
     expect(appNavItems.some((item) => item.href === String(scanAction.href))).toBe(false);
   });
+  it("has no link to a removed page", () => {
+    for (const item of appNavItems) expect(item.href).toMatch(/^\/app\/(recap|stats|settings)$/u);
+  });
   it("uses exact path segments", () => {
     expect(isNavItemActive("/app/stats/example", "/app/stats")).toBe(true);
     expect(isNavItemActive("/app/stats-extra", "/app/stats")).toBe(false);

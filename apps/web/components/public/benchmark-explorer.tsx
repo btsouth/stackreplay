@@ -671,8 +671,8 @@ export function BenchmarkExplorer({
           <p>
             Shared benchmarks requires a reported result for every selected model. All reported
             results shows explicit coverage gaps. Complete source sheets require every declared
-            model × benchmark cell. Changes to benchmark evidence have no effect on Replay, pricing,
-            plan capacity or model identity.
+            model × benchmark cell. Changes to benchmark evidence have no effect on pricing, plan
+            terms or model identity.
           </p>
         </details>
         {(editionData?.sourceSets ?? []).map((s, i) => (

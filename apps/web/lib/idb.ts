@@ -452,48 +452,6 @@ export async function clearLocalData(): Promise<StorageResult<true>> {
   }
 }
 
-/** Optional derived aggregates. Canonical payloads are validated before cache reads. */
-export async function loadWorkloadResult(key: string): Promise<unknown> {
-  return withStores(WORKLOAD_RESULTS_STORE, "readonly", (transaction) =>
-    requestToPromise(storeOf(transaction, WORKLOAD_RESULTS_STORE).get(key) as IDBRequest<unknown>),
-  );
-}
-
-export async function saveWorkloadResult(
-  key: string,
-  record: ImportRecord,
-  value: { json: string; digest: string },
-  observed: StoreGeneration,
-): Promise<void> {
-  if (writeWouldResurrect(observed, record.id)) return;
-  await withStores(
-    [IMPORTS_STORE, PAYLOADS_STORE, WORKLOAD_RESULTS_STORE],
-    "readwrite",
-    async (transaction) => {
-      const [stored, payloadKey] = await Promise.all([
-        requestToPromise(storeOf(transaction, IMPORTS_STORE).get(record.id) as IDBRequest<unknown>),
-        requestToPromise(storeOf(transaction, PAYLOADS_STORE).getKey(record.id)),
-      ]);
-      const checked = importRecordSchema.safeParse(stored);
-      const expected = importRecordSchema.safeParse(record);
-      if (
-        writeWouldResurrect(observed, record.id) ||
-        payloadKey === undefined ||
-        !checked.success ||
-        !expected.success ||
-        JSON.stringify(checked.data) !== JSON.stringify(expected.data)
-      )
-        return;
-      const results = storeOf(transaction, WORKLOAD_RESULTS_STORE);
-      await requestToPromise(results.put({ id: key, importId: record.id, ...value }));
-      // Bound optional storage independently of the size of imported histories.
-      const keys = await requestToPromise(results.getAllKeys());
-      for (const old of keys.filter((id) => id !== key).slice(0, Math.max(0, keys.length - 8)))
-        await requestToPromise(results.delete(old));
-    },
-  );
-}
-
 /** Opaque local identifier: never derived from workload content. */
 export function createLocalImportId(random: () => number = Math.random): string {
   const bytes = new Uint8Array(16);

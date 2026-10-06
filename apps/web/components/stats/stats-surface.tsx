@@ -2,6 +2,7 @@
 import { type DataColumn, DataTable } from "@stackreplay/ui";
 import { useState } from "react";
 import { AppPageSkeleton, ScanEmptyState } from "@/components/app/app-page-state";
+import { PartialScanNotice } from "@/components/import/evidence";
 import { CalculationNote } from "@/components/recap/calculation-note";
 import { PeriodControl } from "@/components/recap/period-control";
 import { familyColors } from "@/lib/recap";
@@ -184,6 +185,16 @@ export function StatsSurface({ initialImportId }: { initialImportId?: string | u
         </div>
         <PeriodControl value={period} onChange={selectPeriod} />
       </header>
+      {data.record && (
+        <PartialScanNotice
+          record={data.record}
+          action={
+            <a className="text-sm text-accent" href="/app/scan" data-testid="stats-rescan">
+              Scan again
+            </a>
+          }
+        />
+      )}
       {data.record && isSyntheticWorkload(data.record) && (
         <p className="plan-muted">Fictional demo. These numbers are sample data.</p>
       )}
