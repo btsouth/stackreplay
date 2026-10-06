@@ -25,6 +25,13 @@ const raw = `${CODEX_ROLLOUT}\n${JSON.stringify({
   },
 })}`;
 
+test.beforeEach(async ({ page }) => {
+  // Legacy chooser coverage remains explicit beside native picker regressions.
+  await page.addInitScript(() =>
+    Object.defineProperty(window, "showDirectoryPicker", { configurable: true, value: undefined }),
+  );
+});
+
 /** Clicks a source card and answers the folder chooser it opens. */
 async function chooseFromCard(page: Page, kind: string, folder: string): Promise<void> {
   await openConnectIndividually(page);
@@ -55,19 +62,7 @@ test("Connect Claude Code scans a chosen history tree and reports unrelated file
   await expect(page.getByTestId("saved-import-summary").first()).toBeInViewport({ ratio: 0.1 });
 });
 
-test("Claude Code card reads a symlinked history folder without the directory-access picker", async ({
-  page,
-}, testInfo) => {
-  // Chromium's directory-access picker treats a symlink as missing. The card
-  // must not depend on it, so it fails loudly here if anything calls it.
-  await page.addInitScript(() => {
-    Object.defineProperty(window, "showDirectoryPicker", {
-      configurable: true,
-      value: async () => {
-        throw new DOMException("Symlinked directory treated as missing", "NotFoundError");
-      },
-    });
-  });
+test("the legacy chooser reads a symlinked history folder", async ({ page }, testInfo) => {
   const target = testInfo.outputPath("claude-data/projects");
   const link = testInfo.outputPath("linked-projects");
   await mkdir(`${target}/project-a`, { recursive: true });

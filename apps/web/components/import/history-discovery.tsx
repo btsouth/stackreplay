@@ -36,13 +36,20 @@ import {
 } from "@/lib/discovery-list";
 import {
   chosenFolder,
+  discoverPickedDirectory,
   droppedFolders,
   entryDirectory,
+  FOLDER_PICKER_NOTE,
+  FOLDER_TOO_LARGE_NOTE,
   forgetConnections,
+  pickerCancelled,
+  pickHistoryDirectory,
   platformHint,
   type RememberedConnections,
   readConnections,
+  supportsDirectoryPicker,
   supportsDropDiscovery,
+  tooManyChosenFiles,
   userFolderHint,
 } from "@/lib/history-discovery";
 
@@ -57,8 +64,9 @@ import {
  * import and presses Make my recap; the scan instrument then takes over
  * with the same histories.
  *
- * Linked, WSL, relocated and external histories go through the folder chooser,
- * the reliable path that follows links, and join the same list.
+ * Tool folders and custom roots can also use the lazy directory picker.
+ * Older browsers use a file-list chooser; linked folders may need their actual
+ * location or individual files when the browser cannot grant folder access.
  */
 
 type Phase = "intro" | "armed" | "discovering" | "selecting";
@@ -113,6 +121,8 @@ export function HistoryDiscovery({
   const connectId = useId();
   const [phase, setPhase] = useState<Phase>("intro");
   const [rows, setRows] = useState<HistoryRow[]>(waitingRows);
+  const [pickerCapable, setPickerCapable] = useState(false);
+  const [picking, setPicking] = useState(false);
   const [dropCapable, setDropCapable] = useState(true);
   const [platform, setPlatform] = useState<DiscoveryPlatform | undefined>(undefined);
   const [dragOver, setDragOver] = useState(false);
@@ -136,6 +146,7 @@ export function HistoryDiscovery({
 
   useEffect(() => {
     setDropCapable(supportsDropDiscovery());
+    setPickerCapable(supportsDirectoryPicker());
     setPlatform(platformHint());
     setRemembered(readConnections());
   }, []);
@@ -283,10 +294,53 @@ export function HistoryDiscovery({
     [busy, runDiscovery],
   );
 
-  const openChooser = useCallback((key?: string) => {
-    chooserTarget.current = key === undefined ? {} : { key };
-    chooserRef.current?.click();
-  }, []);
+  const openChooser = useCallback(
+    async (key?: string) => {
+      if (busy || !ready || runningRef.current) return;
+      if (!supportsDirectoryPicker()) {
+        chooserTarget.current = key === undefined ? {} : { key };
+        chooserRef.current?.click();
+        return;
+      }
+      runningRef.current = true;
+      setPicking(true);
+      setDropNote(undefined);
+      try {
+        const folder = await pickHistoryDirectory();
+        const target = rows.find((row) => row.key === key);
+        const run = await discoverPickedDirectory(folder, platform, target?.adapterId);
+        setRows((current) => {
+          if (
+            key !== undefined &&
+            run.findings.some(
+              (finding) =>
+                finding.adapterId === target?.adapterId &&
+                (finding.status === "found" || finding.status === "empty"),
+            )
+          ) {
+            return applyChosenFolder(current, run.findings, [], folder.name, key);
+          }
+          let next = current;
+          for (const finding of run.findings)
+            next = mergeFinding(next, finding, folder.name, roots.length === 0, "chooser");
+          return next;
+        });
+        setRoots((current) => [...current, folder.name]);
+        setMetrics((current) => ({
+          probes: (current?.probes ?? 0) + run.probes,
+          durationMs: (current?.durationMs ?? 0) + run.durationMs,
+        }));
+        setPhase("selecting");
+        setRuns((value) => value + 1);
+      } catch (error) {
+        if (!pickerCancelled(error)) setDropNote(FOLDER_PICKER_NOTE);
+      } finally {
+        runningRef.current = false;
+        setPicking(false);
+      }
+    },
+    [busy, ready, rows, platform, roots.length],
+  );
 
   /**
    * A folder from the folder chooser is recognized by the same rules as a drop,
@@ -297,18 +351,32 @@ export function HistoryDiscovery({
       const target = chooserTarget.current;
       chooserTarget.current = undefined;
       if (target === undefined || list.length === 0) return;
-      const folder = list[0]?.webkitRelativePath.split("/")[0] || "chosen folder";
-      const tree = chosenFolder(list);
-      const run = tree === undefined ? undefined : await discoverHistories(tree, { platform });
-      const findings = run?.findings ?? [];
-      setRows((current) => applyChosenFolder(current, findings, list, folder, target.key));
-      const named = findings
-        .filter((finding) => finding.status !== "not-found")
-        .map((finding) => `${finding.name}: ${describe(finding)}`);
-      setAnnouncement(
-        `${folder} connected${named.length > 0 ? `. ${named.join(". ")}` : ""}. Review the list, then make your recap.`,
-      );
-      setPhase("selecting");
+      if (tooManyChosenFiles(list.length)) {
+        setDropNote(FOLDER_TOO_LARGE_NOTE);
+        return;
+      }
+      runningRef.current = true;
+      setPicking(true);
+      setDropNote(undefined);
+      try {
+        const folder = list[0]?.webkitRelativePath.split("/")[0] || "chosen folder";
+        const tree = chosenFolder(list);
+        const run = tree === undefined ? undefined : await discoverHistories(tree, { platform });
+        const findings = run?.findings ?? [];
+        setRows((current) => applyChosenFolder(current, findings, list, folder, target.key));
+        const named = findings
+          .filter((finding) => finding.status !== "not-found")
+          .map((finding) => `${finding.name}: ${describe(finding)}`);
+        setAnnouncement(
+          `${folder} connected${named.length > 0 ? `. ${named.join(". ")}` : ""}. Review the list, then make your recap.`,
+        );
+        setPhase("selecting");
+      } catch {
+        setDropNote(FOLDER_PICKER_NOTE);
+      } finally {
+        runningRef.current = false;
+        setPicking(false);
+      }
     },
     [platform],
   );
@@ -343,11 +411,12 @@ export function HistoryDiscovery({
     setRemembered(undefined);
   }, []);
 
-  const disabled = busy || !ready;
+  const disabled = busy || !ready || picking || phase === "discovering" || building;
   const connectToggle = (label: string, quiet = false) => (
     <button
       type="button"
       className={quiet ? "sr-find-link sr-find-link-quiet" : "sr-find-link"}
+      disabled={disabled}
       aria-expanded={connectOpen}
       aria-controls={connectId}
       onClick={() => setConnectOpen((open) => !open)}
@@ -381,7 +450,9 @@ export function HistoryDiscovery({
             Choose the folder for the tool you use. StackReplay reads it on this device.
           </p>
         </div>
-        <div className="sr-find-connect">{connectIndividually}</div>
+        <div className="sr-find-connect">
+          <fieldset disabled={disabled}>{connectIndividually}</fieldset>
+        </div>
         <p className="sr-find-fine mt-3" data-testid="discovery-unavailable">
           Finding every history from one folder needs a desktop browser where you can drag a folder.
         </p>
@@ -440,9 +511,9 @@ export function HistoryDiscovery({
       <div className="sr-find-head">
         <h2 id={headingId} ref={headingRef} tabIndex={-1} className="sr-find-title">
           {intro
-            ? "Start with your history folder"
+            ? "Drag your home folder here"
             : phase === "armed"
-              ? "Choose your user folder"
+              ? "Drag your home folder here"
               : settled
                 ? found.length > 0
                   ? "AI histories found"
@@ -451,7 +522,7 @@ export function HistoryDiscovery({
         </h2>
         {intro ? (
           <p className="sr-find-rule" data-testid="discovery-promise">
-            Choose a folder to find your AI coding history.
+            StackReplay checks only known AI history folders. Raw history stays on this device.
           </p>
         ) : phase === "armed" ? (
           <p className="sr-find-lede" data-testid="permission-preview">
@@ -532,7 +603,7 @@ export function HistoryDiscovery({
               </p>
             ) : (
               <>
-                <p className="sr-find-machine-drop">Drop your user folder here</p>
+                <p className="sr-find-machine-drop">Drag your home folder here</p>
                 <p className="sr-find-fine">
                   {userFolderHint(platform)} A tool folder such as .claude or .codex works too.
                 </p>
@@ -584,8 +655,13 @@ export function HistoryDiscovery({
             onClick={() => openChooser()}
             data-testid="choose-history-folder"
           >
-            Choose a history folder
+            {pickerCapable ? "Choose a folder" : "Choose a tool folder"}
           </Button>
+          <p className="sr-find-fine" data-testid="folder-picker-hint">
+            {pickerCapable
+              ? "Choose .claude, .codex or another tool folder. Browsers may block choosing Home; drag it above instead."
+              : "Choose .claude, .codex or another tool folder. Avoid choosing Home here: this browser lists every file before opening it."}
+          </p>
           <button
             type="button"
             className="sr-find-link sr-find-link-quiet"
@@ -601,7 +677,12 @@ export function HistoryDiscovery({
       {phase === "armed" ? (
         <div className="sr-find-actions">
           {connectToggle("Can't drag? Connect individually →")}
-          <button type="button" className="sr-find-link sr-find-link-quiet" onClick={reset}>
+          <button
+            type="button"
+            className="sr-find-link sr-find-link-quiet"
+            disabled={disabled}
+            onClick={reset}
+          >
             Cancel
           </button>
         </div>
@@ -661,16 +742,19 @@ export function HistoryDiscovery({
               Add another location →
             </button>
             {connectToggle("Connect individually", true)}
-            <button type="button" className="sr-find-link sr-find-link-quiet" onClick={reset}>
+            <button
+              type="button"
+              className="sr-find-link sr-find-link-quiet"
+              disabled={disabled}
+              onClick={reset}
+            >
               Start over
             </button>
           </div>
           <p className="sr-find-fine" data-testid="chooser-note">
-            You can also drop another folder on the machine. Connect and Add another location open
-            your browser's folder chooser: choose the AI history folder itself, because the browser
-            gives this page the list of files in the folder you pick. Its confirmation may describe
-            sending files to this site; StackReplay reads them on this device and sends none of
-            them.
+            {pickerCapable
+              ? "Drop Home here, or choose a tool folder such as .claude or .codex. The chooser reads only known history locations. Raw history stays on this device."
+              : "Drop Home here, or choose a tool folder such as .claude or .codex. Avoid choosing Home in the chooser: this browser lists every file in the folder first. Raw history stays on this device."}
           </p>
         </div>
       ) : null}
@@ -686,7 +770,7 @@ export function HistoryDiscovery({
           Choose one tool's history folder. StackReplay reads only that folder, on this device, and
           scans it straight away.
         </p>
-        {connectIndividually}
+        <fieldset disabled={disabled}>{connectIndividually}</fieldset>
       </div>
       <input
         ref={chooserRef}
