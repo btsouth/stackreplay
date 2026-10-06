@@ -66,10 +66,7 @@ export function DailyChart({
             g = github?.get(d.date) ?? 0;
           return (
             <g key={d.date}>
-              <title>
-                {dateLabel(d.date)}: {cost ? dollars(d.value) : `${compact(d.value)} tokens`}
-                {github ? ` · ${g} contributions` : ""}
-              </title>
+              <title>{`${dateLabel(d.date)}: ${cost ? dollars(d.value) : `${compact(d.value)} tokens`}${github ? ` · ${g} contributions` : ""}`}</title>
               {d.value > 0 && (
                 <rect
                   className={`bar${i === peak ? " hot" : cost ? " dimbar" : ""}`}
