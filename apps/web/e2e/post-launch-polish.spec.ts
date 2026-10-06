@@ -58,6 +58,7 @@ test("plan names wrap inside What you pay at 390px", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/app/settings");
   await page.getByRole("combobox", { name: "Add a plan" }).click();
+  await expect(page.getByRole("option").first()).toBeVisible();
   const names = await page.getByRole("option").allInnerTexts();
   const longest = names.reduce((a, b) => (b.length > a.length ? b : a), "");
   await page.getByRole("option", { name: longest, exact: true }).click();

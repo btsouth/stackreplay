@@ -1,5 +1,5 @@
 import { loadBundledCatalog } from "@stackreplay/catalog/bundled";
-import type { TextUsageEventV1 } from "@stackreplay/schema";
+import { type TextUsageEventV1, textUsageEventV1Schema } from "@stackreplay/schema";
 import { buildRecap } from "../lib/recap";
 
 /** Fictional, seeded coding history. No owner records or identifiers are used. */
@@ -72,7 +72,8 @@ export function makeSample() {
       const at = midnight + hour * 3_600_000 + Math.floor(random() * 3_600_000);
       const read = Math.round(70_000 + random() * 180_000);
       const input = Math.round(300 + random() * 1900);
-      const write = random() < 0.13 ? Math.round(5000 + random() * 16_000) : 0;
+      const write =
+        family === "anthropic" && random() < 0.13 ? Math.round(5000 + random() * 16_000) : 0;
       const output = Math.round(180 + random() * 850);
       const elapsed = (output / (rate * (0.7 + random() * 0.6))) * 1000;
       events.push({
@@ -85,13 +86,13 @@ export function makeSample() {
         requestEndedAt: new Date(at).toISOString(),
         source: {
           adapterId: tool,
-          adapterVersion: "sample-v1",
           nativeSessionHash: `ns_sample_${day}_${Math.floor(i / 120)}`,
         },
         model: { rawName: id, canonicalId: id },
         usage: {
           inputTokens: input,
           outputTokens: output,
+          reasoningTokens: 0,
           cacheReadTokens: read,
           cacheWriteTokens: write,
           accounting: {
