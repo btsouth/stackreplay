@@ -47,8 +47,7 @@ export async function dropFolders(page: Page, paths: string[]): Promise<void> {
 
 /** Waits until the Replay route's embedded intake can accept the first action. */
 export async function gotoReplayImport(page: Page): Promise<void> {
-  await page.goto("/app/plans?section=replay&mode=custom");
-  await expect(page.getByTestId("intake-surface")).toHaveAttribute("data-ready", "true");
+  await gotoImport(page);
 }
 
 /** Imports a deterministic demo workload and follows the automatic handoff. */
@@ -74,7 +73,7 @@ export async function waitForWorkload(page: Page): Promise<void> {
       .evaluate((link: HTMLAnchorElement) => link.click());
   }
   await expect(page).toHaveURL(/\/app\/stats\?import=/u);
-  await expect(page.getByTestId("automatic-workload")).toBeVisible({ timeout: 60_000 });
+  await expect(page.getByTestId("stats-ready")).toBeVisible({ timeout: 60_000 });
 }
 
 /** Client navigation preserves intentionally temporary workloads in the worker. */
@@ -100,23 +99,21 @@ export async function visitPlanSuggestions(page: Page): Promise<void> {
     .locator(`a[href="/app/plans${scan ? `?import=${scan}` : ""}"]`)
     .first()
     .evaluate((link: HTMLAnchorElement) => link.click());
+  await expect(page.getByTestId("plans-ready")).toBeVisible({ timeout: 60_000 });
   await expect(
-    page
-      .getByRole("navigation", { name: "Your plan tools" })
-      .getByRole("link", { name: "Your plans", exact: true }),
-  ).toHaveAttribute("aria-current", "page");
-  await page
-    .getByRole("navigation", { name: "Your plan tools" })
-    .getByRole("link", { name: "Try a change", exact: true })
-    .click();
-  await expect(page.getByTestId("build-own")).toBeVisible();
+    page.getByRole("heading", { name: "What else would fit", exact: true }),
+  ).toBeVisible();
 }
 
 export async function visitReplay(page: Page): Promise<void> {
   await waitForWorkload(page);
   await visitPlanSuggestions(page);
-  await page.getByTestId("build-own").click();
-  await expect(page.getByTestId("run-replay")).toBeVisible();
+  await page
+    .locator("[data-testid^=alternative-]")
+    .first()
+    .getByRole("link", { name: "See details", exact: true })
+    .click();
+  await expect(page.getByTestId("plan-detail")).toBeVisible();
 }
 
 /** Runs a replay for a plan and waits for the result. */
@@ -266,9 +263,9 @@ export async function openReviewEvidence(page: Page): Promise<void> {
 
 export async function openBillingReview(page: Page): Promise<void> {
   await expect(
-    page.getByTestId("automatic-workload").or(page.getByTestId("review-editor")).first(),
+    page.getByTestId("stats-ready").or(page.getByTestId("review-editor")).first(),
   ).toBeVisible();
-  if (await page.getByTestId("automatic-workload").count()) {
+  if (await page.getByTestId("stats-ready").count()) {
     await expect(page.getByTestId("overview-api-total")).not.toContainText("Pricing recorded work");
     if (!(await page.getByTestId("billing-panel").isVisible()))
       await page.getByTestId("billing-action").click();

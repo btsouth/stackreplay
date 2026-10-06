@@ -1,6 +1,7 @@
 /** Product copy contract. Match whole Replay as a feature name, preserving the StackReplay brand. */
 export const bannedTerms = [
   "workload",
+  "Replay",
   "My Stack",
   "priced scope",
   "priced calls",
@@ -24,8 +25,7 @@ export const bannedTerms = [
   "Export size not checked",
 ];
 export function languageMatches(text: string): string[] {
-  return [
-    ...bannedTerms.filter((term) => text.toLowerCase().includes(term.toLowerCase())),
-    ...(/\breplay\b/i.test(text) ? ["Replay"] : []),
-  ];
+  return bannedTerms.filter((term) =>
+    term === "Replay" ? /\breplay\b/i.test(text) : text.toLowerCase().includes(term.toLowerCase()),
+  );
 }

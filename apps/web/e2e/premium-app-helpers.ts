@@ -23,7 +23,7 @@ export async function waitForWorkload(page: Page): Promise<void> {
       .evaluate((link: HTMLAnchorElement) => link.click());
   }
   await expect(page).toHaveURL(/\/app\/stats\?import=/u);
-  await expect(page.getByTestId("automatic-workload")).toBeVisible({ timeout: 60_000 });
+  await expect(page.getByTestId("stats-ready")).toBeVisible({ timeout: 60_000 });
 }
 
 export async function visitPlanSuggestions(page: Page): Promise<void> {
@@ -33,23 +33,21 @@ export async function visitPlanSuggestions(page: Page): Promise<void> {
     .locator(`a[href="/app/plans${scan ? `?import=${scan}` : ""}"]`)
     .first()
     .evaluate((link: HTMLAnchorElement) => link.click());
+  await expect(page.getByTestId("plans-ready")).toBeVisible({ timeout: 60_000 });
   await expect(
-    page
-      .getByRole("navigation", { name: "Your plan tools" })
-      .getByRole("link", { name: "Your plans", exact: true }),
-  ).toHaveAttribute("aria-current", "page");
-  await page
-    .getByRole("navigation", { name: "Your plan tools" })
-    .getByRole("link", { name: "Try a change", exact: true })
-    .click();
-  await expect(page.getByTestId("build-own")).toBeVisible();
+    page.getByRole("heading", { name: "What else would fit", exact: true }),
+  ).toBeVisible();
 }
 
 export async function visitReplay(page: Page): Promise<void> {
   await waitForWorkload(page);
   await visitPlanSuggestions(page);
-  await page.getByTestId("build-own").click();
-  await expect(page.getByTestId("run-replay")).toBeVisible();
+  await page
+    .locator("[data-testid^=alternative-]")
+    .first()
+    .getByRole("link", { name: "See details", exact: true })
+    .click();
+  await expect(page.getByTestId("plan-detail")).toBeVisible();
 }
 
 export async function inspectLatestImport(page: Page): Promise<void> {
