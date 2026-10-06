@@ -45,16 +45,18 @@ const ADAPTER_ID = "codex" as const;
 
 // Match the native completion record to a later UI token_count snapshot.
 // The latter can be persisted only after tools finish and is not then an end boundary.
-function completionKey(
-  usage: Record<string, unknown>,
-  total: Record<string, unknown>,
-): string | undefined {
-  const cumulative = readCount(total, "total_tokens");
-  const input = readCount(usage, "input_tokens");
-  const output = readCount(usage, "output_tokens");
-  const tokens = readCount(usage, "total_tokens");
-  if ([cumulative, input, output, tokens].some((value) => value === undefined)) return undefined;
-  return JSON.stringify([cumulative, input, output, tokens]);
+function completionKey(usage: Record<string, unknown>): string | undefined {
+  const fields = [
+    "input_tokens",
+    "output_tokens",
+    "total_tokens",
+    "cached_input_tokens",
+    "cache_write_input_tokens",
+    "reasoning_output_tokens",
+  ];
+  const counts = fields.map((field) => readCount(usage, field));
+  if (counts.slice(0, 3).some((value) => value === undefined)) return undefined;
+  return JSON.stringify(counts);
 }
 
 export function codexRoots(env: SourceEnvironment): string[] {
@@ -139,8 +141,9 @@ export function createCodexAdapter(): LocalSourceAdapter {
           let lineIndex = 0;
           let fileEvents = 0;
           let requestStart: number | undefined;
+          let awaitingModelOutput = false;
           let lastUsageIdentity: string | undefined;
-          const completions = new Map<string, { started?: number; ended?: number }>();
+          let completion: { key: string; started?: number; ended?: number } | undefined;
 
           for await (const line of env.fs.readLines(file, maxBytes)) {
             lineIndex += 1;
@@ -165,14 +168,15 @@ export function createCodexAdapter(): LocalSourceAdapter {
             }
             if (type === "token_usage_record") {
               const usage = asRecord(payload.usage);
-              const total = asRecord(payload.thread_token_usage);
-              const key = usage && total ? completionKey(usage, total) : undefined;
+              const key = usage ? completionKey(usage) : undefined;
               const timestamp = readString(record, "timestamp");
-              if (key && !completions.has(key)) {
-                completions.set(key, {
+              const ended = timestamp ? epochMsFromIso(timestamp) : undefined;
+              if (key) {
+                completion = {
+                  key,
                   ...(requestStart !== undefined ? { started: requestStart } : {}),
-                  ...(timestamp ? { ended: epochMsFromIso(timestamp) } : {}),
-                });
+                  ...(ended !== undefined ? { ended } : {}),
+                };
                 requestStart = undefined;
               }
               continue;
@@ -190,7 +194,7 @@ export function createCodexAdapter(): LocalSourceAdapter {
                   readString(payload, "type") ?? "",
                 )) ||
               (type === "response_item" &&
-                (["function_call_output", "custom_tool_call_output"].includes(
+                (["function_call_output", "custom_tool_call_output", "agent_message"].includes(
                   readString(payload, "type") ?? "",
                 ) ||
                   (readString(payload, "type") === "message" &&
@@ -198,7 +202,23 @@ export function createCodexAdapter(): LocalSourceAdapter {
             ) {
               const at = readString(record, "timestamp");
               requestStart = at ? epochMsFromIso(at) : undefined;
+              awaitingModelOutput =
+                type === "response_item" &&
+                ["function_call_output", "custom_tool_call_output"].includes(
+                  readString(payload, "type") ?? "",
+                );
               continue;
+            }
+            if (
+              (type === "response_item" &&
+                (["reasoning", "function_call", "custom_tool_call"].includes(
+                  readString(payload, "type") ?? "",
+                ) ||
+                  (readString(payload, "type") === "message" &&
+                    readString(payload, "role") === "assistant"))) ||
+              (type === "event_msg" && readString(payload, "type") === "agent_message")
+            ) {
+              awaitingModelOutput = false;
             }
             if (type !== "event_msg") continue;
             if (readString(payload, "type") !== "token_count") continue;
@@ -323,10 +343,22 @@ export function createCodexAdapter(): LocalSourceAdapter {
                 : `cumulative:${cumulative}#${JSON.stringify([inputTokens, outputTokens, cacheReadTokens, cacheWriteTokens, reasoningTokens, totalTokens])}`;
             const repeatedSnapshot = cumulative !== undefined && identity === lastUsageIdentity;
             lastUsageIdentity = identity;
-            const key = totalUsage ? completionKey(lastUsage, totalUsage) : undefined;
-            const completion = key ? completions.get(key) : undefined;
-            const started = completion ? completion.started : requestStart;
-            const ended = completion ? completion.ended : occurredAtMs;
+            // Compaction/resume can reset UI cumulative totals independently
+            // of thread_token_usage. Match the most recent native response by
+            // its complete usage vector, never by those differing aggregates.
+            const matchesCompletion = completion?.key === completionKey(lastUsage);
+            const started = completion
+              ? matchesCompletion
+                ? completion.started
+                : undefined
+              : awaitingModelOutput
+                ? undefined
+                : requestStart;
+            const ended = completion
+              ? matchesCompletion
+                ? completion.ended
+                : undefined
+              : occurredAtMs;
             events.push(
               buildEvent(
                 {
@@ -354,7 +386,10 @@ export function createCodexAdapter(): LocalSourceAdapter {
                 eventContext(env, options),
               ),
             );
-            if (!repeatedSnapshot && !completion) requestStart = undefined;
+            if (!repeatedSnapshot) {
+              if (!completion && !awaitingModelOutput) requestStart = undefined;
+              else if (matchesCompletion) completion = undefined;
+            }
             fileEvents += 1;
           }
           stats.sessionsScanned += 1;

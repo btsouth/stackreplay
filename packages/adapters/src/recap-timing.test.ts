@@ -273,6 +273,7 @@ describe("native per-response timing boundaries", () => {
       count(10, 110),
       { type: "response_item", timestamp: at(11), payload: { type: "custom_tool_call_output" } },
       count(12, 110),
+      { type: "response_item", timestamp: at(14), payload: { type: "message", role: "assistant" } },
       count(15, 220),
       count(16, 220),
     ];
@@ -313,7 +314,7 @@ describe("native per-response timing boundaries", () => {
       { type: "response_item", timestamp: at(20), payload: { type: "custom_tool_call_output" } },
       count(20, 110),
       count(21, 110),
-      native(30, 220),
+      native(30, 999),
       count(40, 220),
       native(45, 330),
       count(46, 330),
@@ -331,5 +332,34 @@ describe("native per-response timing boundaries", () => {
     expect(r.events[1]?.requestStartedAt).toBeUndefined();
     expect(r.events[2]).toMatchObject({ requestStartedAt: at(20), requestEndedAt: at(30) });
     expect(r.events[3]?.requestStartedAt).toBeUndefined();
+  });
+  it("does not time a delayed legacy count from the next tool result", async () => {
+    const usage = { input_tokens: 10, output_tokens: 100, total_tokens: 110 };
+    const count = (seconds: number, total: number) => ({
+      type: "event_msg",
+      timestamp: at(seconds),
+      payload: {
+        type: "token_count",
+        info: { last_token_usage: usage, total_token_usage: { total_tokens: total } },
+      },
+    });
+    const rows = [
+      { type: "turn_context", payload: { model: "gpt-5" } },
+      { type: "response_item", timestamp: at(10), payload: { type: "custom_tool_call_output" } },
+      count(11, 110),
+      { type: "response_item", timestamp: at(15), payload: { type: "message", role: "assistant" } },
+      count(16, 220),
+    ];
+    const r = await createCodexAdapter().collect(
+      createFixtureEnvironment({
+        homeDir: "/home/test",
+        fs: createMemoryFileSystem({
+          "/home/test/.codex/sessions/2026/09/21/s.jsonl": rows.map(line).join("\n"),
+        }),
+      }),
+      opts,
+    );
+    expect(r.events[0]?.requestStartedAt).toBeUndefined();
+    expect(r.events[1]).toMatchObject({ requestStartedAt: at(10), requestEndedAt: at(16) });
   });
 });
