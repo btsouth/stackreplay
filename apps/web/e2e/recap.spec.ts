@@ -106,7 +106,10 @@ test("all card formats measure non-overlapping text with every stat selected", a
   await page.addInitScript(() =>
     localStorage.setItem(
       "stackreplay.stack-subscriptions.v2",
-      JSON.stringify([{ id: "paidqa1", plan: "plan:claude-max-5x", quantity: 2 }]),
+      JSON.stringify({
+        version: 2,
+        subscriptions: [{ id: "paidqa1", plan: "plan:anthropic-claude-max-5x", quantity: 2 }],
+      }),
     ),
   );
   await page.route("**/api/github/contributions?*", (route) =>
@@ -120,7 +123,17 @@ test("all card formats measure non-overlapping text with every stat selected", a
     }),
   );
   await gotoImport(page);
-  await page.getByTestId("import-file-input").setInputFiles(fixture);
+  const timed = stackWorkloadFile({ scale: 100 });
+  timed.events = timed.events.map((event) => ({
+    ...event,
+    usage: { ...event.usage, outputTokens: 472 },
+    confidence: { ...event.confidence, usage: "exact" },
+    requestStartedAt: new Date(Date.parse(event.occurredAt) - 10000).toISOString(),
+    requestEndedAt: event.occurredAt,
+  }));
+  await page
+    .getByTestId("import-file-input")
+    .setInputFiles({ ...fixture, buffer: Buffer.from(JSON.stringify(timed)) });
   await expect(page.getByTestId("recap-ready")).toBeVisible();
   await page.getByRole("radio", { name: "All time" }).check();
   await page.getByRole("textbox", { name: "GitHub username" }).fill("btsouth");
