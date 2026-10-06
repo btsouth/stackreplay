@@ -1721,6 +1721,9 @@ body:has(.shared-terminal) {
   --accent: #b83d00;
   --accent-solid: #e24e00;
   --accent-foreground: #120800;
+  --accent-solid-hover: #e24e00;
+  --font-sans: var(--font-geist-sans), sans-serif;
+  --font-mono: var(--font-geist-mono), monospace;
 }
 .dark body:has(.shared-terminal) {
   --background: #08090a;
@@ -1731,4 +1734,20 @@ body:has(.shared-terminal) {
   --border-strong: #2a3034;
   --accent: #ff6a1f;
   --accent-solid: #ff6a1f;
+  --accent-solid-hover: #ff6a1f;
+}
+
+body:has(.shared-terminal) .sr-brand {
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 14px;
+  letter-spacing: -0.01em;
+}
+body:has(.shared-terminal) .sr-brand > span {
+  width: 16px;
+  height: 16px;
+  border-radius: 3px;
+  font-size: 16px;
+}
+body:has(.shared-terminal) .sr-header-navigation {
+  font-family: var(--font-geist-mono), monospace;
 }
