@@ -16,6 +16,7 @@ export function useRecapData(initialImportId?: string | undefined) {
   const [period, setPeriod] = useState<RecapPeriod>("30");
   const [recap, setRecap] = useState<Recap>();
   const [error, setError] = useState<string>();
+  const [historyError, setHistoryError] = useState<string>();
   const [revision, setRevision] = useState(0);
   const hydratedAt = useRef<number | undefined>(undefined);
   const resolvedAt = useRef<number | undefined>(undefined);
@@ -75,16 +76,34 @@ export function useRecapData(initialImportId?: string | undefined) {
       .then((rows) => {
         if (active) {
           setImports(rows);
+          setHistoryError(undefined);
           setId((old) => old ?? rows[0]?.id);
         }
       })
       .catch(() => {
-        if (active) setError("Your history couldn't be opened. Try again.");
+        if (active) setHistoryError("Your history couldn't be opened. Try again.");
       });
     return () => {
       active = false;
     };
   }, [revision]);
+  // A failed directory listing must not hide an independently opened, valid recap.
+  // Recover its metadata once after that recap is available, without rereading payloads.
+  useEffect(() => {
+    if (!recap || !historyError) return;
+    let active = true;
+    listHistoryMetadata()
+      .then((rows) => {
+        if (active) {
+          setImports(rows);
+          setHistoryError(undefined);
+        }
+      })
+      .catch(() => undefined);
+    return () => {
+      active = false;
+    };
+  }, [recap, historyError]);
   // biome-ignore lint/correctness/useExhaustiveDependencies: history revisions invalidate cached recaps even within the same instant.
   useEffect(() => {
     if (!id) return;
@@ -139,7 +158,7 @@ export function useRecapData(initialImportId?: string | undefined) {
     selectPeriod,
     selectHistory,
     recap,
-    error,
+    error: error ?? (recap ? undefined : historyError),
     now,
     timeZone,
   };

@@ -199,3 +199,27 @@ test("cold scan and recap routes load metadata validation without module errors"
     await context.close();
   }
 });
+
+test("an opened recap survives a failed metadata listing and restores its history picker", async ({
+  page,
+}) => {
+  await importDemo(page, "moderate");
+  const id = new URL(page.url()).searchParams.get("import");
+  await importDemo(page, "heavy");
+  await page.addInitScript(() => {
+    const getAll = IDBObjectStore.prototype.getAll;
+    let failed = false;
+    IDBObjectStore.prototype.getAll = function (...args) {
+      if (this.name === "imports" && !failed) {
+        failed = true;
+        throw new DOMException("Temporary metadata read failure", "UnknownError");
+      }
+      return getAll.apply(this, args);
+    };
+  });
+  await page.goto(`/app/recap?import=${id}&period=all`);
+  await expect(page.getByTestId("recap-ready")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "History unavailable" })).toHaveCount(0);
+  await expect(page.getByLabel("History", { exact: true })).toHaveValue(id ?? "");
+  await expect(page.getByLabel("History", { exact: true }).locator("option")).toHaveCount(2);
+});
