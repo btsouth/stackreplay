@@ -71,13 +71,23 @@ export async function GET(request: Request): Promise<Response> {
     }
   }
 
-  let response: Response;
-  try {
-    response = await fetch(upstream, {
-      headers: { "user-agent": USER_AGENT, accept: "text/html" },
-      signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
-    });
-  } catch {
+  // GitHub sometimes refuses a first request from a shared edge address and
+  // answers the next one, so a failed attempt is retried once after a pause.
+  let response: Response | undefined;
+  for (let attempt = 0; attempt < 2; attempt++) {
+    if (attempt > 0) await new Promise((resolve) => setTimeout(resolve, 600));
+    try {
+      response = await fetch(upstream, {
+        headers: { "user-agent": USER_AGENT, accept: "text/html" },
+        signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+      });
+    } catch {
+      response = undefined;
+      continue;
+    }
+    if (response.ok || response.status === 404) break;
+  }
+  if (response === undefined) {
     return json(502, { error: "GitHub didn't answer. Try again in a minute." });
   }
 
