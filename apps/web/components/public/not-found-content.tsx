@@ -3,10 +3,12 @@ import { buttonVariants, PageHeader } from "@stackreplay/ui";
 import Link from "next/link";
 import { useLocalWorkload } from "@/lib/local-workload";
 import "./public-premium.css";
+import "../terminal/terminal.css";
+import "./public-terminal.css";
 export function NotFoundContent() {
   const local = useLocalWorkload({ personal: false });
   return (
-    <section className="public-not-found">
+    <section className="terminal public-terminal public-not-found">
       <span className="public-404" aria-hidden="true">
         404
       </span>

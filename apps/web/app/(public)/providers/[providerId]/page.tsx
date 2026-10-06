@@ -1,3 +1,5 @@
+import "@/components/terminal/terminal.css";
+import "@/components/public/public-terminal.css";
 import { StatTile } from "@stackreplay/ui";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -115,7 +117,7 @@ export default async function ProviderPage({ params }: Props) {
   ];
   const emptySections = sections.filter((section) => section.count === 0);
   return (
-    <div className="market-provider-hub">
+    <div className="terminal public-terminal market-provider-hub">
       <Link href="/providers" className="market-link">
         ← Providers
       </Link>

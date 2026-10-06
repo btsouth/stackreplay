@@ -15,7 +15,7 @@ import { captureRequests, importDemo } from "./helpers";
  */
 
 const PUBLIC_ROUTES = [
-  { path: "/", heading: "Your AI coding, replayed." },
+  { path: "/", heading: "Your AI coding, measured." },
   { path: "/plans", heading: "Find your next stack." },
   { path: "/models", heading: "Know your models." },
   { path: "/compare", heading: "Find the fit." },

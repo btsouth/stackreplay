@@ -63,6 +63,7 @@ export function CatalogSelect({
     >
       <Select
         label={label}
+        placeholder={options.find((option) => option.value === value)?.label ?? label}
         {...(portalContainer ? { portalContainer } : {})}
         options={options}
         {...(value !== undefined ? { value } : {})}

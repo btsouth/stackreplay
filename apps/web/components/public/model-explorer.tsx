@@ -323,7 +323,6 @@ export function ModelExplorer({
           />
         </div>
       </div>
-      {spotlight && <div className="model-library-spotlight">{spotlight}</div>}
       {selected.length > 0 && (
         <div className="flex flex-wrap items-center justify-between py-3">
           <p className="market-muted">
@@ -489,6 +488,7 @@ export function ModelExplorer({
           {expanded ? "Show fewer models ↑" : `Show all ${visible.length} models ↓`}
         </button>
       )}
+      {spotlight && <div className="model-library-spotlight">{spotlight}</div>}
       <ModelPriceComparison models={models} prices={prices} selected={selected} />
     </div>
   );

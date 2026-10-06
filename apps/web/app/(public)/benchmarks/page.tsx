@@ -1,3 +1,5 @@
+import "@/components/terminal/terminal.css";
+import "@/components/public/public-terminal.css";
 import { benchmarkEditions } from "@stackreplay/benchmarks";
 import type { Metadata } from "next";
 import { BenchmarkExplorer } from "@/components/public/benchmark-explorer";
@@ -24,16 +26,18 @@ export default async function BenchmarksPage({
     .models.filter((m) => m.kind !== "family")
     .map((m) => ({ id: m.id, name: m.name, developer: m.developerName ?? "Not recorded" }));
   return (
-    <BenchmarkExplorer
-      data={loadPublicBenchmarks()}
-      editions={Object.fromEntries(
-        Object.keys(benchmarkEditions).map((edition) => [edition, loadPublicBenchmarks(edition)]),
-      )}
-      models={models}
-      initial={parseBenchmarkState(
-        query,
-        models.map((m) => m.id),
-      )}
-    />
+    <div className="terminal public-terminal">
+      <BenchmarkExplorer
+        data={loadPublicBenchmarks()}
+        editions={Object.fromEntries(
+          Object.keys(benchmarkEditions).map((edition) => [edition, loadPublicBenchmarks(edition)]),
+        )}
+        models={models}
+        initial={parseBenchmarkState(
+          query,
+          models.map((m) => m.id),
+        )}
+      />
+    </div>
   );
 }

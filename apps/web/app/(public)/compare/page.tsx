@@ -1,3 +1,5 @@
+import "@/components/terminal/terminal.css";
+import "@/components/public/public-terminal.css";
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { CompareExplorer, RoutedCompareExplorer } from "@/components/public/compare-explorer";
@@ -39,7 +41,7 @@ export default function ComparePage() {
       : [];
   });
   return (
-    <div className="pb-8">
+    <div className="terminal public-terminal pb-8">
       <MarketHeader
         eyebrow="Published plans, side by side"
         title="Find the fit."

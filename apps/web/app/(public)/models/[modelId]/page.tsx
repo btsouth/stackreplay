@@ -1,3 +1,5 @@
+import "@/components/terminal/terminal.css";
+import "@/components/public/public-terminal.css";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -122,7 +124,7 @@ export default async function ModelPage({ params }: Props) {
       m.familyId !== undefined,
   );
   return (
-    <div>
+    <div className="terminal public-terminal">
       <header className="market-header">
         <div>
           <Link href="/models" className="market-kicker">

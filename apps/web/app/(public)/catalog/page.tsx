@@ -1,3 +1,5 @@
+import "@/components/terminal/terminal.css";
+import "@/components/public/public-terminal.css";
 import { buttonVariants, CatalogSubNav, PageHeader, Panel, SectionHeader } from "@stackreplay/ui";
 import { ArrowUpRight, BookOpen, Layers3 } from "lucide-react";
 import Link from "next/link";
@@ -47,18 +49,12 @@ export default function CatalogPage() {
     return plan ? [plan] : [];
   });
   return (
-    <div className="catalog-editorial">
+    <div className="terminal public-terminal catalog-editorial">
       <CatalogSubNav />
       <PageHeader
-        eyebrow="The field guide"
-        title={
-          <>
-            AI models.
-            <br />
-            <span className="text-accent">Prices. Plans.</span>
-          </>
-        }
-        description="Your recap tells your story. Explore the models and plans around it, with published facts and sources you can check."
+        eyebrow="Public catalog"
+        title="AI models, prices and plans."
+        description="Published API prices, subscription access and benchmark evidence. Every fact links to its source."
         actions={
           <LocalWorkloadAction
             variant="header"
@@ -70,11 +66,7 @@ export default function CatalogPage() {
         <Panel className="catalog-lead">
           <BookOpen size={28} aria-hidden="true" />
           <p className="sr-eyebrow">Models</p>
-          <h2>
-            Find the right
-            <br />
-            kind of intelligence.
-          </h2>
+          <h2>Explore current models.</h2>
           <p>
             Search by capability, developer or exact model identity. Explore API prices and the
             subscriptions that include them.
@@ -83,7 +75,7 @@ export default function CatalogPage() {
             Explore models <ArrowUpRight size={20} aria-hidden="true" />
           </Link>
           <div className="catalog-shortlist">
-            <span>Editorial starting points</span>
+            <span>Featured models</span>
             {models.map((m) => (
               <Link key={m.id} href={`/models/${m.id}`}>
                 {m.name} <ArrowUpRight size={14} aria-hidden="true" />
@@ -94,11 +86,7 @@ export default function CatalogPage() {
         <Panel className="catalog-lead catalog-lead-plans">
           <Layers3 size={28} aria-hidden="true" />
           <p className="sr-eyebrow">Plans</p>
-          <h2>
-            Know what
-            <br />
-            you’re signing up for.
-          </h2>
+          <h2>Compare coding plans.</h2>
           <p>
             Published prices, included models and meaningful limits. Find the details that matter
             before choosing a subscription.
