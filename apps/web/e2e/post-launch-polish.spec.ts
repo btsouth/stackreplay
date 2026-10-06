@@ -3,7 +3,17 @@ import { importDemo } from "./helpers";
 
 test("home copy scopes history and API value", async ({ page }) => {
   await page.goto("/");
-  await expect(page.locator("main")).toContainText("AT LIST PRICES / NOT AN INVOICE");
+  await expect(page.locator("#sample .side .kv").first().locator(".n")).toHaveText(
+    "AT LIST PRICES",
+  );
+  for (const side of await page.locator(".sample-readouts").all()) {
+    const gap = await side.evaluate(
+      (el) =>
+        el.getBoundingClientRect().bottom -
+        Math.max(...Array.from(el.children, (cell) => cell.getBoundingClientRect().bottom)),
+    );
+    expect(Math.abs(gap), "sample columns end at their last content cell").toBeLessThan(1);
+  }
   await expect(page.locator("main")).toContainText("Fictional history. Real components.");
   await expect(page.locator("main")).toContainText("Your scan supplies your numbers.");
   await expect(page.locator("main")).not.toContainText("every model call");
