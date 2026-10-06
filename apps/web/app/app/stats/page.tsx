@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { WorkloadSurface } from "@/components/workload/workload-surface";
+import { StatsSurface } from "@/components/stats/stats-surface";
 
 export const metadata: Metadata = {
   title: "Your stats",
@@ -18,6 +18,5 @@ export default async function StatsPage({
 }) {
   const params = await searchParams;
   const importId = typeof params.import === "string" ? params.import : undefined;
-  const target = typeof params.target === "string" ? params.target : undefined;
-  return <WorkloadSurface initialImportId={importId} initialTarget={target} />;
+  return <StatsSurface initialImportId={importId} />;
 }

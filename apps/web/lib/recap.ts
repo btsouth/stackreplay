@@ -21,6 +21,7 @@ export interface RecapModel {
 }
 export interface Recap {
   period: RecapPeriod;
+  explorer?: { modelSessions: Record<string, number>; days: { date: string; total: number; records: number; usd: string }[] };
   deep?: RecapDeep;
   sourceCoverage?: { name: string; role: string; status: string }[];
   start: string;
@@ -193,6 +194,8 @@ export function buildRecap(
   }
   const hours = Array<number>(24).fill(0);
   const sessions = new Set<string>();
+  const modelSessions = new Map<string, Set<string>>();
+  const dayTokens = new Map<string, number>();
   let output = 0;
   let total = 0;
   let totalKnown = 0;
@@ -208,6 +211,7 @@ export function buildRecap(
     const n = tokens ?? 0;
     const allTokens = totalTokensOf(e);
     const t = allTokens ?? 0;
+    dayTokens.set(date, (dayTokens.get(date) ?? 0) + t);
     total += t;
     if (allTokens !== undefined) totalKnown++;
     output += n;
@@ -223,6 +227,10 @@ export function buildRecap(
       day.output += n;
     }
     const id = e.model.canonicalId ?? e.model.rawName;
+    if (session) {
+      const group = modelSessions.get(id) ?? new Set<string>();
+      group.add(`${e.source.adapterId}:${session}`); modelSessions.set(id, group);
+    }
     const model = e.model.canonicalId ? catalog.models[e.model.canonicalId] : undefined;
     const family = model?.developerId ?? "other";
     const row = models.get(id) ?? {
@@ -365,6 +373,7 @@ export function buildRecap(
   return {
     period,
     deep,
+    explorer: { modelSessions: Object.fromEntries([...modelSessions].map(([id, sessions]) => [id, sessions.size])), days: daily.map(d => ({date:d.date, records:d.records, total:dayTokens.get(d.date) ?? 0, usd:costDays.get(d.date)?.toString() ?? "0"})) },
     start,
     end,
     timeZone,
