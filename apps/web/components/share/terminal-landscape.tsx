@@ -28,7 +28,12 @@ export function TerminalLandscape({
         fontWeight: 500,
       }}
     >
-      <svg aria-hidden="true" width={1200} height={378} style={{ position: "absolute", left: 0, top: 0 }}>
+      <svg
+        aria-hidden="true"
+        width={1200}
+        height={378}
+        style={{ position: "absolute", left: 0, top: 0 }}
+      >
         <defs>
           <pattern id="terminal-grid" width={40} height={40} patternUnits="userSpaceOnUse">
             <path
