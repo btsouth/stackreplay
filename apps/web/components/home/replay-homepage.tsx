@@ -1,11 +1,11 @@
 import { buildDemoExport } from "@stackreplay/test-fixtures";
 import Link from "next/link";
 import { Section } from "@/components/terminal/primitives";
+import { modelsInView } from "@/lib/model-library";
+import { loadPublicBenchmarks } from "@/lib/public-benchmarks";
 import { loadPublicCatalog } from "@/lib/public-catalog";
 import { loadPublicProviderDirectory } from "@/lib/public-providers";
-import { loadPublicBenchmarks } from "@/lib/public-benchmarks";
 import { buildRecap } from "@/lib/recap";
-import { modelsInView } from "@/lib/model-library";
 import { SampleInstrument } from "./sample-instrument";
 import "@/components/terminal/terminal.css";
 import "@/components/public/public-terminal.css";

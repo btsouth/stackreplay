@@ -7,15 +7,19 @@ import type { Recap } from "@/lib/recap";
 import { developerNames } from "@/lib/recap-deep";
 import { compact, dateLabel, dollars, integer, presentation } from "@/lib/terminal-presentation";
 
+const HOURS = Array.from({ length: 24 }, (_, hour) => hour);
+
 export function SampleInstrument({ recap: r }: { recap: Recap }) {
   const p = presentation(r);
-  const buckets = r.deep!.buckets;
+  const deep = r.deep;
+  if (!deep) throw new Error("Sample details are missing.");
+  const buckets = deep.buckets;
   const github = new Map(p.days.map((d, i) => [d.date, d.records ? 2 + ((i * 17) % 43) : 0]));
   const ghTotal = [...github.values()].reduce((a, b) => a + b, 0);
-  const maxHeat = Math.max(1, ...r.deep!.hours.flat());
+  const maxHeat = Math.max(1, ...deep.hours.flat());
   return (
     <>
-      <div id="sample" className="home-sample" aria-labelledby="sample-heading">
+      <section id="sample" className="home-sample" aria-labelledby="sample-heading">
         <div className="home-sample-caption">
           <h2 id="sample-heading" className="label">
             SAMPLE / SEPTEMBER 2026
@@ -83,7 +87,7 @@ export function SampleInstrument({ recap: r }: { recap: Recap }) {
             />
           </div>
         </div>
-      </div>
+      </section>
       <Section
         number="01"
         title="Tokens in, code out"
@@ -249,14 +253,14 @@ export function SampleInstrument({ recap: r }: { recap: Recap }) {
               {[1, 2, 3, 4, 5, 6, 0].map((d, i) => (
                 <div className="heat-row" key={d}>
                   <div className="hd">{["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"][i]}</div>
-                  {Array.from({ length: 24 }, (_, h) => (
+                  {HOURS.map((h) => (
                     <div
                       className="hc"
                       key={h}
                       style={
-                        { "--v": ((r.deep!.hours[d]?.[h] ?? 0) / maxHeat) ** 0.7 } as CSSProperties
+                        { "--v": ((deep.hours[d]?.[h] ?? 0) / maxHeat) ** 0.7 } as CSSProperties
                       }
-                      title={`${String(h).padStart(2, "0")}:00 / ${r.deep!.hours[d]?.[h] ?? 0} calls`}
+                      title={`${String(h).padStart(2, "0")}:00 / ${deep.hours[d]?.[h] ?? 0} calls`}
                     />
                   ))}
                 </div>
@@ -264,7 +268,7 @@ export function SampleInstrument({ recap: r }: { recap: Recap }) {
             </div>
             <div className="hticks">
               <span />
-              {Array.from({ length: 24 }, (_, h) => (
+              {HOURS.map((h) => (
                 <span key={h}>{h % 3 === 0 ? String(h).padStart(2, "0") : ""}</span>
               ))}
             </div>
@@ -281,7 +285,7 @@ export function SampleInstrument({ recap: r }: { recap: Recap }) {
               value={`${Math.round(r.lateNightShare * 100)}%`}
               note="MIDNIGHT TO 5 AM"
             />
-            <Readout label="Weekends" value={`${Math.round(r.deep!.weekendShare * 100)}%`} />
+            <Readout label="Weekends" value={`${Math.round(deep.weekendShare * 100)}%`} />
           </div>
         </div>
       </Section>
