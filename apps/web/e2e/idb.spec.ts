@@ -182,7 +182,9 @@ test("a corrupted payload is rejected when opened and then removed", async ({ pa
     .getByTestId("stored-imports")
     .getByRole("link", { name: /^Open my recap/u })
     .click();
-  await expect(page.getByRole("alert")).toContainText(/unavailable|no longer stored/);
+  await expect(
+    page.getByRole("alert").filter({ hasText: /unavailable|no longer stored/ }),
+  ).toBeVisible();
   await page.goto("/app/scan");
   await expect(page.getByTestId("no-stored-imports")).toBeVisible();
   const count = () =>

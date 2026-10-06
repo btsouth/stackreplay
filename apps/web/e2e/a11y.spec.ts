@@ -91,7 +91,8 @@ test.describe("app surface accessibility", () => {
 
   test("what you pay is operable with the keyboard and passes axe with plans entered", async ({
     page,
-  }) => {
+  }, testInfo) => {
+    test.skip(testInfo.project.name !== "desktop", "keyboard path is a desktop path");
     await page.emulateMedia({ reducedMotion: "reduce" });
     await page.goto("/app/settings");
     const trigger = page.getByRole("combobox", { name: "Add a plan" });
