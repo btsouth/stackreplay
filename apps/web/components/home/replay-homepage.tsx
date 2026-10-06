@@ -33,7 +33,7 @@ export function ReplayHomepage() {
   const providers = loadPublicProviderDirectory();
   const benchmarks = loadPublicBenchmarks();
   return (
-    <div className="terminal public-terminal terminal-home">
+    <div className="terminal public-terminal terminal-home" data-testid="home">
       <div className="wrap">
         <section className="home-intro" aria-labelledby="home-title">
           <p className="label">
