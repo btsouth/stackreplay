@@ -8,7 +8,7 @@ import { LocalWorkloadAction } from "@/components/local-workload-action";
 import { TerminalBrand } from "./brand";
 
 const items = [
-  { label: "Overview", href: "/app/recap" },
+  { label: "Recap", href: "/app/recap" },
   { label: "Models", href: "/models" },
   { label: "Privacy", href: "/methodology#privacy" },
 ];

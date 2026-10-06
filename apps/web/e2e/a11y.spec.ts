@@ -164,7 +164,7 @@ test.describe("public site accessibility", () => {
         ? page.getByRole("dialog").getByRole("navigation", { name: "Public" })
         : page.getByRole("navigation", { name: "Public" });
     for (const [label, href] of [
-      ["Overview", "/app/recap"],
+      ["Recap", "/app/recap"],
       ["Models", "/models"],
       ["Privacy", "/methodology#privacy"],
     ] as const) {

@@ -222,10 +222,10 @@ export function ThemeChoiceControl() {
     }
     setChoice(stored === "dark" || stored === "light" ? stored : "system");
   }, []);
-  const options: { id: ThemeChoice; label: string }[] = [
-    { id: "system", label: "Match system" },
-    { id: "light", label: "Warm paper" },
-    { id: "dark", label: "Dark" },
+  const options: { id: ThemeChoice; label: string; name: string }[] = [
+    { id: "system", label: "System", name: "Match system" },
+    { id: "light", label: "Paper", name: "Warm paper" },
+    { id: "dark", label: "Dark", name: "Dark" },
   ];
   return (
     <div className="space-y-3">
@@ -244,6 +244,7 @@ export function ThemeChoiceControl() {
               type="radio"
               name="theme"
               className="sr-only"
+              aria-label={option.name}
               checked={choice === option.id}
               disabled={choice === undefined}
               onChange={() => {

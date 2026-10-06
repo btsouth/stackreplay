@@ -17,7 +17,17 @@ import {
 } from "@/lib/terminal-card";
 import type { PaidFigure } from "@/lib/use-paid-multiplier";
 
-function CardPreview({ card, format }: { card: PublicCard; format: CardFormat }) {
+function CardCanvas({
+  card,
+  format,
+  className,
+  label,
+}: {
+  card: PublicCard;
+  format: CardFormat;
+  className: string;
+  label: string;
+}) {
   const ref = useRef<HTMLCanvasElement>(null);
   useEffect(() => {
     let active = true;
@@ -31,11 +41,11 @@ function CardPreview({ card, format }: { card: PublicCard; format: CardFormat })
   return (
     <canvas
       ref={ref}
-      className="card-canvas"
+      className={className}
       width={CARD_SIZES[format][0]}
       height={CARD_SIZES[format][1]}
       role="img"
-      aria-label={`${format} share card preview`}
+      aria-label={label}
     />
   );
 }
@@ -66,6 +76,12 @@ export function TerminalShare({
       synthetic: boolean | undefined;
     }>(),
     [copied, setCopied] = useState(false);
+  const [preview, setPreview] = useState<CardFormat>();
+  const previewDialog = useRef<HTMLDialogElement>(null);
+  useEffect(() => {
+    if (preview && previewDialog.current) previewDialog.current.showModal();
+    else if (previewDialog.current?.open) previewDialog.current.close();
+  }, [preview]);
   useEffect(() => {
     const refresh = () =>
       setTheme(document.documentElement.classList.contains("dark") ? "dark" : "light");
@@ -91,7 +107,7 @@ export function TerminalShare({
     ["streak", recap.period === "all" ? "Streak" : "Days with AI"],
     ["models", "Top models"],
     ["peakHour", "Peak hour"],
-    ["paidMultiplier", "What you paid"],
+    ["paidMultiplier", "Vs. plan price"],
   ];
   async function download(format: CardFormat) {
     setBusy(true);
@@ -140,7 +156,19 @@ export function TerminalShare({
       <div className="sharegrid">
         {(["landscape", "square", "story"] as const).map((format) => (
           <div key={format}>
-            <CardPreview card={card} format={format} />
+            <button
+              type="button"
+              className="card-preview-button"
+              onClick={() => setPreview(format)}
+              aria-label={`Open the ${format} card preview at full size`}
+            >
+              <CardCanvas
+                card={card}
+                format={format}
+                className="card-canvas"
+                label={`${format} share card preview`}
+              />
+            </button>
             <div className="fmt">
               <span>
                 {format === "square" ? "TOP MODELS" : format.toUpperCase()} ·{" "}
@@ -158,6 +186,32 @@ export function TerminalShare({
           </div>
         ))}
       </div>
+      <dialog
+        ref={previewDialog}
+        className="card-preview-dialog"
+        aria-label="Card preview"
+        onClose={() => setPreview(undefined)}
+      >
+        <div className="card-preview-bar">
+          <span>
+            {preview ? `${preview.toUpperCase()} · ${CARD_SIZES[preview].join(" × ")}` : ""}
+          </span>
+          <button type="button" className="btn" onClick={() => previewDialog.current?.close()}>
+            Close ×
+          </button>
+        </div>
+        <p className="card-preview-hint">Scroll sideways to read the full-size card.</p>
+        <div className="card-preview-scroll">
+          {preview && (
+            <CardCanvas
+              card={card}
+              format={preview}
+              className="card-preview-canvas"
+              label={`${preview} share card at full size`}
+            />
+          )}
+        </div>
+      </dialog>
       {!previewOnly && (
         <>
           <fieldset className="toggles" aria-label="Card stats">

@@ -1,7 +1,7 @@
 "use client";
 import { Select as BaseSelect } from "@base-ui-components/react/select";
 import { Check, ChevronDown } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { cn } from "../lib/cn";
 
 export interface SelectOption {
@@ -41,7 +41,14 @@ export function Select({
 }: SelectProps) {
   const [open, setOpen] = useState(false);
   const [ready, setReady] = useState(false);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  // Portal into the nearest terminal scope so ancestor tokens and rules apply.
+  const [scope, setScope] = useState<HTMLElement | null>(null);
   useEffect(() => setReady(true), []);
+  useEffect(() => {
+    setScope(triggerRef.current?.closest<HTMLElement>(".terminal") ?? null);
+  }, []);
+  const popupContainer = portalContainer ?? scope;
   return (
     <BaseSelect.Root
       items={options}
@@ -58,6 +65,7 @@ export function Select({
     >
       <BaseSelect.Trigger
         id={id}
+        ref={triggerRef}
         aria-label={label}
         className={cn("sr-select", className)}
         onKeyDown={(event) => {
@@ -77,7 +85,7 @@ export function Select({
           <ChevronDown size={16} aria-hidden="true" />
         </BaseSelect.Icon>
       </BaseSelect.Trigger>
-      <BaseSelect.Portal container={portalContainer}>
+      <BaseSelect.Portal {...(popupContainer ? { container: popupContainer } : {})}>
         <BaseSelect.Positioner sideOffset={8} className="sr-select-positioner">
           <BaseSelect.Popup className="sr-select-popup">
             <BaseSelect.List>

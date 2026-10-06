@@ -250,7 +250,7 @@ test.describe("public site", () => {
       "aria-current",
       "page",
     );
-    await expect(desktopNav.getByRole("link", { name: "Overview" })).not.toHaveAttribute(
+    await expect(desktopNav.getByRole("link", { name: "Recap" })).not.toHaveAttribute(
       "aria-current",
       "page",
     );
@@ -265,7 +265,7 @@ test.describe("public site", () => {
       "aria-current",
       "page",
     );
-    await expect(mobileNav.getByRole("link", { name: "Overview" })).not.toHaveAttribute(
+    await expect(mobileNav.getByRole("link", { name: "Recap" })).not.toHaveAttribute(
       "aria-current",
       "page",
     );

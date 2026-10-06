@@ -513,9 +513,9 @@ export function HistoryDiscovery({
       <div className="sr-find-head">
         <h2 id={headingId} ref={headingRef} tabIndex={-1} className="sr-find-title">
           {intro
-            ? "Drag your home folder here"
+            ? "Find local AI history"
             : phase === "armed"
-              ? "Drag your home folder here"
+              ? "Find local AI history"
               : settled
                 ? found.length > 0
                   ? "AI histories found"
@@ -567,6 +567,12 @@ export function HistoryDiscovery({
             <li>
               <b>Hermes</b> <code>~/.hermes/state.db</code>;{" "}
               <code>%USERPROFILE%\AppData\Local\hermes</code> on Windows.
+            </li>
+            <li>
+              <b>T3 Code</b> attributes its threads from <code>~/.t3/userdata</code> (or{" "}
+              <code>%USERPROFILE%\.t3\userdata</code> on Windows). Drop Home or choose that folder;
+              the provider histories it manages supply the tokens, and StackReplay labels them T3
+              Code.
             </li>
           </ul>
           <p className="sr-find-fine">

@@ -1,4 +1,5 @@
 "use client";
+import { Moon, Sun } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -91,7 +92,8 @@ export function TerminalHeader() {
               disabled={!ready}
               onClick={theme}
             >
-              ◐
+              <Sun aria-hidden="true" size={16} className="hidden dark:block" />
+              <Moon aria-hidden="true" size={16} className="block dark:hidden" />
             </button>
           </div>
         </div>

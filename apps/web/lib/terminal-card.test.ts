@@ -289,6 +289,14 @@ describe("poster composition", () => {
               expect(headlineText.lines?.join(" ")).toBe(headline);
             }
           });
+  it("uses the compact story headline for the every-day insight only", () => {
+    const card = makeCard(recap, DEFAULT_SELECTIONS, "dark");
+    card.headline = "You used AI every day of this 30-day period";
+    const story = cardLayout(card, "story").texts.find((t) => t.id === "headline");
+    const landscape = cardLayout(card, "landscape").texts.find((t) => t.id === "headline");
+    expect(story?.lines?.join(" ")).toBe("AI on all 30 days");
+    expect(landscape?.lines?.join(" ")).toBe("You used AI every day of this 30-day period");
+  });
   it("keeps clear space between the story stats grid and the chart header with default toggles", () => {
     for (const connected of [false, true])
       for (const withHeadline of [false, true]) {

@@ -1104,14 +1104,14 @@ export function ImportSurface({
                         href={`/app/recap?import=${entry.id}`}
                         data-testid={`open-import-${entry.id}`}
                         aria-label={`Open my recap for ${entry.label}${imports.length > 1 ? `, scan ${index + 1} of ${imports.length}` : ""}`}
-                        className={`${buttonVariants({ size: "sm" })} min-h-11 sm:min-h-0`}
+                        className={`${buttonVariants({ size: "sm" })} min-h-11 sm:min-h-9`}
                       >
                         Open my recap
                       </Link>
                       <Link
                         href={`/app/stats?import=${entry.id}`}
                         aria-label={`Explore my stats for ${entry.label}${imports.length > 1 ? `, scan ${index + 1} of ${imports.length}` : ""}`}
-                        className={`${buttonVariants({ variant: "secondary", size: "sm" })} min-h-11 justify-center sm:min-h-0`}
+                        className={`${buttonVariants({ variant: "secondary", size: "sm" })} min-h-11 justify-center sm:min-h-9`}
                       >
                         Explore my stats
                       </Link>
@@ -1119,7 +1119,7 @@ export function ImportSurface({
                         type="button"
                         variant="ghost"
                         size="sm"
-                        className="min-h-11 sm:min-h-0"
+                        className="min-h-11 sm:min-h-9"
                         aria-label={`Export ${entry.label}${imports.length > 1 ? `, scan ${index + 1} of ${imports.length}` : ""}`}
                         onClick={() => void exportWorkload(entry.id)}
                       >
@@ -1129,7 +1129,7 @@ export function ImportSurface({
                         className="group text-xs text-muted-foreground"
                         data-testid={`delete-menu-${entry.id}`}
                       >
-                        <summary className="min-h-11 cursor-pointer content-center sm:min-h-0">
+                        <summary className="min-h-11 cursor-pointer content-center sm:min-h-9">
                           More
                         </summary>
                         <p className="py-1 font-mono text-[11px] text-muted-foreground">
@@ -1200,7 +1200,7 @@ function ClearAllControl({ count, onConfirm }: { count: number; onConfirm: () =>
         type="button"
         variant="ghost"
         size="sm"
-        className="min-h-11 sm:min-h-0"
+        className="min-h-11 sm:min-h-9"
         data-testid="clear-local-data"
         onClick={() => setAsking(true)}
       >
@@ -1221,7 +1221,7 @@ function ClearAllControl({ count, onConfirm }: { count: number; onConfirm: () =>
         type="button"
         variant="destructive"
         size="sm"
-        className="min-h-11 sm:min-h-0"
+        className="min-h-11 sm:min-h-9"
         data-testid="clear-local-data-confirm"
         onClick={() => {
           setAsking(false);
@@ -1234,7 +1234,7 @@ function ClearAllControl({ count, onConfirm }: { count: number; onConfirm: () =>
         type="button"
         variant="ghost"
         size="sm"
-        className="min-h-11 sm:min-h-0"
+        className="min-h-11 sm:min-h-9"
         onClick={() => setAsking(false)}
       >
         Keep my scans

@@ -125,7 +125,7 @@ export function cardMetrics(card: PublicCard) {
       ? [{ label: "PEAK HOUR", value: `${String(card.peakHour).padStart(2, "0")}:00` }]
       : []),
     ...(card.paidMultiplier !== undefined
-      ? [{ label: "VS. WHAT YOU PAID", value: `${card.paidMultiplier}×` }]
+      ? [{ label: "VS. PLAN PRICE", value: `${card.paidMultiplier}×` }]
       : []),
   ];
 }
@@ -238,11 +238,16 @@ export function cardLayout(card: PublicCard, format: CardFormat, options: CardRe
     { dim: true, align: story ? "left" : "right" },
   );
   const headlineText = (options.headline?.trim() || card.headline?.trim() || "").trim();
+  // The story card has less width for a trailing word; keep the shorter, true form.
+  const storyEveryDay = story
+    ? headlineText.match(/^You used AI every day of this (\d+)-day period$/iu)
+    : null;
+  const storyHeadline = storyEveryDay ? `AI on all ${storyEveryDay[1]} days` : headlineText;
   const headlineSize = story ? 44 : square ? 36 : 30;
-  const headlineLines = headlineText ? wrapCardText(headlineText, width, headlineSize) : [];
+  const headlineLines = storyHeadline ? wrapCardText(storyHeadline, width, headlineSize) : [];
   const hasHeadline = headlineLines.length > 0;
   if (hasHeadline)
-    add("headline", headlineText, pad, story ? 178 : 80, headlineSize, width, {
+    add("headline", storyHeadline, pad, story ? 178 : 80, headlineSize, width, {
       font: "sans",
       lines: headlineLines,
     });
@@ -359,7 +364,9 @@ export function cardLayout(card: PublicCard, format: CardFormat, options: CardRe
         : 1270
     : square
       ? 520
-      : 514;
+      : hasHeadline
+        ? 522
+        : 514;
   const metricStep = story ? (dense ? 112 : 140) : 0;
   const metricSize = story ? (dense ? 60 : 72) : square ? (metrics.length > 3 ? 36 : 54) : 34;
   let statsBottom = 0;
@@ -420,14 +427,12 @@ export function cardLayout(card: PublicCard, format: CardFormat, options: CardRe
         ? 800
         : 658
       : hasHeadline
-        ? speeds.length
-          ? 408
-          : 414
+        ? 406
         : speeds.length
           ? 408
           : 348;
-  const chartTop = activityY + (story ? 46 : square ? 42 : 30);
-  const chartBottom = story ? 1800 : square ? 976 : 500,
+  const chartTop = activityY + (story ? 46 : square ? 42 : hasHeadline ? 24 : 30);
+  const chartBottom = story ? 1800 : square ? 976 : hasHeadline ? 510 : 500,
     chartHeight = chartBottom - chartTop;
   const tokenHeight = tokenSeries.length ? (connected ? (chartHeight - 4) * 0.55 : chartHeight) : 0,
     baseline = chartTop + tokenHeight;
@@ -494,7 +499,7 @@ export function cardLayout(card: PublicCard, format: CardFormat, options: CardRe
     width / 2,
     { dim: true, align: "right" },
   );
-  return { texts, models, bars, activityBars };
+  return { texts, models, bars, activityBars, chart: { top: chartTop, bottom: chartBottom } };
 }
 
 /** Draw and return the actual measured text boxes for the export overlap check. */
@@ -614,6 +619,7 @@ export function drawCard(
     });
   }
   canvas.dataset.textBoxes = JSON.stringify(boxes);
+  canvas.dataset.activityBand = JSON.stringify(layout.chart);
   canvas.dataset.emptyBand = String(
     largestEmptyHorizontalBand([...boxes, ...layout.bars, ...layout.activityBars], h),
   );
