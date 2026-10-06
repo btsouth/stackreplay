@@ -12,7 +12,22 @@ import "./replay-homepage.css";
 
 export function ReplayHomepage() {
   const demo = buildDemoExport("billing");
-  const recap = buildRecap(demo.events, "all", "2026-09-30T23:59:59Z", "UTC");
+  // The shared demo has token counts but no request clocks. Supply deterministic
+  // illustrative clocks here, keeping all homepage figures on the same sample.
+  const modelIds = [
+    ...new Set(demo.events.map((event) => event.model.canonicalId ?? event.model.rawName)),
+  ];
+  const events = demo.events.map((event, i) => {
+    const model = modelIds.indexOf(event.model.canonicalId ?? event.model.rawName);
+    const rate = [82, 44, 65, 31][model] ?? 38;
+    const seconds = Math.max(0.3, (event.usage.outputTokens ?? 1) / (rate * (0.7 + (i % 17) / 28)));
+    return {
+      ...event,
+      requestStartedAt: new Date(Date.parse(event.occurredAt) - seconds * 1000).toISOString(),
+      requestEndedAt: event.occurredAt,
+    };
+  });
+  const recap = buildRecap(events, "all", "2026-09-30T23:59:59Z", "UTC");
   const catalog = loadPublicCatalog();
   const providers = loadPublicProviderDirectory();
   const benchmarks = loadPublicBenchmarks();

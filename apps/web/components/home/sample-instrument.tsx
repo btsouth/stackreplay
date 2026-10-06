@@ -275,6 +275,12 @@ export function SampleInstrument({ recap: r }: { recap: Recap }) {
               note="UTC"
             />
             <Readout label="Busiest day" value={dateLabel(r.busiestDay).toUpperCase()} />
+            <Readout
+              label="After midnight"
+              value={`${Math.round(r.lateNightShare * 100)}%`}
+              note="MIDNIGHT TO 5 AM"
+            />
+            <Readout label="Weekends" value={`${Math.round(r.deep!.weekendShare * 100)}%`} />
           </div>
         </div>
       </Section>

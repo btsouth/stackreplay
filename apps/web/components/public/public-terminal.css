@@ -578,3 +578,100 @@
     margin-left: 0;
   }
 }
+.public-terminal .market-header > aside {
+  border-radius: 3px;
+}
+.public-terminal .market-section-title {
+  justify-content: flex-start;
+}
+.public-terminal .market-section-title > span:first-child {
+  margin-left: 0;
+}
+.public-terminal .sr-section-heading > div:not(:first-child)::before {
+  content: none;
+}
+.public-terminal .sr-section-heading > div:not(:first-child) {
+  display: block;
+}
+.public-terminal .market-plan-row .market-stat,
+.public-terminal .market-header > aside > p:not(.market-kicker, .market-muted) {
+  font-family: var(--mono);
+}
+.public-terminal .market-rate-table [data-numeric],
+.public-terminal .market-table td[data-numeric] {
+  text-align: right;
+}
+/* Keep the benchmark matrix a real scrollable table at every width. */
+.public-terminal .bench-table {
+  display: table;
+}
+.public-terminal .bench-table thead {
+  display: table-header-group;
+}
+.public-terminal .bench-table tbody {
+  display: table-row-group;
+}
+.public-terminal .bench-table tr {
+  display: table-row;
+  padding: 0;
+}
+.public-terminal .bench-table :is(th, td) {
+  display: table-cell;
+  padding: 14px 16px;
+  height: auto;
+}
+.public-terminal .bench-table td {
+  text-align: right;
+}
+.public-terminal .bench-table td::before {
+  display: none;
+}
+.public-terminal .bench-score {
+  font-family: var(--mono);
+}
+.public-terminal .bench-table th small,
+.public-terminal .bench-score sup {
+  font-size: 10px;
+}
+.public-terminal .bench-table th {
+  letter-spacing: 0.04em;
+}
+/* Status ink must be readable on paper; chart fills keep their signal colors. */
+.public-terminal {
+  --positive: #007142;
+}
+.dark .public-terminal {
+  --positive: #3ddc84;
+}
+.public-terminal p a:not(.btn, .sr-button),
+.public-terminal dd a:not(.btn, .sr-button) {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.public-terminal :is(.sr-select-popup, .sr-select-item) {
+  border-radius: 3px;
+  box-shadow: none;
+}
+.public-terminal .sr-select-popup {
+  font: 12px / 1.5 var(--mono);
+}
+.public-terminal nav[aria-label="Catalog"] {
+  flex-wrap: wrap;
+}
+@media (max-width: 600px) {
+  .public-terminal.models-discovery-page .public-opening {
+    padding: 0;
+    margin-bottom: 16px;
+  }
+  .public-terminal.models-discovery-page .sr-page-heading {
+    padding: 0;
+  }
+  .public-terminal.models-discovery-page .sr-page-heading h1 {
+    font-size: 32px;
+    margin: 8px 0 12px;
+  }
+  .public-terminal.models-discovery-page .sr-description {
+    font-size: 14px;
+    line-height: 1.55;
+  }
+}

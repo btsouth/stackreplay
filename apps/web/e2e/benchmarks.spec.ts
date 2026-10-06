@@ -66,7 +66,7 @@ async function expectBenchmarkTableLayout(
     for (const score of layout.scores) {
       expect(score.left, score.text).toBeGreaterThanOrEqual(score.contentLeft - 0.5);
       expect(score.right, score.text).toBeLessThanOrEqual(score.contentRight + 0.5);
-      expect(Math.abs(score.center - score.contentCenter), score.text).toBeLessThanOrEqual(1);
+      expect(Math.abs(score.right - score.contentRight), score.text).toBeLessThanOrEqual(1);
       expect(score.clipped, score.text).toBe(false);
     }
   };
@@ -825,7 +825,7 @@ for (const theme of ["dark", "light"] as const)
       expect(metric.clipped).toBe(false);
       expect(metric.left).toBeGreaterThanOrEqual(metric.contentLeft - 0.5);
       expect(metric.right).toBeLessThanOrEqual(metric.contentRight + 0.5);
-      expect(Math.abs(metric.center - metric.contentCenter)).toBeLessThanOrEqual(1);
+      expect(Math.abs(metric.right - metric.contentRight)).toBeLessThanOrEqual(1);
     }
 
     for (const width of [320, 390] as const) {

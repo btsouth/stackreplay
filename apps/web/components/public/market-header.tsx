@@ -23,7 +23,7 @@ export function MarketHeader({
 }
 export function MarketFooter() {
   return (
-    <aside className="market-invitation">
+    <aside className="market-invitation" aria-label="Scan your own history">
       <div>
         <p className="market-kicker">LOCAL / PRIVATE</p>
         <h2>Measure your own AI coding.</h2>

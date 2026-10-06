@@ -176,3 +176,27 @@
     grid-template-columns: 1fr;
   }
 }
+/* Isolate the new landing composition from the previous homepage grid. */
+.terminal-home .home-intro {
+  display: block;
+}
+.terminal-home .home-intro-row > div:first-child {
+  min-width: 0;
+}
+.terminal-home .rside {
+  grid-template-rows: repeat(2, 1fr);
+}
+@media (max-width: 800px) {
+  .terminal-home .actside,
+  .terminal-home .sins,
+  .terminal-home .rside {
+    grid-template-rows: auto;
+  }
+  .terminal-home .sins .cell:last-child {
+    grid-column: auto;
+  }
+  .terminal-home .sharegrid > div:last-child {
+    width: 60%;
+    max-width: 220px;
+  }
+}

@@ -127,7 +127,7 @@ export default async function ProviderPage({ params }: Props) {
         title={provider.name}
         description="Explore this provider’s models, API access and coding plans. Each section links to the published evidence, including what is still unknown."
       >
-        <aside className="provider-coverage-summary">
+        <aside className="provider-coverage-summary" aria-label="Provider coverage">
           <p className="market-kicker">Recorded coverage</p>
           <div className="provider-summary-stats">
             <StatTile

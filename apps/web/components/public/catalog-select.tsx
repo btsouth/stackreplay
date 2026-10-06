@@ -1,6 +1,6 @@
 "use client";
 import { Select, type SelectOption } from "@stackreplay/ui";
-import { Children, isValidElement, type ReactNode } from "react";
+import { Children, isValidElement, type ReactNode, useEffect, useRef, useState } from "react";
 
 function text(node: ReactNode): string {
   return Children.toArray(node)
@@ -54,8 +54,14 @@ export function CatalogSelect({
   onChange: (event: { target: { value: string } }) => void;
 }) {
   const options = choices(children);
+  const ref = useRef<HTMLDivElement>(null);
+  const [container, setContainer] = useState<HTMLElement | null>(null);
+  useEffect(() => {
+    setContainer(ref.current?.closest<HTMLElement>(".public-terminal") ?? null);
+  }, []);
   return (
     <div
+      ref={ref}
       className="catalog-select"
       data-testid={testId}
       data-selected-value={value}
@@ -64,7 +70,9 @@ export function CatalogSelect({
       <Select
         label={label}
         placeholder={options.find((option) => option.value === value)?.label ?? label}
-        {...(portalContainer ? { portalContainer } : {})}
+        {...((portalContainer ?? container)
+          ? { portalContainer: portalContainer ?? container ?? undefined }
+          : {})}
         options={options}
         {...(value !== undefined ? { value } : {})}
         onValueChange={(value) => onChange({ target: { value } })}
