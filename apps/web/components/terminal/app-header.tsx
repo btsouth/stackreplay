@@ -8,8 +8,10 @@ import { themeStorageKey } from "@/lib/theme";
 export function TerminalHeader() {
   const path = usePathname();
   const [scanned, setScanned] = useState<string>();
+  const [ready, setReady] = useState(false);
   useEffect(() => {
     let active = true;
+    setReady(true);
     getWorkerClient()
       .listImports()
       .then((rows) => {
@@ -84,7 +86,13 @@ export function TerminalHeader() {
             <Link className="btn" href="/app/scan">
               ↻ RESCAN
             </Link>
-            <button type="button" className="btn icon" aria-label="Toggle theme" onClick={theme}>
+            <button
+              type="button"
+              className="btn icon"
+              aria-label="Toggle theme"
+              disabled={!ready}
+              onClick={theme}
+            >
               ◐
             </button>
           </div>

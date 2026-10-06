@@ -1751,3 +1751,7 @@ body:has(.shared-terminal) .sr-brand > span {
 body:has(.shared-terminal) .sr-header-navigation {
   font-family: var(--font-geist-mono), monospace;
 }
+
+body:has(.shared-terminal) .sr-header-navigation button {
+  border-radius: 3px;
+}

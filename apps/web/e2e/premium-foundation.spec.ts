@@ -65,6 +65,8 @@ test("saved and temporary scans keep a path through recap, Stats and Settings", 
 
 test("design controls support keyboard selection, tab panels and sorting", async ({ page }) => {
   await page.goto("/design");
+  // The public toggle enables after hydration, when keyboard handlers are attached.
+  await expect(page.getByRole("button", { name: "Toggle theme" })).toBeEnabled();
   const select = page.getByRole("combobox", { name: "History" });
   await select.focus();
   await page.keyboard.press("ArrowDown");

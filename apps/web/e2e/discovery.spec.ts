@@ -153,7 +153,7 @@ test("the happy path opens a recap after scanning and can reopen its details", a
     .getByRole("link", { name: /^Explore my stats/u })
     .first()
     .click();
-  await expect(page).toHaveURL(/\/app\/stats\?import=/u);
+  await expect(page).toHaveURL(/\/app\/recap\?import=/u);
   await expect(page.getByTestId("recap-ready")).toBeVisible();
 });
 
