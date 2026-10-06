@@ -549,12 +549,12 @@
   color: var(--fg);
   font-weight: 500;
 }
-.terminal table {
+.terminal .tablecell table {
   width: 100%;
   border-collapse: collapse;
   font-size: 13px;
 }
-.terminal th {
+.terminal .tablecell th {
   font-family: var(--mono);
   font-size: 10px;
   letter-spacing: 0.12em;
@@ -564,20 +564,20 @@
   padding: 14px 12px 10px;
   border-bottom: 1px solid var(--line);
 }
-.terminal th.num,
-.terminal td.num {
+.terminal .tablecell th.num,
+.terminal .tablecell td.num {
   text-align: right;
 }
-.terminal td {
+.terminal .tablecell td {
   padding: 0 12px;
   height: 34px;
   border-bottom: 1px solid var(--line);
   white-space: nowrap;
 }
-.terminal tr:last-child td {
+.terminal .tablecell tr:last-child td {
   border-bottom: 0;
 }
-.terminal td.num {
+.terminal .tablecell td.num {
   font-size: 12.5px;
 }
 .terminal .mn {
@@ -1069,7 +1069,7 @@
 .terminal .tablecell {
   padding: 0 12px;
 }
-.terminal td {
+.terminal .tablecell td {
   white-space: normal;
   height: 36px;
   padding-top: 7px;
@@ -1447,20 +1447,20 @@
     padding: 8px 0;
   }
   .terminal table,
-  .terminal tbody {
+  .terminal .tablecell tbody {
     display: block;
   }
-  .terminal thead {
+  .terminal .tablecell thead {
     display: none;
   }
-  .terminal tr {
+  .terminal .tablecell tr {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     border-bottom: 1px solid var(--line);
     padding: 14px 0;
     gap: 12px;
   }
-  .terminal td {
+  .terminal .tablecell td {
     border: 0;
     height: auto;
     display: flex;
@@ -1471,22 +1471,22 @@
     font-size: 12px;
     min-width: 0;
   }
-  .terminal td::before {
+  .terminal .tablecell td::before {
     content: attr(data-label);
     font: 10px var(--mono);
     color: var(--dim);
     margin-bottom: 5px;
   }
-  .terminal td:nth-child(1) {
+  .terminal .tablecell td:nth-child(1) {
     display: none;
   }
-  .terminal td:nth-child(2) {
+  .terminal .tablecell td:nth-child(2) {
     grid-column: 1 / -1;
   }
-  .terminal td:nth-child(2)::before {
+  .terminal .tablecell td:nth-child(2)::before {
     display: none;
   }
-  .terminal td.num {
+  .terminal .tablecell td.num {
     text-align: right;
     align-items: end;
   }
@@ -1776,8 +1776,8 @@
   text-align: right;
   min-width: 42px;
 }
-.terminal th:nth-child(5),
-.terminal td:nth-child(5) {
+.terminal .tablecell th:nth-child(5),
+.terminal .tablecell td:nth-child(5) {
   width: 210px;
 }
 .terminal .more {

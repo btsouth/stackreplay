@@ -11,6 +11,12 @@ import { decodeLocalPayload, encodeLocalPayloadWithMetadata, isBlobPayload } fro
 import type { RecapIndex } from "./recap-index";
 import type { ImportRecord } from "./worker-protocol";
 
+/** Load the validation dependency before its dynamically split schema module. */
+async function localRecordSchemas() {
+  await import("zod");
+  return import("./local-record-schema");
+}
+
 /**
  * Browser-local persistence (M3 brief).
  *
@@ -214,7 +220,7 @@ export async function saveImport(
   exported: StackReplayExportV1,
   options: { observed?: StoreGeneration; signal?: AbortSignal } = {},
 ): Promise<StorageResult<ImportRecord>> {
-  const { importRecordSchema } = await import("./local-record-schema");
+  const { importRecordSchema } = await localRecordSchemas();
   const { stackReplayExportV1Schema } = await import("@stackreplay/schema");
   // This is the generic persistence boundary, including calls outside intake.
   // Both values must satisfy the strict allowlists before either store is touched.
@@ -301,7 +307,7 @@ export async function saveImport(
  * here. Full schema validation still happens when the workload is opened.
  */
 export async function listImports(): Promise<ImportRecord[]> {
-  const { importRecordSchema } = await import("./local-record-schema");
+  const { importRecordSchema } = await localRecordSchemas();
   const [records, payloadKeys] = await withStores(
     [IMPORTS_STORE, PAYLOADS_STORE],
     "readonly",
@@ -354,7 +360,7 @@ async function deleteResultsFor(transaction: IDBTransaction, importId: string): 
 }
 
 async function removeCorruptPair(importId: string, damagedBlobRevision?: string): Promise<void> {
-  const { importRecordSchema, validateStoredPair } = await import("./local-record-schema");
+  const { importRecordSchema, validateStoredPair } = await localRecordSchemas();
   try {
     await withStores(
       [IMPORTS_STORE, PAYLOADS_STORE, WORKLOAD_RESULTS_STORE, RECAP_INDEXES_STORE],
@@ -391,7 +397,7 @@ async function removeCorruptPair(importId: string, damagedBlobRevision?: string)
 
 /** Loads a stored export. Unknown or incompatible payloads fail safely. */
 export async function loadImport(importId: string): Promise<StorageResult<StackReplayExportV1>> {
-  const { validateStoredPair } = await import("./local-record-schema");
+  const { validateStoredPair } = await localRecordSchemas();
   try {
     const [record, payload] = await withStores(
       [IMPORTS_STORE, PAYLOADS_STORE],
@@ -499,7 +505,7 @@ async function deleteRecapIndexesFor(transaction: IDBTransaction, importId: stri
 export async function readRecapIndex(
   importId: string,
 ): Promise<{ record: ImportRecord; rows: StoredRecapIndex[] } | undefined> {
-  const { importRecordSchema } = await import("./local-record-schema");
+  const { importRecordSchema } = await localRecordSchemas();
   const [record, rows] = await withStores(
     [IMPORTS_STORE, RECAP_INDEXES_STORE],
     "readonly",
