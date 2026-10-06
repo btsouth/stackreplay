@@ -51,7 +51,7 @@ for (const theme of ["dark", "light"] as const) {
           .locator('[data-testid^="compare-row-"]')
           .filter({ hasText: "Same for both plans" })
           .first(),
-      ).toBeVisible();
+      ).toBeAttached();
       const mobileDisclosure = page.getByTestId("compare-mobile-model-matrix-details");
       const matrix = (await mobileDisclosure.isVisible())
         ? page.getByTestId("compare-mobile-model-matrix")

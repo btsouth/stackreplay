@@ -526,7 +526,7 @@ test("CLI compatible V1 named usage.json imports and opens a recap", async ({ pa
     true,
   );
   // The ways in fold away under Workload ready; a second import opens them.
-  // Import is already open as a source manager.
+  await page.getByText("Use files or an export instead", { exact: true }).click();
   await page.getByRole("checkbox", { name: "Save this scan in this browser" }).check();
   await page
     .getByTestId("source-file-input")

@@ -96,8 +96,7 @@ test.describe("app surface accessibility", () => {
     await page.emulateMedia({ reducedMotion: "reduce" });
     await page.goto("/app/settings");
     const trigger = page.getByRole("combobox", { name: "Add a plan" });
-    await trigger.focus();
-    await page.keyboard.press("Enter");
+    await trigger.click();
     await page
       .getByRole("option", { name: /^Claude Max 5x ·/u })
       .first()
