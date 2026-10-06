@@ -1,34 +1,17 @@
-import { buildDemoExport } from "@stackreplay/test-fixtures";
 import Link from "next/link";
 import { Section } from "@/components/terminal/primitives";
+import { sampleRecap } from "@/lib/home/recap-sample";
 import { modelsInView } from "@/lib/model-library";
 import { loadPublicBenchmarks } from "@/lib/public-benchmarks";
 import { loadPublicCatalog } from "@/lib/public-catalog";
 import { loadPublicProviderDirectory } from "@/lib/public-providers";
-import { buildRecap } from "@/lib/recap";
 import { SampleInstrument } from "./sample-instrument";
 import "@/components/terminal/terminal.css";
 import "@/components/public/public-terminal.css";
 import "./replay-homepage.css";
 
 export function ReplayHomepage() {
-  const demo = buildDemoExport("billing");
-  // The shared demo has token counts but no request clocks. Supply deterministic
-  // illustrative clocks here, keeping all homepage figures on the same sample.
-  const modelIds = [
-    ...new Set(demo.events.map((event) => event.model.canonicalId ?? event.model.rawName)),
-  ];
-  const events = demo.events.map((event, i) => {
-    const model = modelIds.indexOf(event.model.canonicalId ?? event.model.rawName);
-    const rate = [82, 44, 65, 31][model] ?? 38;
-    const seconds = Math.max(0.3, (event.usage.outputTokens ?? 1) / (rate * (0.7 + (i % 17) / 28)));
-    return {
-      ...event,
-      requestStartedAt: new Date(Date.parse(event.occurredAt) - seconds * 1000).toISOString(),
-      requestEndedAt: event.occurredAt,
-    };
-  });
-  const recap = buildRecap(events, "all", "2026-09-30T23:59:59Z", "UTC");
+  const recap = sampleRecap;
   const catalog = loadPublicCatalog();
   const providers = loadPublicProviderDirectory();
   const benchmarks = loadPublicBenchmarks();

@@ -28,7 +28,7 @@ test("recap homepage renders, links to scan and keeps the sample public", async 
   ).toHaveAttribute("href", "/models");
   if (isMobile) await page.getByRole("button", { name: "Close menu" }).click();
   await expect(page.getByTestId("sample-total")).toContainText(/M|B/);
-  await expect(page.locator(".terminal-home .srow")).toHaveCount(4);
+  await expect(page.locator(".terminal-home .srow")).toHaveCount(12);
   expect(languageMatches(await page.locator(".terminal-home").innerText())).toEqual([]);
   await page.getByRole("link", { name: "See a sample" }).click();
   await expect(page).toHaveURL(/#sample$/);
@@ -36,6 +36,9 @@ test("recap homepage renders, links to scan and keeps the sample public", async 
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   expect(errors).toEqual([]);
   expect(uploads).toEqual([]);
+  await expect(page.getByRole("group", { name: "Card stats" })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Create share link" })).toHaveCount(0);
+  await expect(page.getByRole("link", { name: "Make yours" })).toHaveAttribute("href", "/app/scan");
   expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
 });
 test("reduced motion shows completed stats with no animations or tilt", async ({ page }) => {

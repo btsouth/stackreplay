@@ -1,8 +1,9 @@
 "use client";
 import type { CSSProperties } from "react";
 import { DailyChart } from "@/components/terminal/daily-chart";
-import { Readout, Section } from "@/components/terminal/primitives";
+import { Readout, Section, TightNumber } from "@/components/terminal/primitives";
 import { TerminalShare } from "@/components/terminal/share";
+import { sampleGithub } from "@/lib/home/recap-sample";
 import type { Recap } from "@/lib/recap";
 import { developerNames } from "@/lib/recap-deep";
 import { compact, dateLabel, dollars, integer, presentation } from "@/lib/terminal-presentation";
@@ -14,7 +15,7 @@ export function SampleInstrument({ recap: r }: { recap: Recap }) {
   const deep = r.deep;
   if (!deep) throw new Error("Sample details are missing.");
   const buckets = deep.buckets;
-  const github = new Map(p.days.map((d, i) => [d.date, d.records ? 2 + ((i * 17) % 43) : 0]));
+  const github = new Map(Object.entries(sampleGithub));
   const ghTotal = [...github.values()].reduce((a, b) => a + b, 0);
   const maxHeat = Math.max(1, ...deep.hours.flat());
   return (
@@ -22,7 +23,7 @@ export function SampleInstrument({ recap: r }: { recap: Recap }) {
       <section id="sample" className="home-sample" aria-labelledby="sample-heading">
         <div className="home-sample-caption">
           <h2 id="sample-heading" className="label">
-            SAMPLE / SEPTEMBER 2026
+            SAMPLE / 30 DAYS
           </h2>
           <p>Fictional history. Real components. Your scan supplies your numbers.</p>
         </div>
@@ -30,7 +31,7 @@ export function SampleInstrument({ recap: r }: { recap: Recap }) {
           <div className="cell big">
             <div className="label">Total tokens</div>
             <div className="mega" data-testid="sample-total">
-              {compact(r.total)}
+              <TightNumber value={compact(r.total)} />
             </div>
             <div className="sub">
               <b>{integer(r.total)}</b> tokens through {p.models.length} models
@@ -292,10 +293,10 @@ export function SampleInstrument({ recap: r }: { recap: Recap }) {
       <Section
         number="05"
         title="Made to share"
-        note="Landscape, square speed board and story. Choose your numbers."
+        note="Landscape, square speed board and story. Make one from your history."
         id="share"
       >
-        <TerminalShare recap={r} github={ghTotal} synthetic />
+        <TerminalShare recap={r} github={ghTotal} synthetic previewOnly />
       </Section>
     </>
   );

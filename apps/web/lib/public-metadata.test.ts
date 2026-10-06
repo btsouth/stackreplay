@@ -30,7 +30,7 @@ function check(metadata: Metadata, title: string, path: string) {
 
 describe("public route metadata", () => {
   it.each([
-    [home, "StackReplay: your AI coding, replayed.", "/"],
+    [home, "StackReplay: your AI coding, measured.", "/"],
     [models, "Models", "/models"],
     [plans, "Subscriptions", "/plans"],
     [providers, "Providers", "/providers"],

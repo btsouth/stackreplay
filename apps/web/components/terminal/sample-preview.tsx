@@ -1,14 +1,8 @@
-import { buildArchetypeExport } from "@stackreplay/test-fixtures";
-import { buildRecap } from "@/lib/recap";
+import { sampleRecap } from "@/lib/home/recap-sample";
 import { compact, dollars, presentation } from "@/lib/terminal-presentation";
 import { TightNumber } from "./primitives";
 export function SamplePreview() {
-  const recap = buildRecap(
-    buildArchetypeExport("mixed").events,
-    "all",
-    "2026-09-24T12:00:00Z",
-    "UTC",
-  );
+  const recap = sampleRecap;
   const p = presentation(recap),
     max = Math.max(1, ...p.days.map((d) => d.total));
   return (

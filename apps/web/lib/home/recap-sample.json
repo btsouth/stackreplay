@@ -1,0 +1,825 @@
+{
+  "recap": {
+    "period": "all",
+    "deep": {
+      "buckets": {
+        "input": 141377428,
+        "output": 68387838,
+        "read": 18085904554,
+        "write": 193970654
+      },
+      "harnesses": [
+        {
+          "id": "unattributed",
+          "total": 18489640474,
+          "records": 113119
+        }
+      ],
+      "providers": [
+        {
+          "id": "unattributed",
+          "total": 12531810540,
+          "records": 76660
+        },
+        {
+          "id": "openai",
+          "total": 3505249938,
+          "records": 21436
+        },
+        {
+          "id": "anthropic",
+          "total": 2452579996,
+          "records": 15023
+        }
+      ],
+      "projects": [],
+      "firstSeen": [
+        {
+          "id": "deepseek-v4-1-flash",
+          "date": "2026-09-07",
+          "name": "DeepSeek-V4.1-Flash"
+        },
+        {
+          "id": "glm-5-3",
+          "date": "2026-09-07",
+          "name": "GLM 5.3"
+        },
+        {
+          "id": "glm-5-3-flash",
+          "date": "2026-09-07",
+          "name": "GLM 5.3 Flash"
+        },
+        {
+          "id": "deepseek-v4-pro",
+          "date": "2026-09-07",
+          "name": "DeepSeek-V4-Pro-0813"
+        },
+        {
+          "id": "gemini-3-1-pro",
+          "date": "2026-09-07",
+          "name": "Gemini 3.1 Pro"
+        },
+        {
+          "id": "gpt-6-astra",
+          "date": "2026-09-07",
+          "name": "GPT-6 Astra"
+        },
+        {
+          "id": "claude-haiku-4-5",
+          "date": "2026-09-07",
+          "name": "Claude Haiku 4.5"
+        },
+        {
+          "id": "gemini-3-5-flash",
+          "date": "2026-09-07",
+          "name": "Gemini 3.5 Flash"
+        },
+        {
+          "id": "gpt-6-sol",
+          "date": "2026-09-22",
+          "name": "GPT-6 Sol"
+        },
+        {
+          "id": "claude-opus-5-5",
+          "date": "2026-09-22",
+          "name": "Claude Opus 5.5"
+        },
+        {
+          "id": "claude-sonnet-5-5",
+          "date": "2026-09-28",
+          "name": "Claude Sonnet 5.5"
+        },
+        {
+          "id": "gpt-6-1-sol",
+          "date": "2026-09-29",
+          "name": "GPT-6.1 Sol"
+        }
+      ],
+      "speeds": [
+        {
+          "id": "gemini-3-5-flash",
+          "n": 1640,
+          "median": 122.39432276127806,
+          "p25": 103.85668837420373,
+          "p75": 141.33804080700395,
+          "wait": 4.9085
+        },
+        {
+          "id": "glm-5-3-flash",
+          "n": 1930,
+          "median": 110.75200350559473,
+          "p25": 94.34672581558644,
+          "p75": 127.17476923156613,
+          "wait": 5.4885
+        },
+        {
+          "id": "claude-haiku-4-5",
+          "n": 835,
+          "median": 101.34012625982943,
+          "p25": 87.97210863444472,
+          "p75": 117.3759370598035,
+          "wait": 5.757
+        },
+        {
+          "id": "deepseek-v4-1-flash",
+          "n": 56936,
+          "median": 95.99253300878688,
+          "p25": 81.63478482761518,
+          "p75": 110.54955335722006,
+          "wait": 6.3095
+        },
+        {
+          "id": "gpt-6-astra",
+          "n": 4144,
+          "median": 79.21954986658497,
+          "p25": 67.4354258604687,
+          "p75": 90.84482725828448,
+          "wait": 7.566000000000001
+        },
+        {
+          "id": "gpt-6-1-sol",
+          "n": 275,
+          "median": 70.45330420535227,
+          "p25": 61.395229594988336,
+          "p75": 80.28348911500476,
+          "wait": 8.942
+        },
+        {
+          "id": "claude-sonnet-5-5",
+          "n": 3174,
+          "median": 66.16415342181062,
+          "p25": 56.42038441264776,
+          "p75": 76.04727838195083,
+          "wait": 8.948
+        },
+        {
+          "id": "gpt-6-sol",
+          "n": 17017,
+          "median": 61.966012580978315,
+          "p25": 52.65555251890316,
+          "p75": 71.2161760333036,
+          "wait": 9.817
+        },
+        {
+          "id": "glm-5-3",
+          "n": 8069,
+          "median": 52.82258064516129,
+          "p25": 44.94509870853956,
+          "p75": 60.966023233470175,
+          "wait": 11.258
+        },
+        {
+          "id": "deepseek-v4-pro",
+          "n": 3207,
+          "median": 51.617423800070064,
+          "p25": 44.04767794852565,
+          "p75": 59.14885898105048,
+          "wait": 11.621
+        },
+        {
+          "id": "gemini-3-1-pro",
+          "n": 4878,
+          "median": 44.16869606238407,
+          "p25": 37.47706357922019,
+          "p75": 50.779556302703185,
+          "wait": 13.6855
+        },
+        {
+          "id": "claude-opus-5-5",
+          "n": 11014,
+          "median": 37.932352072353964,
+          "p25": 32.309128200466596,
+          "p75": 43.75233176212663,
+          "wait": 15.976500000000001
+        }
+      ],
+      "hours": [
+        [
+          203, 152, 81, 40, 13, 4, 4, 2, 16, 39, 44, 59, 89, 114, 117, 200, 193, 243, 342, 508, 619,
+          780, 675, 410
+        ],
+        [
+          643, 446, 221, 105, 59, 8, 12, 26, 51, 120, 161, 226, 265, 341, 409, 540, 622, 778, 1177,
+          1478, 1938, 2245, 2132, 1339
+        ],
+        [
+          772, 488, 250, 125, 77, 15, 8, 19, 69, 134, 184, 233, 353, 411, 519, 645, 800, 863, 1332,
+          1818, 2266, 2843, 2462, 1595
+        ],
+        [
+          1006, 601, 306, 201, 98, 12, 26, 30, 69, 146, 238, 324, 420, 516, 601, 806, 945, 1088,
+          1717, 2210, 2824, 3486, 3090, 1974
+        ],
+        [
+          797, 501, 233, 145, 67, 10, 9, 27, 72, 141, 182, 244, 336, 376, 509, 638, 757, 863, 1291,
+          1778, 2151, 2707, 2431, 1462
+        ],
+        [
+          939, 652, 316, 167, 93, 18, 13, 43, 80, 141, 239, 349, 387, 454, 614, 823, 982, 1134,
+          1641, 2267, 2907, 3369, 3130, 1977
+        ],
+        [
+          487, 331, 176, 72, 35, 6, 8, 19, 38, 77, 133, 159, 201, 228, 307, 386, 488, 547, 843,
+          1108, 1405, 1724, 1538, 1037
+        ]
+      ],
+      "weekendShare": 0.1440960404529743,
+      "months": [],
+      "costDays": [],
+      "cacheSavings": "0",
+      "cacheSavingsRecords": 0,
+      "omittedFirstSeen": 0
+    },
+    "explorer": {
+      "modelSessions": {
+        "deepseek-v4-1-flash": 958,
+        "glm-5-3": 956,
+        "glm-5-3-flash": 803,
+        "deepseek-v4-pro": 899,
+        "gemini-3-1-pro": 940,
+        "gpt-6-astra": 922,
+        "claude-haiku-4-5": 548,
+        "gemini-3-5-flash": 746,
+        "gpt-6-sol": 563,
+        "claude-opus-5-5": 563,
+        "claude-sonnet-5-5": 302,
+        "gpt-6-1-sol": 173
+      },
+      "days": [
+        {
+          "date": "2026-09-07",
+          "records": 3227,
+          "total": 530902593
+        },
+        {
+          "date": "2026-09-08",
+          "records": 4007,
+          "total": 653444439
+        },
+        {
+          "date": "2026-09-09",
+          "records": 6860,
+          "total": 1118910914
+        },
+        {
+          "date": "2026-09-10",
+          "records": 2411,
+          "total": 393093674
+        },
+        {
+          "date": "2026-09-11",
+          "records": 3661,
+          "total": 604113106
+        },
+        {
+          "date": "2026-09-12",
+          "records": 2141,
+          "total": 349382184
+        },
+        {
+          "date": "2026-09-13",
+          "records": 0,
+          "total": 0,
+          "usd": "0"
+        },
+        {
+          "date": "2026-09-14",
+          "records": 3987,
+          "total": 650767907
+        },
+        {
+          "date": "2026-09-15",
+          "records": 4747,
+          "total": 774569010
+        },
+        {
+          "date": "2026-09-16",
+          "records": 4396,
+          "total": 717631913
+        },
+        {
+          "date": "2026-09-17",
+          "records": 3654,
+          "total": 594897328
+        },
+        {
+          "date": "2026-09-18",
+          "records": 2139,
+          "total": 355653877
+        },
+        {
+          "date": "2026-09-19",
+          "records": 2700,
+          "total": 439348435
+        },
+        {
+          "date": "2026-09-20",
+          "records": 272,
+          "total": 45734228
+        },
+        {
+          "date": "2026-09-21",
+          "records": 2301,
+          "total": 376605983
+        },
+        {
+          "date": "2026-09-22",
+          "records": 2342,
+          "total": 382251379
+        },
+        {
+          "date": "2026-09-23",
+          "records": 5109,
+          "total": 839626993
+        },
+        {
+          "date": "2026-09-24",
+          "records": 5309,
+          "total": 869018430
+        },
+        {
+          "date": "2026-09-25",
+          "records": 13120,
+          "total": 2136122237
+        },
+        {
+          "date": "2026-09-26",
+          "records": 3353,
+          "total": 546844404
+        },
+        {
+          "date": "2026-09-27",
+          "records": 1590,
+          "total": 257142098
+        },
+        {
+          "date": "2026-09-28",
+          "records": 2896,
+          "total": 473661865
+        },
+        {
+          "date": "2026-09-29",
+          "records": 328,
+          "total": 53377772
+        },
+        {
+          "date": "2026-09-30",
+          "records": 6369,
+          "total": 1044545506
+        },
+        {
+          "date": "2026-10-01",
+          "records": 6353,
+          "total": 1041445256
+        },
+        {
+          "date": "2026-10-02",
+          "records": 3815,
+          "total": 621546068
+        },
+        {
+          "date": "2026-10-03",
+          "records": 3159,
+          "total": 516427113
+        },
+        {
+          "date": "2026-10-04",
+          "records": 3085,
+          "total": 500674000
+        },
+        {
+          "date": "2026-10-05",
+          "records": 2931,
+          "total": 481769993
+        },
+        {
+          "date": "2026-10-06",
+          "records": 6857,
+          "total": 1120131769
+        }
+      ]
+    },
+    "start": "2026-09-07",
+    "end": "2026-10-06",
+    "timeZone": "UTC",
+    "days": [
+      {
+        "date": "2026-09-07",
+        "records": 3227,
+        "output": 1952727
+      },
+      {
+        "date": "2026-09-08",
+        "records": 4007,
+        "output": 2438958
+      },
+      {
+        "date": "2026-09-09",
+        "records": 6860,
+        "output": 4152264
+      },
+      {
+        "date": "2026-09-10",
+        "records": 2411,
+        "output": 1464096
+      },
+      {
+        "date": "2026-09-11",
+        "records": 3661,
+        "output": 2217392
+      },
+      {
+        "date": "2026-09-12",
+        "records": 2141,
+        "output": 1296020
+      },
+      {
+        "date": "2026-09-13",
+        "records": 0,
+        "output": 0
+      },
+      {
+        "date": "2026-09-14",
+        "records": 3987,
+        "output": 2438220
+      },
+      {
+        "date": "2026-09-15",
+        "records": 4747,
+        "output": 2848745
+      },
+      {
+        "date": "2026-09-16",
+        "records": 4396,
+        "output": 2657061
+      },
+      {
+        "date": "2026-09-17",
+        "records": 3654,
+        "output": 2200631
+      },
+      {
+        "date": "2026-09-18",
+        "records": 2139,
+        "output": 1303649
+      },
+      {
+        "date": "2026-09-19",
+        "records": 2700,
+        "output": 1617977
+      },
+      {
+        "date": "2026-09-20",
+        "records": 272,
+        "output": 164143
+      },
+      {
+        "date": "2026-09-21",
+        "records": 2301,
+        "output": 1387726
+      },
+      {
+        "date": "2026-09-22",
+        "records": 2342,
+        "output": 1419266
+      },
+      {
+        "date": "2026-09-23",
+        "records": 5109,
+        "output": 3056571
+      },
+      {
+        "date": "2026-09-24",
+        "records": 5309,
+        "output": 3186058
+      },
+      {
+        "date": "2026-09-25",
+        "records": 13120,
+        "output": 7903504
+      },
+      {
+        "date": "2026-09-26",
+        "records": 3353,
+        "output": 2036617
+      },
+      {
+        "date": "2026-09-27",
+        "records": 1590,
+        "output": 974835
+      },
+      {
+        "date": "2026-09-28",
+        "records": 2896,
+        "output": 1750203
+      },
+      {
+        "date": "2026-09-29",
+        "records": 328,
+        "output": 190662
+      },
+      {
+        "date": "2026-09-30",
+        "records": 6369,
+        "output": 3829144
+      },
+      {
+        "date": "2026-10-01",
+        "records": 6353,
+        "output": 3880415
+      },
+      {
+        "date": "2026-10-02",
+        "records": 3815,
+        "output": 2317781
+      },
+      {
+        "date": "2026-10-03",
+        "records": 3159,
+        "output": 1930726
+      },
+      {
+        "date": "2026-10-04",
+        "records": 3085,
+        "output": 1863787
+      },
+      {
+        "date": "2026-10-05",
+        "records": 2931,
+        "output": 1751834
+      },
+      {
+        "date": "2026-10-06",
+        "records": 6857,
+        "output": 4156826
+      }
+    ],
+    "models": [
+      {
+        "id": "deepseek-v4-1-flash",
+        "name": "DeepSeek-V4.1-Flash",
+        "family": "deepseek",
+        "output": 34455995,
+        "total": 9311621669,
+        "records": 56936,
+        "priced": 0,
+        "usd": "0",
+        "usdHigh": "0",
+        "cacheScenarioRecords": 0
+      },
+      {
+        "id": "gpt-6-sol",
+        "name": "GPT-6 Sol",
+        "family": "openai",
+        "output": 10333603,
+        "total": 2783888157,
+        "records": 17017,
+        "priced": 0,
+        "usd": "0",
+        "usdHigh": "0",
+        "cacheScenarioRecords": 0
+      },
+      {
+        "id": "claude-opus-5-5",
+        "name": "Claude Opus 5.5",
+        "family": "anthropic",
+        "output": 6659457,
+        "total": 1797830487,
+        "records": 11014,
+        "priced": 0,
+        "usd": "0",
+        "usdHigh": "0",
+        "cacheScenarioRecords": 0
+      },
+      {
+        "id": "glm-5-3",
+        "name": "GLM 5.3",
+        "family": "z-ai",
+        "output": 4832050,
+        "total": 1319825497,
+        "records": 8069,
+        "priced": 0,
+        "usd": "0",
+        "usdHigh": "0",
+        "cacheScenarioRecords": 0
+      },
+      {
+        "id": "gemini-3-1-pro",
+        "name": "Gemini 3.1 Pro",
+        "family": "google",
+        "output": 2948088,
+        "total": 797253328,
+        "records": 4878,
+        "priced": 0,
+        "usd": "0",
+        "usdHigh": "0",
+        "cacheScenarioRecords": 0
+      },
+      {
+        "id": "gpt-6-astra",
+        "name": "GPT-6 Astra",
+        "family": "openai",
+        "output": 2486796,
+        "total": 676339357,
+        "records": 4144,
+        "priced": 0,
+        "usd": "0",
+        "usdHigh": "0",
+        "cacheScenarioRecords": 0
+      },
+      {
+        "id": "deepseek-v4-pro",
+        "name": "DeepSeek-V4-Pro-0813",
+        "family": "deepseek",
+        "output": 1932578,
+        "total": 523998505,
+        "records": 3207,
+        "priced": 0,
+        "usd": "0",
+        "usdHigh": "0",
+        "cacheScenarioRecords": 0
+      },
+      {
+        "id": "claude-sonnet-5-5",
+        "name": "Claude Sonnet 5.5",
+        "family": "anthropic",
+        "output": 1906121,
+        "total": 517489016,
+        "records": 3174,
+        "priced": 0,
+        "usd": "0",
+        "usdHigh": "0",
+        "cacheScenarioRecords": 0
+      },
+      {
+        "id": "glm-5-3-flash",
+        "name": "GLM 5.3 Flash",
+        "family": "z-ai",
+        "output": 1164720,
+        "total": 313079246,
+        "records": 1930,
+        "priced": 0,
+        "usd": "0",
+        "usdHigh": "0",
+        "cacheScenarioRecords": 0
+      },
+      {
+        "id": "gemini-3-5-flash",
+        "name": "Gemini 3.5 Flash",
+        "family": "google",
+        "output": 990946,
+        "total": 266032295,
+        "records": 1640,
+        "priced": 0,
+        "usd": "0",
+        "usdHigh": "0",
+        "cacheScenarioRecords": 0
+      },
+      {
+        "id": "claude-haiku-4-5",
+        "name": "Claude Haiku 4.5",
+        "family": "anthropic",
+        "output": 508120,
+        "total": 137260493,
+        "records": 835,
+        "priced": 0,
+        "usd": "0",
+        "usdHigh": "0",
+        "cacheScenarioRecords": 0
+      },
+      {
+        "id": "gpt-6-1-sol",
+        "name": "GPT-6.1 Sol",
+        "family": "openai",
+        "output": 169364,
+        "total": 45022424,
+        "records": 275,
+        "priced": 0,
+        "usd": "0",
+        "usdHigh": "0",
+        "cacheScenarioRecords": 0
+      }
+    ],
+    "weeks": [
+      {
+        "date": "2026-09-07",
+        "families": {
+          "deepseek": 2660188788,
+          "z-ai": 451433123,
+          "google": 298643786,
+          "openai": 201123676,
+          "anthropic": 38457537
+        }
+      },
+      {
+        "date": "2026-09-14",
+        "families": {
+          "deepseek": 2646496144,
+          "z-ai": 436309889,
+          "openai": 172631674,
+          "google": 284413704,
+          "anthropic": 38751287
+        }
+      },
+      {
+        "date": "2026-09-21",
+        "families": {
+          "deepseek": 2368287710,
+          "openai": 1484295064,
+          "z-ai": 390808669,
+          "google": 254347922,
+          "anthropic": 909872159
+        }
+      },
+      {
+        "date": "2026-09-28",
+        "families": {
+          "anthropic": 1058273296,
+          "deepseek": 1575595046,
+          "openai": 1191974841,
+          "z-ai": 260976099,
+          "google": 164858298
+        }
+      },
+      {
+        "date": "2026-10-05",
+        "families": {
+          "deepseek": 585052486,
+          "z-ai": 93376963,
+          "anthropic": 407225717,
+          "openai": 455224683,
+          "google": 61021913
+        }
+      }
+    ],
+    "tools": [
+      {
+        "id": "opencode",
+        "records": 76660,
+        "output": 46324377,
+        "total": 12531810540
+      },
+      {
+        "id": "codex",
+        "records": 21436,
+        "output": 12989763,
+        "total": 3505249938
+      },
+      {
+        "id": "claude-code",
+        "records": 15023,
+        "output": 9073698,
+        "total": 2452579996
+      }
+    ],
+    "records": 113119,
+    "output": 68387838,
+    "outputKnown": 113119,
+    "total": 18489640474,
+    "totalKnown": 113119,
+    "sessions": 2758,
+    "sessionKnown": 113119,
+    "streak": 23,
+    "longestStreak": 23,
+    "busiestHour": 21,
+    "busiestDay": "2026-09-25",
+    "lateNightShare": 0.09634102140224012,
+    "priced": 0,
+    "usd": "0",
+    "usdHigh": "0",
+    "cacheScenarioRecords": 0,
+    "rulesAsOf": "2026-10-06"
+  },
+  "github": {
+    "2026-09-07": 50,
+    "2026-09-08": 52,
+    "2026-09-09": 89,
+    "2026-09-10": 33,
+    "2026-09-11": 48,
+    "2026-09-12": 49,
+    "2026-09-13": 3,
+    "2026-09-14": 70,
+    "2026-09-15": 48,
+    "2026-09-16": 65,
+    "2026-09-17": 12,
+    "2026-09-18": 24,
+    "2026-09-19": 23,
+    "2026-09-20": 14,
+    "2026-09-21": 47,
+    "2026-09-22": 48,
+    "2026-09-23": 28,
+    "2026-09-24": 68,
+    "2026-09-25": 43,
+    "2026-09-26": 52,
+    "2026-09-27": 26,
+    "2026-09-28": 22,
+    "2026-09-29": 3,
+    "2026-09-30": 78,
+    "2026-10-01": 77,
+    "2026-10-02": 40,
+    "2026-10-03": 53,
+    "2026-10-04": 64,
+    "2026-10-05": 45,
+    "2026-10-06": 83
+  }
+}

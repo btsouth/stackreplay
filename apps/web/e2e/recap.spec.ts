@@ -1,8 +1,9 @@
+import { readFile } from "node:fs/promises";
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
-import { readFile } from "node:fs/promises";
 import { stackWorkloadFile } from "./fixtures/stack-workload";
 import { captureRequests, gotoImport } from "./premium-app-helpers";
+
 const fixture = {
   name: "synthetic.stackreplay.json",
   mimeType: "application/json",
@@ -126,7 +127,7 @@ test("all card formats measure non-overlapping text with every stat selected", a
   const timed = stackWorkloadFile({ scale: 100 });
   timed.events = timed.events.map((event) => ({
     ...event,
-    usage: { inputTokens: event.usage.inputTokens ?? 0, outputTokens: 472 },
+    usage: { ...event.usage, outputTokens: 472, reasoningTokens: 0 },
     confidence: { ...event.confidence, usage: "exact" },
     requestStartedAt: new Date(Date.parse(event.occurredAt) - 10000).toISOString(),
     requestEndedAt: event.occurredAt,
