@@ -201,7 +201,10 @@ export function BillingSetup({
         </button>
       </form>
       {accountsState !== "ready" ? (
-        <p role="status" className="text-sm text-muted-foreground">
+        <p
+          role={accountsState === "error" ? "alert" : "status"}
+          className="text-sm text-muted-foreground"
+        >
           {accountsState === "error"
             ? "Account details could not load. Reload to retry."
             : "Account details are still loading. You can enter your dates and payment now."}
