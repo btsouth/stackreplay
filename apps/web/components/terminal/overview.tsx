@@ -557,7 +557,7 @@ export function Overview({
                         : coverage === "partial"
                           ? "partly priced"
                           : dollars(m.usd)}{" "}
-                      · {integer(r.explorer?.modelSessions[m.id] ?? 0)} sessions ·{" "}
+                      · {plural(r.explorer?.modelSessions[m.id] ?? 0, "session", "sessions")} ·{" "}
                       {speed ? `${speed.median.toFixed(1)} tok/s` : "timing unreported"} ·{" "}
                       {first ? dateLabel(first.date).toUpperCase() : "first use unreported"}
                     </p>
@@ -566,16 +566,40 @@ export function Overview({
               })}
             </section>
             {p.tail.length > 0 && (
-              <div className="tail">
-                <span className="label">+ {p.tail.length} more</span>
-                {p.tail.map((m) => (
-                  <span className={`tl${unresolvedModel(m.id, m.name) ? " dim" : ""}`} key={m.id}>
-                    <i style={{ background: p.colors.get(m.id) }} />
-                    {name(m.id)}
-                    <b>{compact(m.total)}</b>
-                  </span>
-                ))}
-              </div>
+              <details className="tail">
+                <summary className="label">Unidentified labels ({p.tail.length})</summary>
+                <p className="tail-note">
+                  Log entries whose model the catalog does not name. No identity is guessed.
+                </p>
+                {p.tail.map((m) => {
+                  const s = p.speeds.find((speed) => speed.id === m.id);
+                  const first = r.deep?.firstSeen.find((f) => f.id === m.id);
+                  const sessions = r.explorer?.modelSessions[m.id] ?? 0;
+                  const coverage = pricingCoverage(m);
+                  return (
+                    <span className={`tl${unresolvedModel(m.id, m.name) ? " dim" : ""}`} key={m.id}>
+                      <i style={{ background: p.colors.get(m.id) }} />
+                      <b>{name(m.id)}</b>
+                      <span>{compact(m.total)} tokens</span>
+                      <span>{plural(sessions, "session", "sessions")}</span>
+                      <span>{s ? `${s.median.toFixed(1)} tok/s` : "timing unreported"}</span>
+                      <span>
+                        {first
+                          ? `first used ${dateLabel(first.date).toUpperCase()}`
+                          : "first use unreported"}
+                      </span>
+                      <span>
+                        {coverage === "none"
+                          ? "unpriced"
+                          : coverage === "partial"
+                            ? "partly priced"
+                            : dollars(m.usd)}
+                      </span>
+                      <span>{developerNames[m.family] ?? "developer unknown"}</span>
+                    </span>
+                  );
+                })}
+              </details>
             )}
           </div>
         </div>

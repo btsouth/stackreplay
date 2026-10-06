@@ -50,23 +50,31 @@ export function recapInsightCandidates(
     previous = d.date;
   }
   const active = new Set(days.filter((d) => d.records > 0).map((d) => d.date));
-  let current = 0;
+  let current = 0,
+    currentStart = r.end;
   for (
     let d = active.has(r.end) ? r.end : nextDay(r.end, -1);
     d >= r.start && active.has(d);
     d = nextDay(d, -1)
-  )
+  ) {
     current++;
+    currentStart = d;
+  }
   const periodDays = Math.round((Date.parse(r.end) - Date.parse(r.start)) / 86400000) + 1;
   const wholePeriod = days.length === periodDays && longest === days.length;
   // The current run may end yesterday while today is still unfinished.
   // Require the displayed days to agree with the full-history current run.
   const extended = r.streak > periodDays && current >= periodDays - 1;
+  // An ongoing run longer than the period starts before it; its own start date
+  // is the only honest anchor, so the headline carries the scope itself.
+  const streakStart = extended
+    ? nextDay(active.has(r.end) ? r.end : nextDay(r.end, -1), -(r.streak - 1))
+    : currentStart;
   if (longest >= 2)
     add(
       "streak:ai",
       extended
-        ? `${integer(r.streak)} days in a row with AI, and counting`
+        ? `Coding with AI every day since ${dateLabel(streakStart)}`
         : wholePeriod
           ? `You used AI every day of this ${integer(longest)}-day period`
           : `${integer(longest)} days in a row with AI in this period`,

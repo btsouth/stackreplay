@@ -1,5 +1,5 @@
 import type { ShareWorkloadV2 } from "@stackreplay/share";
-import type { Recap } from "./recap";
+import { type Recap, requestCountOf } from "./recap";
 import {
   compact,
   dateLabel,
@@ -7,6 +7,7 @@ import {
   familyColor,
   modelDisplayName,
   presentation,
+  tokenSplit,
   unresolvedModel,
 } from "./terminal-presentation";
 import type { PaidFigure } from "./use-paid-multiplier";
@@ -54,6 +55,7 @@ export function makeCard(
   const githubMax = Math.max(1, ...p.days.map((d) => githubDays?.get(d.date) ?? 0));
   const step = Math.max(1, Math.ceil(p.days.length / 64));
   const insight = headline?.trim();
+  const split = tokenSplit(r);
   return {
     theme,
     start: r.start,
@@ -61,12 +63,15 @@ export function makeCard(
     ...(selected.tokens
       ? {
           totalTokens: r.total,
+          ...(split ? { cacheShare: Math.round(split.cacheShare * 100) } : {}),
           spark: p.days
             .filter((_, i) => i % step === 0)
             .map((d) => Math.round((d.total / max) * 1000)),
         }
       : {}),
-    ...(selected.usd && r.priced ? { usd: r.usd } : {}),
+    ...(selected.usd && r.priced
+      ? { usd: r.usd, pricedRequests: r.priced, requests: requestCountOf(r) }
+      : {}),
     ...(selected.speed && p.speeds.length
       ? { speeds: p.speeds.map((m) => ({ id: m.id, median: m.median })) }
       : {}),
@@ -207,6 +212,13 @@ export function largestEmptyHorizontalBand(
   }
   return Math.max(largest, height - bottom);
 }
+/** Whole-percent pricing coverage label for the selected dollar figure. */
+export function cardCoverage(card: PublicCard) {
+  if (card.usd === undefined) return undefined;
+  return card.pricedRequests !== undefined && card.requests
+    ? `${Math.round((card.pricedRequests / card.requests) * 100)}% PRICED`
+    : "COVERAGE UNREPORTED";
+}
 /** Explicit, bounded regions shared by canvas and the public image renderer. */
 export function cardLayout(card: PublicCard, format: CardFormat, options: CardRenderOptions = {}) {
   const [w, h] = CARD_SIZES[format];
@@ -215,6 +227,10 @@ export function cardLayout(card: PublicCard, format: CardFormat, options: CardRe
     landscape = !story && !square;
   const pad = 56,
     width = w - pad * 2;
+  // Every format keeps its smallest labels readable, so the card survives a
+  // phone feed unchanged. Landscape is sparse: one lead figure and up to five
+  // supporting readouts, with no model or speed list.
+  const small = story ? 26 : square ? 20 : 18;
   const texts: CardText[] = [],
     bars: CardBar[] = [],
     activityBars: CardBar[] = [];
@@ -233,7 +249,7 @@ export function cardLayout(card: PublicCard, format: CardFormat, options: CardRe
     cardPeriod(card),
     story ? pad : w - pad,
     story ? 112 : 38,
-    story ? 24 : 18,
+    story ? 26 : square ? 20 : 18,
     story ? width : width - 380,
     { dim: true, align: story ? "left" : "right" },
   );
@@ -247,7 +263,7 @@ export function cardLayout(card: PublicCard, format: CardFormat, options: CardRe
   const headlineLines = storyHeadline ? wrapCardText(storyHeadline, width, headlineSize) : [];
   const hasHeadline = headlineLines.length > 0;
   if (hasHeadline)
-    add("headline", storyHeadline, pad, story ? 178 : 80, headlineSize, width, {
+    add("headline", storyHeadline, pad, story ? 178 : square ? 80 : 78, headlineSize, width, {
       font: "sans",
       lines: headlineLines,
     });
@@ -263,8 +279,8 @@ export function cardLayout(card: PublicCard, format: CardFormat, options: CardRe
         ? 176
         : 138
       : hasHeadline
-        ? 160
-        : 100;
+        ? 168
+        : 120;
   const heroSize = story
     ? hasHeadline
       ? 150
@@ -276,29 +292,20 @@ export function cardLayout(card: PublicCard, format: CardFormat, options: CardRe
       : hasHeadline
         ? 104
         : 144;
-  add("hero", cardTitle(card), pad, heroY, heroSize, story ? width : square ? 490 : 600, {
-    tight: true,
+  const heroWidth = landscape ? 620 : square ? 490 : width;
+  add("hero", cardTitle(card), pad, heroY, heroSize, heroWidth, { tight: true });
+  const captionText =
+    card.totalTokens !== undefined
+      ? `TOKENS OF AI CODING${card.cacheShare !== undefined ? ` · ${card.cacheShare}% CACHED CONTEXT` : ""}`
+      : "YOUR AI CODING";
+  add("caption", captionText, pad, heroY + heroSize + 8, story ? 30 : square ? 22 : 20, heroWidth, {
+    dim: true,
   });
-  add(
-    "caption",
-    card.totalTokens !== undefined ? "TOKENS OF AI CODING" : "YOUR AI CODING",
-    pad,
-    hasHeadline
-      ? story
-        ? heroY + heroSize + 12
-        : heroY + heroSize + 6
-      : story
-        ? heroY + 282
-        : square
-          ? 318
-          : 270,
-    story ? 30 : square ? 22 : 20,
-    story ? width : square ? 490 : 600,
-    { dim: true },
-  );
-  const models = card.models?.slice(0, 5) ?? [];
-  const modelX = landscape ? 716 : square ? 600 : pad;
-  const modelWidth = landscape ? 428 : square ? 424 : width;
+  // Landscape spends the right half on the readouts; square and story keep the
+  // ranked model list beside the hero.
+  const models = landscape ? [] : (card.models?.slice(0, 5) ?? []);
+  const modelX = square ? 600 : pad;
+  const modelWidth = square ? 424 : width;
   const modelY = story
     ? hasHeadline
       ? dense
@@ -311,25 +318,23 @@ export function cardLayout(card: PublicCard, format: CardFormat, options: CardRe
       ? hasHeadline
         ? 214
         : 182
-      : hasHeadline
-        ? 200
-        : 140;
-  const modelStep = story ? (dense ? 84 : 110) : square ? 58 : 43;
-  const modelSize = story ? (dense ? 40 : 44) : square ? 24 : 20;
+      : 0;
+  const modelStep = story ? (dense ? 84 : 110) : 58;
+  const modelSize = story ? (dense ? 40 : 44) : 24;
   if (models.length)
     add(
       "models-heading",
       "TOP MODELS",
       modelX,
       story ? modelY - 56 : modelY - 42,
-      story ? 24 : 16,
+      story ? 26 : 20,
       modelWidth,
       { dim: true },
     );
   const total = card.totalTokens ?? models.reduce((sum, m) => sum + m.tokenCount, 0);
   models.forEach((m, i) => {
     const y = modelY + i * modelStep,
-      valueWidth = story ? 180 : square ? 100 : 80;
+      valueWidth = story ? 180 : 100;
     add(
       `model-name-${i}`,
       `${i + 1}. ${cardName(m.id)}`,
@@ -347,62 +352,63 @@ export function cardLayout(card: PublicCard, format: CardFormat, options: CardRe
     bars.push({
       id: `model-bar-${i}`,
       x: modelX,
-      y: y + (story ? 60 : square ? 36 : 28),
+      y: y + (story ? 60 : 36),
       width: modelWidth * Math.min(1, m.tokenCount / Math.max(1, total)),
       height: story ? 8 : 5,
       color: familyColor(m.family ?? "other")!,
     });
   });
-  const columns = story ? 2 : Math.max(1, metrics.length);
-  const metricY = story
-    ? hasHeadline
-      ? dense
-        ? 1000
-        : 1300
-      : dense
-        ? 1070
-        : 1270
-    : square
-      ? 520
-      : hasHeadline
-        ? 522
-        : 514;
-  const metricStep = story ? (dense ? 112 : 140) : 0;
-  const metricSize = story ? (dense ? 60 : 72) : square ? (metrics.length > 3 ? 36 : 54) : 34;
   let statsBottom = 0;
-  metrics.forEach((m, i) => {
-    const x = pad + ((i % columns) * width) / columns,
-      y = metricY + Math.floor(i / columns) * metricStep;
-    const cellWidth = width / columns - 20;
-    const labelY = y + metricSize + (story ? 12 : 10);
-    const labelSize = story ? 22 : square ? 16 : 13;
-    add(`stat-${i}`, m.value, x, y, metricSize, cellWidth, { tight: true });
-    add(`label-${i}`, m.label, x, labelY, labelSize, cellWidth, { dim: true });
-    statsBottom = Math.max(statsBottom, labelY + labelSize);
-  });
-  if (speeds.length) {
-    const headingY = story ? (hasHeadline ? 1330 : 1412) : square ? 634 : 300;
-    const topY = headingY + (story ? 38 : square ? 32 : 26);
-    const available = story ? 142 : square ? 118 : 78;
+  if (landscape) {
+    // One readout per row in the right half, scaled to the count that was chosen.
+    const columnX = 680,
+      columnWidth = w - pad - columnX,
+      top = hasHeadline ? 170 : 120,
+      bottom = 470,
+      rows = Math.max(1, metrics.length),
+      rowHeight = (bottom - top) / rows,
+      valueSize = Math.max(24, Math.min(72, Math.floor(rowHeight) - 40)),
+      labelSize = 18;
+    metrics.forEach((m, i) => {
+      const y = top + i * rowHeight;
+      add(`stat-${i}`, m.value, columnX, y, valueSize, columnWidth, { tight: true });
+      add(`label-${i}`, m.label, columnX, y + valueSize + 8, labelSize, columnWidth, { dim: true });
+      statsBottom = Math.max(statsBottom, y + valueSize + 8 + labelSize);
+    });
+  } else {
+    const columns = square ? Math.min(Math.max(1, metrics.length), 3) : 2;
+    const metricY = story ? (hasHeadline ? (dense ? 1000 : 1300) : dense ? 1070 : 1270) : 520;
+    const rows = Math.ceil(metrics.length / columns);
+    const metricSize = story ? (dense ? 60 : 72) : rows > 1 ? 34 : 54;
+    const metricStep = story ? (dense ? 112 : 140) : metricSize + 34;
+    const labelSize = story ? 26 : 20;
+    metrics.forEach((m, i) => {
+      const x = pad + ((i % columns) * width) / columns,
+        y = metricY + Math.floor(i / columns) * metricStep;
+      const cellWidth = width / columns - 20;
+      const labelY = y + metricSize + (story ? 12 : 10);
+      add(`stat-${i}`, m.value, x, y, metricSize, cellWidth, { tight: true });
+      add(`label-${i}`, m.label, x, labelY, labelSize, cellWidth, { dim: true });
+      statsBottom = Math.max(statsBottom, labelY + labelSize);
+    });
+  }
+  if (!landscape && speeds.length) {
+    const headingY = story ? (hasHeadline ? 1330 : 1412) : 680;
+    const topY = headingY + (story ? 38 : 32);
+    const available = story ? 142 : 118;
     const cols = 3,
       rows = Math.ceil(speeds.length / cols);
-    const rowHeight = Math.min(story ? 28 : square ? 26 : 20, available / rows);
-    const size = Math.min(story ? 23 : square ? 20 : 16, rowHeight - 3);
-    const speedWidth = landscape ? 624 : width;
-    add(
-      "speed-heading",
-      "SPEED BOARD · MEDIAN TOK/S",
-      pad,
-      headingY,
-      story ? 22 : square ? 18 : 14,
-      speedWidth,
-      { dim: true },
-    );
+    const rowHeight = Math.min(story ? 28 : 26, available / rows);
+    const size = story ? Math.max(26, rowHeight - 2) : Math.min(20, rowHeight - 3);
+    const speedWidth = width;
+    add("speed-heading", "SPEED BOARD · MEDIAN TOK/S", pad, headingY, story ? 26 : 20, speedWidth, {
+      dim: true,
+    });
     speeds.forEach((speed, i) => {
       const x = pad + ((i % cols) * speedWidth) / cols,
         y = topY + Math.floor(i / cols) * rowHeight;
       const cellWidth = speedWidth / cols - 18,
-        valueWidth = story ? 62 : square ? 52 : 38;
+        valueWidth = story ? 62 : 52;
       add(`speed-name-${i}`, cardName(speed.id), x, y, size, cellWidth - valueWidth - 8, {
         font: "sans",
       });
@@ -417,22 +423,23 @@ export function cardLayout(card: PublicCard, format: CardFormat, options: CardRe
   const tokenSeries = card.spark ?? [],
     githubSeries = card.github !== undefined ? (card.githubSpark ?? []) : [];
   const connected = githubSeries.length > 0;
-  const activityY = story
-    ? Math.max(
-        hasHeadline ? (speeds.length ? 1550 : 1560) : speeds.length ? 1630 : 1560,
-        statsBottom + 24,
-      )
-    : square
-      ? speeds.length
-        ? 800
-        : 658
-      : hasHeadline
-        ? 406
-        : speeds.length
-          ? 408
+  const activityY = landscape
+    ? 380
+    : story
+      ? Math.max(
+          hasHeadline ? (speeds.length ? 1550 : 1560) : speeds.length ? 1630 : 1560,
+          statsBottom + 24,
+        )
+      : square
+        ? speeds.length
+          ? 858
+          : 680
+        : hasHeadline
+          ? 406
           : 348;
-  const chartTop = activityY + (story ? 46 : square ? 42 : hasHeadline ? 24 : 30);
-  const chartBottom = story ? 1800 : square ? 976 : hasHeadline ? 510 : 500,
+  const chartWidth = landscape ? 620 : width;
+  const chartTop = landscape ? 404 : activityY + (story ? 46 : square ? 42 : 24);
+  const chartBottom = landscape ? 520 : story ? 1800 : square ? 976 : hasHeadline ? 510 : 500,
     chartHeight = chartBottom - chartTop;
   const tokenHeight = tokenSeries.length ? (connected ? (chartHeight - 4) * 0.55 : chartHeight) : 0,
     baseline = chartTop + tokenHeight;
@@ -444,18 +451,18 @@ export function cardLayout(card: PublicCard, format: CardFormat, options: CardRe
       tokenSeries.length ? "■ AI TOKENS / DAY" : "■ GITHUB CONTRIBUTIONS / DAY",
       pad,
       activityY,
-      story ? 24 : 18,
-      tokenSeries.length && connected ? width * 0.4 : width,
+      small,
+      tokenSeries.length && connected ? chartWidth * 0.4 : chartWidth,
       { color: tokenSeries.length ? signal : green },
     );
     if (tokenSeries.length && connected)
       add(
         "github-heading",
         "■ GITHUB CONTRIBUTIONS / DAY",
-        pad + width * 0.4,
+        pad + chartWidth * 0.4,
         activityY,
-        story ? 24 : 18,
-        width * 0.6,
+        small,
+        chartWidth * 0.6,
         { color: green },
       );
   }
@@ -463,7 +470,7 @@ export function cardLayout(card: PublicCard, format: CardFormat, options: CardRe
   const githubHeight = Math.max(0, chartBottom - baseline - 4);
   tokenSeries.forEach((value, i) => {
     if (!value) return;
-    const slot = width / tokenSeries.length,
+    const slot = chartWidth / tokenSeries.length,
       bh = (value / 1000) * tokenHeight;
     activityBars.push({
       id: `token-day-${i}`,
@@ -476,7 +483,7 @@ export function cardLayout(card: PublicCard, format: CardFormat, options: CardRe
   });
   githubSeries.forEach((value, i) => {
     if (!value) return;
-    const slot = width / githubSeries.length,
+    const slot = chartWidth / githubSeries.length,
       bh = Math.max(Math.min(4, githubHeight), (value / githubMax) * githubHeight);
     activityBars.push({
       id: `github-day-${i}`,
@@ -487,18 +494,41 @@ export function cardLayout(card: PublicCard, format: CardFormat, options: CardRe
       color: green,
     });
   });
-  add("footer-brand", "STACKREPLAY.COM", pad, h - (story ? 68 : 44), story ? 24 : 16, width / 2, {
-    dim: true,
-  });
+  const footerBrandY = h - (story ? 68 : 44);
+  add(
+    "footer-brand",
+    "STACKREPLAY.COM",
+    pad,
+    footerBrandY,
+    story ? 26 : square ? 20 : 18,
+    width / 2,
+    {
+      dim: true,
+    },
+  );
   add(
     "footer-note",
     "REPORTED USAGE · NOT A BILL",
     w - pad,
-    h - (story ? 68 : 44),
-    story ? 21 : 14,
+    footerBrandY,
+    story ? 26 : square ? 20 : 18,
     width / 2,
-    { dim: true, align: "right" },
+    {
+      dim: true,
+      align: "right",
+    },
   );
+  const coverage = cardCoverage(card);
+  if (coverage !== undefined)
+    add(
+      "footer-coverage",
+      `API LIST-PRICE ESTIMATE · ${coverage}`,
+      w - pad,
+      footerBrandY - (story ? 32 : 28),
+      story ? 26 : square ? 20 : 18,
+      width,
+      { dim: true, align: "right" },
+    );
   return { texts, models, bars, activityBars, chart: { top: chartTop, bottom: chartBottom } };
 }
 

@@ -8,7 +8,7 @@ import { shareCopy, shareImagePath } from "@/lib/share-presentation";
 import { sharedRecap } from "@/lib/shared-recap";
 import { absoluteUrl } from "@/lib/site";
 import { cardMetrics } from "@/lib/terminal-card";
-import { compact, dollars } from "@/lib/terminal-presentation";
+import { compact, dollars, modelDisplayName } from "@/lib/terminal-presentation";
 import "@/components/terminal/terminal.css";
 
 interface Props {
@@ -64,22 +64,34 @@ export default async function SharePage({ params }: Props) {
       decoded.snapshot.version === 2 && decoded.snapshot.kind === "workload"
         ? decoded.snapshot.card
         : undefined;
+  const synthetic = decoded.snapshot.version === 2 && decoded.snapshot.synthetic === true;
   const tokens = card ? card.totalTokens : old.tokens,
     usd = card ? card.usd : old.usd;
+  const coverage =
+    card?.pricedRequests !== undefined && card.requests
+      ? `${Math.round((card.pricedRequests / card.requests) * 100)}% of requests priced`
+      : "coverage unreported";
+  const models = card?.models?.map((m) => modelDisplayName(m.id)) ?? [];
+  const altParts = [
+    `StackReplay card${tokens !== undefined ? `: ${compact(tokens)} tokens` : ""}${usd !== undefined ? `, ${dollars(usd)} API value` : ""}`,
+    card?.headline,
+    models.length ? `Top models: ${models.join(", ")}` : undefined,
+    synthetic ? "Sample data." : undefined,
+  ].filter((part): part is string => Boolean(part));
   return (
     <div className="terminal shared-terminal" data-testid="share-card-v2">
       <div className="page-command">
         <div className="path">
-          <b>›</b> SHARED BY ITS CREATOR
+          <b>›</b> {synthetic ? "FICTIONAL EXAMPLE" : "SHARED BY ITS CREATOR"}
         </div>
-        <h1>AI coding, in numbers.</h1>
+        <h1>{synthetic ? "A sample StackReplay card." : "AI coding, in numbers."}</h1>
       </div>
       <img
         className="public-terminal-card"
         src={shareImagePath(resolved.path)}
         width={1200}
         height={630}
-        alt={`StackReplay card${tokens !== undefined ? `: ${compact(tokens)} tokens` : ""}${usd !== undefined ? `, ${dollars(usd)} API value` : ""}`}
+        alt={altParts.join(". ")}
       />
       {card && (
         <dl className="share-figures" aria-label="Card figures">
@@ -89,27 +101,38 @@ export default async function SharePage({ params }: Props) {
               <dd>{compact(card.totalTokens)}</dd>
             </div>
           )}
+          {card.cacheShare !== undefined && (
+            <div>
+              <dt>Cached context</dt>
+              <dd>{card.cacheShare}%</dd>
+            </div>
+          )}
           {cardMetrics(card).map((metric) => (
             <div key={metric.label}>
-              <dt>{metric.label}</dt>
+              <dt>{metric.label === "API VALUE" ? "API list-price estimate" : metric.label}</dt>
               <dd>{metric.value}</dd>
             </div>
           ))}
+          {card.usd !== undefined && (
+            <div>
+              <dt>Priced requests</dt>
+              <dd>{coverage}</dd>
+            </div>
+          )}
         </dl>
       )}
-      {decoded.snapshot.version === 2 && decoded.snapshot.synthetic && (
-        <p className="shared-recap-honesty">Fictional sample data.</p>
-      )}
+      {synthetic && <p className="shared-recap-honesty">Sample data.</p>}
       <p className="share-note">
-        These numbers come from the creator's history. Missing usage and unknown rates are excluded.
-        Logs and project names stay on their device.
+        {synthetic
+          ? "This fictional example shows the card format. Scan your history to make yours."
+          : "These numbers come from the creator's history. Missing usage and unknown rates are excluded. Logs and project names stay on their device. Scan Claude Code, Codex, OpenCode, Command Code, Hermes or T3 Code logs in your browser to make your own."}
       </p>
       <div className="card-actions">
         <Link className="btn" href={shareImagePath(resolved.path)} download>
           Download this card
         </Link>
         <Link className="btn primary" href="/app/scan" data-testid="share-cta">
-          Scan my history
+          {synthetic ? "Scan my history" : "Make your own"}
         </Link>
       </div>
     </div>

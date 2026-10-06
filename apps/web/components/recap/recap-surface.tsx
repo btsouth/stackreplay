@@ -51,7 +51,10 @@ export function RecapSurface({
         {sample}
       </div>
     ) : (
-      <RecapSkeleton status={data.indexStatus === "updating" ? "updating" : "reading"} />
+      <>
+        <SavedSummaryStatus status={data.indexStatus === "updating" ? "updating" : "reading"} />
+        <RecapSkeleton />
+      </>
     );
   return (
     <>
@@ -102,22 +105,14 @@ export function RecapSurface({
  * Reserve the overview's geometry while a saved scan is read, so the footer
  * and first viewport do not jump when the dashboard replaces the placeholder.
  */
-function RecapSkeleton({ status }: { status: "reading" | "updating" }) {
+function RecapSkeleton() {
   return (
     <div className="recap-skeleton" data-testid="recap-skeleton">
-      <p className="sr-only" role="status">
-        {status === "updating"
-          ? "Updating your saved summary (one time). Calculating your overview on this device…"
-          : "Reading your saved history. Calculating your overview on this device…"}
-      </p>
       <div aria-hidden="true">
         <div className="cmd">
           <div>
             <div className="path">
-              <b>›</b>{" "}
-              {status === "updating"
-                ? "UPDATING YOUR SAVED SUMMARY (ONE TIME)"
-                : "READING YOUR SAVED HISTORY"}
+              <b>›</b> READING YOUR SAVED HISTORY
             </div>
             <h1>Your AI coding, all of it.</h1>
           </div>

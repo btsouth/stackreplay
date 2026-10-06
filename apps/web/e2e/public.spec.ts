@@ -475,9 +475,11 @@ test.describe("share links", () => {
 
     await page.getByTestId("recap-share-open").click();
     await expect(page.getByTestId("share-card-v2")).toBeVisible();
-    await expect(page.getByRole("heading", { level: 1 })).toContainText("AI coding, in numbers");
+    await expect(page.getByRole("heading", { level: 1 })).toContainText(
+      "A sample StackReplay card",
+    );
     await expect(page.getByRole("img", { name: /StackReplay card:/ })).toBeVisible();
-    // A sample history is labelled as fictional on the public page.
-    await expect(page.locator(".shared-recap-honesty")).toContainText("Fictional");
+    // A sample history is labelled as sample data on the public page.
+    await expect(page.locator(".shared-recap-honesty")).toContainText("Sample data");
   });
 });

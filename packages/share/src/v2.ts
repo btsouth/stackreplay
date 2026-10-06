@@ -100,7 +100,12 @@ export const shareWorkloadV2Schema = z.strictObject({
       start: isoDateV1Schema,
       end: isoDateV1Schema,
       totalTokens: count.optional(),
+      /** Whole percent of processed tokens the tools re-read from cache. */
+      cacheShare: z.number().int().min(0).max(100).optional(),
       usd: amount.optional(),
+      /** How many logged requests the catalog could price, out of all requests. */
+      pricedRequests: count.optional(),
+      requests: count.optional(),
       speed: z
         .strictObject({
           id: z.string().min(1).max(100),

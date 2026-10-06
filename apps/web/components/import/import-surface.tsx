@@ -689,7 +689,11 @@ export function ImportSurface({
           </Card>
         ) : null}
       </div>
-      <div className="flex min-w-0 flex-col gap-5" hidden={scanShown}>
+      <div className="intake-main flex min-w-0 flex-col gap-5" hidden={scanShown}>
+        <p className="intake-mobile-note" data-testid="scan-mobile-note">
+          Scanning your AI tools needs a desktop browser where they are installed. On a phone you
+          can open an export or choose files, or see a sample.
+        </p>
         <HistoryDiscovery
           busy={busy || folderPicking}
           ready={ready}

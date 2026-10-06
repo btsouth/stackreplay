@@ -73,22 +73,25 @@ export function TerminalPublicNav() {
             <Dialog.Title className="label">STACKREPLAY</Dialog.Title>
             <nav aria-label="Public">{links()}</nav>
             <LocalWorkloadAction variant="header" className="btn primary" />
+            <p className="label terminal-menu-catalog-title">Catalog</p>
             <nav aria-label="Catalog" className="terminal-menu-catalog">
-              {catalogNavItems.map((item) => (
-                <Link
-                  prefetch={false}
-                  key={item.href}
-                  href={item.href}
-                  aria-current={
-                    pathname === item.href || pathname.startsWith(`${item.href}/`)
-                      ? "page"
-                      : undefined
-                  }
-                  onClick={() => setOpen(false)}
-                >
-                  {item.label}
-                </Link>
-              ))}
+              {catalogNavItems
+                .filter((item) => !items.some((primary) => primary.href === item.href))
+                .map((item) => (
+                  <Link
+                    prefetch={false}
+                    key={item.href}
+                    href={item.href}
+                    aria-current={
+                      pathname === item.href || pathname.startsWith(`${item.href}/`)
+                        ? "page"
+                        : undefined
+                    }
+                    onClick={() => setOpen(false)}
+                  >
+                    {item.label}
+                  </Link>
+                ))}
             </nav>
             <Dialog.Description className="dim">Your logs stay on your device.</Dialog.Description>
           </Dialog.Popup>

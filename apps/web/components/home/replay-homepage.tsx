@@ -64,8 +64,8 @@ export function ReplayHomepage() {
             <div className="cell">
               <dt className="label">LEAVES ONLY BY CHOICE</dt>
               <dd>
-                Nothing, unless you create a share link or connect a GitHub username for its public
-                contribution calendar.
+                Raw logs stay here. Site assets and page analytics use the network; GitHub lookup
+                and aggregate sharing happen when you choose them.
               </dd>
             </div>
           </dl>

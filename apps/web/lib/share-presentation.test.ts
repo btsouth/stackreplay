@@ -20,9 +20,9 @@ const snapshot = terminalShareV2({
 describe("share crawler and posting contracts", () => {
   it("uses selected figures in short copy and a correctly encoded X intent", () => {
     const copy = shareCopy(snapshot);
-    expect(copy.title).toBe("36.9B tokens of AI coding in 30 days · stackreplay.com");
+    expect(copy.title).toBe("36.9B processed tokens in 30 days · stackreplay.com");
     expect(copy.description).toContain(snapshot.card!.headline);
-    expect(copy.post).toBe("36.9B tokens of AI coding in 30 days. 4,495 GitHub contributions.");
+    expect(copy.post).toBe("36.9B processed tokens in 30 days. 4,495 GitHub contributions.");
     const link = "https://stackreplay.com/s/abc";
     const url = new URL(xIntentUrl(copy.post, link));
     expect(url.origin + url.pathname).toBe("https://x.com/intent/post");
@@ -37,7 +37,7 @@ describe("share crawler and posting contracts", () => {
     const token = await encodeShareTokenV2(snapshot);
     const metadata = await generateMetadata({ params: Promise.resolve({ token }) });
     expect(metadata.title).toEqual({
-      absolute: "36.9B tokens of AI coding in 30 days · StackReplay",
+      absolute: "36.9B processed tokens in 30 days · StackReplay",
     });
     expect(metadata.robots).toMatchObject({
       index: true,

@@ -270,6 +270,10 @@
   justify-content: space-between;
   min-height: 132px;
 }
+/* An odd count of side readouts fills the final row instead of leaving a gap. */
+.terminal .hero .side > .cell:last-child:nth-child(odd) {
+  grid-column: 1 / -1;
+}
 .terminal .mega {
   font-family: var(--mono);
   font-size: 168px;
@@ -1603,14 +1607,18 @@
     color: var(--dim);
     margin-bottom: 5px;
   }
-  .terminal .tablecell td:nth-child(1) {
+  .terminal .tablecell table.desktop-models td:nth-child(1) {
     display: none;
   }
-  .terminal .tablecell td:nth-child(2) {
+  .terminal .tablecell table.desktop-models td:nth-child(2) {
     grid-column: 1 / -1;
   }
-  .terminal .tablecell td:nth-child(2)::before {
+  .terminal .tablecell table.desktop-models td:nth-child(2)::before {
     display: none;
+  }
+  /* The sample table's first cell is the model name, not a rank column. */
+  .terminal .tablecell table:not(.desktop-models) td[data-label="MODEL"] {
+    grid-column: 1 / -1;
   }
   .terminal .tablecell td.num {
     text-align: right;
@@ -2843,4 +2851,65 @@
   margin-top: 6px;
   font: 500 24px / 1.2 var(--mono);
   color: var(--fg);
+}
+/* An odd final figure fills the row rather than leaving an exposed cell. */
+@media (max-width: 800px) {
+  .terminal .share-figures > div:last-child:nth-child(odd) {
+    grid-column: 1 / -1;
+  }
+}
+/* Unidentified labels open on demand, keeping every measured detail reachable. */
+.terminal .tail summary {
+  cursor: pointer;
+  color: var(--dim);
+  list-style: none;
+}
+.terminal .tail summary::-webkit-details-marker {
+  display: none;
+}
+.terminal .tail summary::before {
+  content: "▸ ";
+  color: var(--signal-text);
+}
+.terminal .tail[open] summary::before {
+  content: "▾ ";
+}
+.terminal .tail-note {
+  width: 100%;
+  margin: 2px 0 6px;
+  font-size: 11px;
+  line-height: 1.5;
+}
+.terminal .bar-tail-more {
+  background: none;
+  border: 0;
+  padding: 10px 0 0;
+  font: 11px var(--mono);
+  color: var(--signal-text);
+  text-align: left;
+  cursor: pointer;
+}
+/* On a phone, lead with the export and sample routes, then the desktop folder scan. */
+.terminal .intake-mobile-note {
+  display: none;
+}
+@media (max-width: 800px) {
+  .terminal .intake-mobile-note {
+    display: block;
+    order: 0;
+    margin: 0;
+    font-size: 12px;
+    line-height: 1.6;
+    color: var(--dim);
+  }
+  .terminal .intake-main > .sr-find,
+  .terminal .intake-main > input[type="file"] {
+    order: 3;
+  }
+  .terminal .intake-main > details:nth-of-type(1) {
+    order: 1;
+  }
+  .terminal .intake-main > details:nth-of-type(2) {
+    order: 2;
+  }
 }
