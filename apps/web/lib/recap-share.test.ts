@@ -1,3 +1,4 @@
+import { BUNDLED_CATALOG_VERSION } from "@stackreplay/catalog/bundled";
 import {
   assertNoForbiddenFields,
   decodeAnyShareToken,
@@ -18,6 +19,7 @@ describe("recap share compatibility", () => {
       "UTC",
     );
     const share = recapShareV2(recap);
+    expect(share.versions.catalog).toBe(BUNDLED_CATALOG_VERSION);
     expect(() => assertNoForbiddenFields(share)).not.toThrow();
     const decoded = await decodeAnyShareToken(await encodeShareTokenV2(share));
     expect(decoded.ok).toBe(true);

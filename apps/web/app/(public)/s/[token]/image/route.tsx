@@ -4,6 +4,15 @@ import { premiumShareImageFonts } from "@/components/share/share-image-font";
 import { compactNumber, recapUsd } from "@/lib/recap-card";
 import { resolveShareParam } from "@/lib/share-link-store";
 import { sharedRecap } from "@/lib/shared-recap";
+
+const developerColors: Record<string, string> = {
+  anthropic: "#e3ac88",
+  openai: "#73bfaa",
+  google: "#79b6e1",
+  deepseek: "#e0c264",
+  xai: "#b8b9ac",
+  other: "#b8b9ac",
+};
 export async function GET(
   _request: Request,
   { params }: { params: Promise<{ token: string }> },
@@ -52,12 +61,7 @@ export async function GET(
               <div
                 style={{
                   width: `${(100 * m.tokens) / Math.max(1, r.models[0]?.tokens ?? 0)}%`,
-                  background:
-                    m.family === "anthropic"
-                      ? "#dfaa82"
-                      : m.family === "openai"
-                        ? "#93c5ad"
-                        : "#a9cce2",
+                  background: developerColors[m.family] ?? developerColors.other,
                 }}
               />
             </div>

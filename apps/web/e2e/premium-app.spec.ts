@@ -156,5 +156,7 @@ test("a missing Stats scan is identified even when no other history is saved", a
   await expect(page.getByRole("heading", { name: "Your stats", exact: true })).toBeVisible();
   await expect(page.getByTestId("workload-missing")).toContainText("no longer stored");
   await expect(page.getByTestId("workload-empty")).toHaveCount(0);
-  await expect(page.getByRole("link", { name: "Scan my history", exact: true })).toBeVisible();
+  await expect(
+    page.getByRole("main").getByRole("link", { name: "Scan my history", exact: true }),
+  ).toBeVisible();
 });

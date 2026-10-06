@@ -1,4 +1,5 @@
 import type { CatalogV1 } from "@stackreplay/catalog";
+import { BUNDLED_CATALOG_VERSION } from "@stackreplay/catalog/bundled";
 import { DECISION_MARKET } from "@stackreplay/catalog/market";
 import type { ProjectedReplayV1 } from "@stackreplay/replay-engine";
 import {
@@ -318,7 +319,7 @@ export function recapShareV2(recap: import("./recap").Recap, synthetic = false):
       tools: recap.tools.slice(0, 8).map((t) => ({ id: shareableToolId(t.id), calls: t.records })),
     },
     facts: [],
-    versions: { catalog: "recap-v1" },
+    versions: { catalog: BUNDLED_CATALOG_VERSION },
   };
   assertNoForbiddenFields(snapshot);
   return snapshot;
