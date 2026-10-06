@@ -1,7 +1,13 @@
-import { MODEL_NAMES } from "@stackreplay/catalog/metadata";
 import type { ShareWorkloadV2 } from "@stackreplay/share";
 import type { Recap } from "./recap";
-import { compact, dateLabel, dollars, modelName, presentation } from "./terminal-presentation";
+import {
+  compact,
+  dateLabel,
+  dollars,
+  modelDisplayName,
+  presentation,
+  unresolvedModel,
+} from "./terminal-presentation";
 import type { PaidFigure } from "./use-paid-multiplier";
 export type CardFormat = "landscape" | "square" | "story";
 export type CardToggle =
@@ -70,7 +76,7 @@ export function makeCard(
   };
 }
 export function cardName(id: string): string {
-  return modelName(MODEL_NAMES[id] ?? "Unreported model");
+  return modelDisplayName(id);
 }
 export function cardMetrics(card: PublicCard) {
   return [
@@ -219,7 +225,7 @@ export function cardLayout(
         y,
         story ? 36 : square ? 22 : 20,
         format === "landscape" ? cellWidth : cellWidth - 210,
-        { font: "sans", dim: true },
+        { font: "sans", dim: unresolvedModel(m.id) },
       );
       add(
         `model-value-${i}`,

@@ -65,8 +65,9 @@ test("recap, stats, settings, scan and share use plain copy and one API total", 
   await page.getByTestId("recap-share-open").click();
   await expect(page.getByTestId("share-card-v2")).toBeVisible();
   expect(languageMatches(await page.locator("body").innerText()), "share").toEqual([]);
-  await expect(
-    page.getByRole("img", { name: new RegExp(`${amount.replace(/[$]/g, "\\$")} API value`) }),
-  ).toBeVisible();
+  await expect(page.getByTestId("share-card-v2").getByRole("img")).toHaveAttribute(
+    "alt",
+    expect.stringContaining(`${amount} API value`),
+  );
   await expect(page.getByTestId("share-figure")).toHaveCount(0);
 });

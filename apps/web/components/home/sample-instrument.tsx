@@ -68,19 +68,7 @@ export function SampleInstrument({ recap: r }: { recap: Recap }) {
             </div>
           </div>
           <div className="side">
-            <Readout
-              label="API value"
-              value={dollars(r.usd)}
-              signal
-              note={
-                <>
-                  AT LIST PRICES / NOT AN INVOICE
-                  <br />
-                  {Math.round((r.priced / r.records) * 100)}% OF CALLS HAVE A PRICE
-                  {r.usdHigh !== r.usd && <> · UP TO {dollars(r.usdHigh)}</>}
-                </>
-              }
-            />
+            <Readout label="API value" value={dollars(r.usd)} signal note="AT LIST PRICES" />
             <Readout label="Models" value={p.models.length} note="IN THIS SAMPLE" />
             <Readout
               label="Streak"
@@ -118,7 +106,7 @@ export function SampleInstrument({ recap: r }: { recap: Recap }) {
               github={github}
             />
           </div>
-          <div className="actside">
+          <div className="actside sample-readouts">
             <Readout
               label="GitHub contributions"
               value={integer(ghTotal)}
@@ -186,7 +174,7 @@ export function SampleInstrument({ recap: r }: { recap: Recap }) {
               </div>
             ))}
           </div>
-          <div className="sins">
+          <div className="sins sample-readouts">
             <Readout
               label="Fastest median"
               value={p.fastest?.median.toFixed(1)}
@@ -225,7 +213,7 @@ export function SampleInstrument({ recap: r }: { recap: Recap }) {
                     <td data-label="MODEL">
                       <span className="mn">
                         <i style={{ background: p.colors.get(m.id) }} />
-                        {m.name}
+                        {p.names.get(m.id)}
                       </span>
                     </td>
                     <td data-label="DEVELOPER" className="dim">

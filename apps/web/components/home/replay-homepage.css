@@ -260,3 +260,10 @@
     width: auto;
   }
 }
+
+/* Let the sample use only the rows its readouts actually occupy. */
+.terminal .sample-readouts.actside,
+.terminal .sample-readouts.sins {
+  grid-template-rows: none;
+  grid-auto-rows: 1fr;
+}

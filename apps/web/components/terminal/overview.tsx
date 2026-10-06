@@ -12,8 +12,9 @@ import {
   dollarRate,
   dollars,
   integer,
-  modelName,
+  modelDisplayName,
   presentation,
+  unresolvedModel,
 } from "@/lib/terminal-presentation";
 import { useGitHubActivity } from "@/lib/use-github-activity";
 import type { PaidFigure } from "@/lib/use-paid-multiplier";
@@ -48,7 +49,7 @@ export function Overview({
   const ghDays = activity
     ? new Map(activity.days.map((d) => [d.date, d.contributions]))
     : undefined;
-  const name = (id: string) => p.names.get(id) ?? id;
+  const name = (id: string) => p.names.get(id) ?? modelDisplayName(id);
   const buckets = r.deep?.buckets;
   const maxHeat = Math.max(1, ...(r.deep?.hours.flat() ?? []));
   const labels = new Map(record?.localProjects?.map((x) => [x.hash, x.label]) ?? []);
@@ -301,7 +302,7 @@ export function Overview({
             </div>
             {p.speeds.map((s) => (
               <div className="srow" key={s.id}>
-                <div className="sname">
+                <div className={`sname${unresolvedModel(s.id) ? " dim" : ""}`}>
                   <i style={{ background: p.colors.get(s.id) }} />
                   {name(s.id)}
                 </div>
@@ -421,9 +422,9 @@ export function Overview({
                     <tr key={m.id}>
                       <td className="num dim">{String(i + 1).padStart(2, "0")}</td>
                       <td data-label="MODEL">
-                        <span className="mn">
+                        <span className={`mn${unresolvedModel(m.id) ? " dim" : ""}`}>
                           <i style={{ background: p.colors.get(m.id) }} />
-                          {modelName(m.name)}
+                          {name(m.id)}
                         </span>
                       </td>
                       <td className="dim" data-label="DEVELOPER">
@@ -469,9 +470,9 @@ export function Overview({
                 return (
                   <div className="mobile-model" key={m.id}>
                     <div className="mobile-model-main">
-                      <span className="mn">
+                      <span className={`mn${unresolvedModel(m.id) ? " dim" : ""}`}>
                         <i style={{ background: p.colors.get(m.id) }} />
-                        {modelName(m.name)}
+                        {name(m.id)}
                       </span>
                       <span className="num">{compact(m.total)}</span>
                       <div className="sharecell">
@@ -500,9 +501,9 @@ export function Overview({
               <div className="tail">
                 <span className="label">+ {p.tail.length} more</span>
                 {p.tail.map((m) => (
-                  <span className="tl" key={m.id}>
+                  <span className={`tl${unresolvedModel(m.id) ? " dim" : ""}`} key={m.id}>
                     <i style={{ background: p.colors.get(m.id) }} />
-                    {m.family === "other" ? m.id : modelName(m.name)}
+                    {name(m.id)}
                     <b>{compact(m.total)}</b>
                   </span>
                 ))}
@@ -550,9 +551,7 @@ export function Overview({
             <div className="cell kv">
               <div className="label">Most valuable model</div>
               <div className="model-value">
-                {p.topCost
-                  ? `${modelName(p.topCost.name)} · ${dollars(p.topCost.usd)}`
-                  : "unpriced"}
+                {p.topCost ? `${name(p.topCost.id)} · ${dollars(p.topCost.usd)}` : "unpriced"}
               </div>
             </div>
           </div>

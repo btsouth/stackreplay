@@ -1,3 +1,4 @@
+import { MODEL_NAMES } from "@stackreplay/catalog/metadata";
 import type { Recap } from "./recap";
 
 export const FAMILIES: Record<string, string> = {
@@ -14,6 +15,10 @@ export const FAMILIES: Record<string, string> = {
 };
 export const familyColor = (family: string) => FAMILIES[family] ?? FAMILIES.other;
 export const modelName = (name: string) => name.replace(" (legacy name, model retired)", "");
+/** Catalog labels lead; unrecognized IDs retain their spelling without the vendor prefix. */
+export const modelDisplayName = (id: string) =>
+  modelName(MODEL_NAMES[id] ?? id.slice(id.indexOf("/") + 1));
+export const unresolvedModel = (id: string) => MODEL_NAMES[id] === undefined;
 export const integer = (n: number) => n.toLocaleString("en-US", { maximumFractionDigits: 0 });
 /** Three significant figures, with rollover after rounding. */
 export function compact(n: number): string {
@@ -69,9 +74,9 @@ export function presentation(r: Recap) {
     slowest = speeds.at(-1),
     workhorse = [...speeds].sort((a, b) => b.n - a.n)[0];
   const speedAxis = Math.max(40, Math.ceil(Math.max(0, ...speeds.map((s) => s.p75)) / 40) * 40);
-  const names = new Map(r.models.map((m) => [m.id, modelName(m.name)]));
+  const names = new Map(r.models.map((m) => [m.id, modelDisplayName(m.id)]));
   const colors = new Map(r.models.map((m) => [m.id, familyColor(m.family)]));
-  for (const m of r.deep?.firstSeen ?? []) if (m.name) names.set(m.id, modelName(m.name));
+  for (const m of r.deep?.firstSeen ?? []) if (m.name) names.set(m.id, modelDisplayName(m.id));
   const days = r.explorer?.days ?? r.days.map((d) => ({ ...d, total: 0, usd: undefined }));
   const costs = new Map(r.deep?.costDays.map((d) => [d.date, Number(d.usd)]) ?? []);
   const costDays = days.map((d) => ({ date: d.date, value: costs.get(d.date) ?? 0 }));

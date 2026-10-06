@@ -7,6 +7,7 @@ import {
   type CardFormat,
   type CardSelections,
   type CardToggle,
+  cardName,
   DEFAULT_SELECTIONS,
   drawCard,
   makeCard,
@@ -78,9 +79,7 @@ export function TerminalShare({
   );
   const speeds = useMemo(() => {
     const p = presentation(recap);
-    return selected.speed
-      ? p.speeds.map((s) => ({ name: p.names.get(s.id) ?? "Unreported model", median: s.median }))
-      : [];
+    return selected.speed ? p.speeds.map((s) => ({ name: cardName(s.id), median: s.median })) : [];
   }, [recap, selected.speed]);
   const toggles: [CardToggle, string][] = [
     ["tokens", "Total tokens"],
