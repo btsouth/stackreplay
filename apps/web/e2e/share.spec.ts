@@ -30,7 +30,11 @@ test("each link has its own image, and the page names it", async ({ page, reques
 
   await page.goto(`/s/${shared}`);
   await expect(page.getByRole("heading", { level: 1 })).toContainText("AI coding, in numbers.");
-  await expect(page.getByTestId("share-figure")).toHaveText(/^\$[\d,]+ API value$/u);
+  await expect(page.locator(".public-terminal-card")).toHaveAttribute(
+    "alt",
+    /tokens, \$[\d,]+ API value/u,
+  );
+  await expect(page.locator(".share-summary")).toHaveCount(0);
   await expect(page.locator('meta[property="og:image"]')).toHaveAttribute(
     "content",
     new RegExp(`/s/${shared.replaceAll(".", "\\.")}/image$`, "u"),

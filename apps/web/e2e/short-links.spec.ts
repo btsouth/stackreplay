@@ -90,7 +90,7 @@ test("a recap link can be stored as a short link that carries only its aggregate
   await page.goto(`/s/${shortId}`);
   await expect(page.getByTestId("share-card-v2")).toBeVisible();
   expectNoMarkers(await page.locator("main").innerText());
-  const shortTokens = await page.getByTestId("share-tokens").innerText();
+  const shortTokens = await page.locator(".public-terminal-card").getAttribute("alt");
 
   const image = await request.get(`/s/${shortId}/image`);
   expect(image.status()).toBe(200);
@@ -98,7 +98,7 @@ test("a recap link can be stored as a short link that carries only its aggregate
 
   // The same result as a self-contained link reads exactly the same.
   await page.goto(`/s/${token}`);
-  await expect(page.getByTestId("share-tokens")).toHaveText(shortTokens);
+  await expect(page.locator(".public-terminal-card")).toHaveAttribute("alt", shortTokens!);
 });
 
 test("an unknown or malformed short id is a friendly page and a fallback image", async ({

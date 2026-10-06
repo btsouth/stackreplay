@@ -1,7 +1,5 @@
 import { Button, buttonVariants } from "@stackreplay/ui/components/button";
-import { EmptyState } from "@stackreplay/ui/components/empty-state";
-import { LoadingSkeleton } from "@stackreplay/ui/components/loading-skeleton";
-import { Notice } from "@stackreplay/ui/components/notice";
+import { EmptyState, LoadingSkeleton, Notice } from "@stackreplay/ui/components/page-primitives";
 import Link from "next/link";
 import "./premium-app.css";
 

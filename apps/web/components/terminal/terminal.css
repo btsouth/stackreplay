@@ -2107,3 +2107,27 @@
     font-size: 10px;
   }
 }
+
+.public-shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: var(--background);
+}
+.public-shell > main {
+  flex: 1;
+}
+.terminal.public-chrome {
+  min-height: 0;
+}
+.public-header {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+}
+.public-chrome footer {
+  margin-top: 0;
+}
+.public-chrome .terminal-header {
+  position: static;
+}
