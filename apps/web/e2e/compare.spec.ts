@@ -13,7 +13,7 @@ async function expectNoSeriousViolations(page: Page) {
   ).toEqual([]);
 }
 
-const targets = (page: Page) => page.getByTestId("compare-target");
+const targets = (page: Page) => page.getByRole("main").getByTestId("compare-target");
 
 for (const theme of ["dark", "light"] as const) {
   test.describe(`compare page in ${theme}`, () => {
@@ -106,10 +106,14 @@ test("a shared comparison never flashes the default pair before it applies", asy
   // inline bootstrap run, which is what a visitor sees on first paint.
   await page.route(/\.js(\?|$)/u, (route) => route.abort());
   await page.goto("/compare?left=clinepass&right=opencode-go");
-  await expect(page.getByTestId("compare-table")).toBeHidden();
+  const comparison = page.getByRole("main").getByTestId("compare-table");
+  await expect(comparison).toHaveCount(1);
+  await expect(comparison).toBeHidden();
+  await expect(page.getByTestId("compare-table").filter({ visible: true })).toHaveCount(0);
   // Next serves the static default fallback; Workers resolves the requested plans
   // on the server. Both must reveal their exact server view if scripts never load.
-  await expect(page.getByTestId("compare-table")).toBeVisible({ timeout: 8_000 });
+  await expect(comparison).toBeVisible({ timeout: 8_000 });
+  await expect(page.getByTestId("compare-table").filter({ visible: true })).toHaveCount(1);
   if (process.env.STACKREPLAY_E2E_RUNTIME === "workers") {
     await expect(targets(page).nth(0)).toContainText("ClinePass");
     await expect(targets(page).nth(1)).toContainText("OpenCode Go");
