@@ -1,3 +1,5 @@
+import "@/components/terminal/terminal.css";
+import "@/components/public/public-terminal.css";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { MarketFooter, MarketHeader } from "@/components/public/market-header";
@@ -15,7 +17,7 @@ export const metadata: Metadata = publicPageMetadata({
 export default function ModelsPage() {
   const { catalog, prices } = marketDiscovery();
   return (
-    <div className="models-discovery-page">
+    <div className="terminal public-terminal models-discovery-page">
       <MarketHeader
         compact
         eyebrow="The model field guide"

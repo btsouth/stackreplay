@@ -10,10 +10,10 @@ import type { CatalogV1 } from "./catalog.js";
 import { hashCanonicalContent as hash } from "./content-hash.js";
 import {
   type ExecutionSelector,
-  type ExecutionVersion,
   executionOverlaySchema,
   executionVersionSchema,
 } from "./execution-authoring.js";
+import { selectExecutionVersionAt } from "./execution-selection.js";
 
 export const EXECUTION_COMPILER_VERSION = "catalog-execution-c2a-v2";
 const lexical = (a: string, b: string) => (a < b ? -1 : a > b ? 1 : 0);
@@ -68,21 +68,7 @@ function uniqueIds(label: string, rows: readonly { id: string }[]) {
   if (new Set(rows.map((x) => x.id)).size !== rows.length) throw new Error(`Duplicate ${label} ID`);
 }
 
-/** New accepted versions are half-open. Legacy selection remains in versions.ts. */
-export function selectExecutionVersionAt(
-  versions: readonly ExecutionVersion[],
-  at: string,
-): ExecutionVersion | undefined {
-  const ordered = [...versions].sort((a, b) => lexical(a.validity.start, b.validity.start));
-  let previous: ExecutionVersion | undefined;
-  for (const v of ordered) {
-    if (v.validity.start >= v.validity.end) throw new Error(`Invalid interval: ${v.id}`);
-    if (previous && previous.validity.end > v.validity.start)
-      throw new Error(`Overlapping immutable execution versions: ${previous.id}, ${v.id}`);
-    previous = v;
-  }
-  return ordered.find((v) => v.validity.start <= at && at < v.validity.end);
-}
+export { selectExecutionVersionAt } from "./execution-selection.js";
 
 export interface SelectorTrace {
   subject: string;

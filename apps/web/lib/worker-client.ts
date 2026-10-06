@@ -2,6 +2,7 @@
 
 import type { DemoWorkloadPresetId } from "@stackreplay/test-fixtures";
 import { clearLocalPreferences, localSourceRootSalt } from "./local-data";
+import { historyChanged } from "./local-history";
 import {
   type ImportPhase,
   type ImportRecord,
@@ -346,6 +347,7 @@ export class LocalWorkerClient {
       "import",
     );
     if (response.type !== "IMPORT_OK") throw new Error("unexpected worker response");
+    historyChanged(response.record);
     return response.record;
   }
 
@@ -375,6 +377,7 @@ export class LocalWorkerClient {
       "import",
     );
     if (response.type !== "IMPORT_OK") throw new Error("unexpected worker response");
+    historyChanged(response.record);
     return response.record;
   }
 
@@ -406,6 +409,7 @@ export class LocalWorkerClient {
       "import",
     );
     if (response.type !== "IMPORT_OK") throw new Error("unexpected worker response");
+    historyChanged(response.record);
     return response.record;
   }
 
@@ -431,6 +435,7 @@ export class LocalWorkerClient {
       importId,
     }));
     if (response.type !== "DELETED") throw new Error("unexpected worker response");
+    historyChanged(undefined, importId);
   }
 
   async clearLocalData(): Promise<void> {
@@ -441,6 +446,7 @@ export class LocalWorkerClient {
     }));
     if (response.type !== "CLEARED") throw new Error("unexpected worker response");
     clearLocalPreferences();
+    historyChanged();
   }
 }
 

@@ -1,388 +1,127 @@
-"use client";
-import {
-  ArrowDown,
-  ArrowRight,
-  Download,
-  FolderOpen,
-  LockKeyhole,
-  Play,
-  ShieldCheck,
-} from "lucide-react";
-import { type CSSProperties, useEffect, useRef, useState } from "react";
-import { Heatmap, Mix } from "@/components/recap/recap-charts";
-import { RecapShareCard } from "@/components/recap/recap-share-card";
+import Link from "next/link";
+import { Section } from "@/components/terminal/primitives";
 import { sampleRecap } from "@/lib/home/recap-sample";
-import { familyColors } from "@/lib/recap";
-import { renderRecapCard } from "@/lib/recap-card";
+import { modelsInView } from "@/lib/model-library";
+import { loadPublicBenchmarks } from "@/lib/public-benchmarks";
+import { loadPublicCatalog } from "@/lib/public-catalog";
+import { loadPublicProviderDirectory } from "@/lib/public-providers";
+import { SampleInstrument } from "./sample-instrument";
+import "@/components/terminal/terminal.css";
+import "@/components/public/public-terminal.css";
+import "./replay-homepage.css";
 
-const tools = ["Claude Code", "Codex", "OpenCode", "Command Code", "Hermes", "T3 Code"];
-/** Only the live card rerenders while counting; the scroll story remains still. */
-function AnimatedRecapCard() {
-  const [progress, setProgress] = useState(1);
-  useEffect(() => {
-    const reduced = matchMedia("(prefers-reduced-motion: reduce)");
-    let raf = 0;
-    const start = performance.now();
-    const tick = (now: number) => {
-      const t = Math.min(1, (now - start) / 1800);
-      setProgress(1 - (1 - t) ** 3);
-      if (t < 1) raf = requestAnimationFrame(tick);
-    };
-    if (!reduced.matches) {
-      setProgress(0);
-      raf = requestAnimationFrame(tick);
-    }
-    const settle = () => {
-      if (reduced.matches) {
-        cancelAnimationFrame(raf);
-        setProgress(1);
-      }
-    };
-    reduced.addEventListener("change", settle);
-    return () => {
-      cancelAnimationFrame(raf);
-      reduced.removeEventListener("change", settle);
-    };
-  }, []);
-  return <RecapShareCard recap={sampleRecap} progress={progress} sample />;
-}
 export function ReplayHomepage() {
-  const root = useRef<HTMLDivElement>(null);
-  const stage = useRef<HTMLDivElement>(null);
-  const [downloadError, setDownloadError] = useState("");
-  useEffect(() => {
-    const reduced = matchMedia("(prefers-reduced-motion: reduce)");
-    const observer = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries)
-          if (entry.isIntersecting) {
-            entry.target.classList.add("is-visible");
-            observer.unobserve(entry.target);
-          }
-      },
-      { threshold: 0.15 },
-    );
-    root.current?.querySelectorAll(".replay-reveal").forEach((el) => {
-      observer.observe(el);
-    });
-    const settle = () => {
-      if (reduced.matches) {
-        if (stage.current) stage.current.style.transform = "none";
-      }
-    };
-    reduced.addEventListener("change", settle);
-    return () => {
-      observer.disconnect();
-      reduced.removeEventListener("change", settle);
-    };
-  }, []);
-  async function download(portrait: boolean) {
-    try {
-      setDownloadError("");
-      const blob = await renderRecapCard(sampleRecap, portrait, "51× the sample’s plan cost", true);
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `stackreplay-sample-${portrait ? "portrait" : "landscape"}.png`;
-      a.click();
-      setTimeout(() => URL.revokeObjectURL(url), 1000);
-    } catch {
-      setDownloadError("Could not download the sample card. Please try again.");
-    }
-  }
+  const recap = sampleRecap;
+  const catalog = loadPublicCatalog();
+  const providers = loadPublicProviderDirectory();
+  const benchmarks = loadPublicBenchmarks();
   return (
-    <div className="replay-home" ref={root} data-testid="home">
-      <section className="replay-hero" aria-labelledby="replay-heading">
-        <div className="replay-hero-copy">
-          <p className="replay-intro">
-            <span /> Every session has a story.
+    <div className="terminal public-terminal terminal-home" data-testid="home">
+      <div className="wrap">
+        <section className="home-intro" aria-labelledby="home-title">
+          <p className="label">
+            <span className="home-prompt">›</span> LOCAL HISTORY / CLEAR NUMBERS
           </p>
-          <h1 id="replay-heading">
-            Your AI coding,
-            <br />
-            <em>replayed.</em>
-          </h1>
-          <p className="replay-lede">Turn your coding history into a recap worth sharing.</p>
-          <div className="replay-actions">
-            <a className="replay-button" href="/app/scan">
-              Scan my history <ArrowRight size={20} />
-            </a>
-            <a className="replay-text-button" href="#sample">
-              <Play size={14} fill="currentColor" /> See a sample recap
-            </a>
+          <div className="home-intro-row">
+            <div>
+              <h1 id="home-title">Your AI coding, measured.</h1>
+              <p className="home-promise">
+                Scan Claude Code, Codex, OpenCode, Command Code and Hermes logs in your browser. See
+                tokens, speed, models, rhythm and GitHub activity.
+              </p>
+            </div>
+            <div className="home-actions">
+              <Link href="/app/scan" className="btn primary" aria-label="Scan my history">
+                Scan my history ↗
+              </Link>
+              <a href="#sample" className="btn" aria-label="See a sample">
+                See a sample ↓
+              </a>
+              <span className="label">YOUR LOGS STAY ON THIS DEVICE</span>
+            </div>
           </div>
-          <p className="replay-trust">
-            <LockKeyhole size={14} /> In your browser. No uploads. No account.
-          </p>
-        </div>
-        <div
-          className="replay-stage"
-          onPointerMove={(e) => {
-            if (
-              !stage.current ||
-              matchMedia("(prefers-reduced-motion: reduce)").matches ||
-              e.pointerType !== "mouse"
-            )
-              return;
-            const b = e.currentTarget.getBoundingClientRect();
-            stage.current.style.transform = `rotateX(${(e.clientY - b.top - b.height / 2) * -0.004}deg) rotateY(${(e.clientX - b.left - b.width / 2) * 0.004}deg)`;
-          }}
-          onPointerLeave={() => {
-            if (stage.current) stage.current.style.transform = "";
-          }}
+        </section>
+        <SampleInstrument recap={recap} />
+        <Section
+          number="06"
+          title="Private by design"
+          note="Your history stays local. Sharing is your choice."
+          id="privacy"
         >
-          <div className="replay-orbit" aria-hidden="true" />
-          <div className="replay-card-shadow" aria-hidden="true" />
-          <div className="replay-card-position" ref={stage}>
-            <AnimatedRecapCard />
-          </div>
-          <div className="replay-card-formats">
-            <p>A fictional replay. Ready to share.</p>
-            <div className="replay-downloads">
-              <button type="button" onClick={() => void download(false)}>
-                <Download size={16} /> Try landscape
-              </button>
-              <button type="button" onClick={() => void download(true)}>
-                <Download size={16} /> Try portrait
-              </button>
+          <dl className="home-proof">
+            <div className="cell">
+              <dt className="label">READ</dt>
+              <dd>Model names, token counts and timestamps from the history files you choose.</dd>
             </div>
-            {downloadError && <p role="alert">{downloadError}</p>}
-            <p className="replay-fine">Downloads use this fictional sample.</p>
-          </div>
-        </div>
-        <a className="replay-scroll-hint" href="#sample">
-          <ArrowDown size={16} /> Scroll to see a sample
-        </a>
-      </section>
-      <section className="replay-tools" aria-label="Supported coding tools">
-        <p>Your tools. Your history. One replay.</p>
-        <div>
-          {tools.map((tool, i) => (
-            <span key={tool}>
-              <i aria-hidden="true">{["✳", "⌘", "◈", "›_", "☿", "▱"][i]}</i>
-              {tool}
-            </span>
-          ))}
-        </div>
-      </section>
-      <section id="sample" className="replay-story" aria-labelledby="sample-heading">
-        <div className="replay-story-heading replay-reveal">
-          <p className="replay-section-note">
-            Meet Alex. A fictional builder. A very real kind of year.
-          </p>
-          <h2 id="sample-heading">
-            The late nights.
-            <br />
-            The breakthroughs.
-            <br />
-            <span>The whole picture.</span>
-          </h2>
-          <p>
-            From “just one more fix” to billions of tokens.
-            <br />
-            Here’s what nine months of AI coding can look like.
-          </p>
-        </div>
-        <div className="replay-activity replay-reveal">
-          <div className="replay-chapter">
-            <span>01 / The rhythm</span>
-            <span>Jan to Sep 2026 · Illustrative sample</span>
-          </div>
-          <div className="replay-activity-top">
-            <h3>You kept showing up.</h3>
-            <p>
-              <strong>47</strong>
-              <span>days. One unbroken streak.</span>
-            </p>
-          </div>
-          <Heatmap recap={sampleRecap} />
-          <div className="replay-activity-foot">
-            <span>Every square, a day of building.</span>
-            <span>
-              Quiet <i />
-              <i />
-              <i /> All in
-            </span>
-          </div>
-        </div>
-        <div className="replay-mix-section replay-reveal">
-          <div className="replay-mix-copy">
-            <span className="replay-chapter">02 / The collaborators</span>
-            <h3>
-              A different model.
-              <br />A different gear.
-            </h3>
-            <p>
-              The models you reached for, and the ones that did the heavy lifting. Ranked by total
-              tokens, cache included.
-            </p>
-          </div>
-          <div className="replay-mix-visual">
-            <div className="replay-model-podium">
-              {sampleRecap.models.map((m, i) => (
-                <div
-                  key={m.id}
-                  style={
-                    {
-                      "--model-color": familyColors[m.family],
-                      "--model-width": `${(m.total / sampleRecap.models[0]!.total) * 100}%`,
-                    } as CSSProperties
-                  }
-                >
-                  <span className="replay-model-rank">0{i + 1}</span>
-                  <strong>{m.name}</strong>
-                  <span className="replay-model-billions">
-                    {(m.total / 1e9).toFixed(1)}
-                    <small>B</small>
-                  </span>
-                  <div className="replay-model-bar">
-                    <i />
-                  </div>
-                </div>
-              ))}
+            <div className="cell">
+              <dt className="label">NEVER READ</dt>
+              <dd>Prompts, responses or code. No sign-in files or account profiles.</dd>
             </div>
-            <div className="replay-mix-chart">
-              <Mix recap={sampleRecap} />
-              <p>Total tokens processed, week by week.</p>
+            <div className="cell">
+              <dt className="label">RUNS HERE</dt>
+              <dd>A Web Worker in your browser counts your history on this device.</dd>
             </div>
+            <div className="cell">
+              <dt className="label">LEAVES ONLY BY CHOICE</dt>
+              <dd>
+                Nothing, unless you create a share link or connect a GitHub username for its public
+                contribution calendar.
+              </dd>
+            </div>
+          </dl>
+          <Link className="home-method" href="/methodology">
+            Read the counting and privacy details ↗
+          </Link>
+        </Section>
+        <Section
+          number="07"
+          title="Your tools. One view."
+          note="Supported local coding histories, together."
+          id="tools"
+        >
+          <div className="home-tools">
+            {["Claude Code", "Codex", "OpenCode", "Command Code", "Hermes", "T3 Code"].map(
+              (tool) => (
+                <span key={tool}>{tool}</span>
+              ),
+            )}
           </div>
-        </div>
-        <div className="replay-value replay-reveal">
-          <span className="replay-chapter">03 / The perspective</span>
-          <div className="replay-value-number">
-            51<span>×</span>
+          <div className="home-catalog">
+            {[
+              [
+                "Models",
+                modelsInView(catalog.models, "models").length,
+                "/models",
+                "Published prices and exact identities",
+              ],
+              [
+                "Providers",
+                providers.providers.length,
+                "/providers",
+                "Model developers and access routes",
+              ],
+              [
+                "Benchmarks",
+                benchmarks.definitions.length,
+                "/benchmarks",
+                "Reported scores with original evidence",
+              ],
+            ].map(([name, count, href, note]) => (
+              <Link className="cell" href={String(href)} key={name}>
+                <span className="label">{name} ↗</span>
+                <strong className="mono">{count}</strong>
+                <p>{note}</p>
+              </Link>
+            ))}
           </div>
-          <div className="replay-value-copy">
-            <h3>
-              A small subscription.
-              <br />
-              An enormous amount of work.
-            </h3>
-            <p>
-              $18,400 of AI coding at API prices.
-              <br />
-              About $359 in sample plan costs over the same period.
-            </p>
-            <p className="replay-fine">
-              Illustrative comparison for Alex’s $40/month plan, prorated over 273 days.
-              API-equivalent value is an estimate, not a bill or savings. Your results depend on
-              your logs and plans.
-            </p>
+          <div className="home-end">
+            <h2>See your own numbers.</h2>
+            <Link href="/app/scan" className="btn primary" aria-label="Scan my history">
+              Scan my history ↗
+            </Link>
           </div>
-        </div>
-      </section>
-      <section className="replay-how" aria-labelledby="how-heading">
-        <div className="replay-section-head replay-reveal">
-          <h2>
-            From logs to
-            <br />
-            <span>“I did all that?”</span>
-          </h2>
-          <p>Three steps. No setup saga.</p>
-        </div>
-        <div className="replay-steps">
-          <article className="replay-reveal">
-            <div className="replay-step-visual replay-folders" aria-hidden="true">
-              <span>
-                <FolderOpen /> ~/.claude
-              </span>
-              <span>
-                <FolderOpen /> ~/.codex
-              </span>
-              <span>
-                <FolderOpen /> your coding history
-              </span>
-            </div>
-            <span className="replay-step-number">01</span>
-            <h3>Point it at your logs.</h3>
-            <p>Choose local files or folders from your coding tools. We find the usage inside.</p>
-          </article>
-          <article className="replay-reveal">
-            <div className="replay-step-visual replay-network">
-              <div>
-                <ShieldCheck size={24} />
-                <span>Local processing</span>
-                <i />
-              </div>
-              <strong>
-                0 <span>bytes</span>
-              </strong>
-              <p>of your logs uploaded</p>
-              <div className="replay-network-line" aria-hidden="true" />
-            </div>
-            <span className="replay-step-number">02</span>
-            <h3>Your browser does the work.</h3>
-            <p>
-              Tokens, activity and API prices come together on this device. Your history stays
-              yours.
-            </p>
-          </article>
-          <article className="replay-reveal">
-            <div className="replay-step-visual replay-mini-cards" aria-hidden="true">
-              <div>
-                My replay<strong>41.2B</strong>
-                <span>tokens processed</span>
-                <i />
-                <i />
-                <i />
-              </div>
-              <div>
-                My replay<strong>$18,400</strong>
-                <span>at API prices</span>
-                <i />
-                <i />
-              </div>
-            </div>
-            <span className="replay-step-number">03</span>
-            <h3>Keep it. Or make it a flex.</h3>
-            <p>
-              Explore your recap. Download a landscape or portrait card. Share only what you choose.
-            </p>
-          </article>
-        </div>
-      </section>
-      <section className="replay-privacy replay-reveal">
-        <div className="replay-privacy-symbol" aria-hidden="true">
-          <LockKeyhole strokeWidth={1} />
-        </div>
-        <div>
-          <h2>
-            Your history.
-            <br />
-            <span>On your terms.</span>
-          </h2>
-          <p>
-            No login. No cloud processing. No uploaded logs.
-            <br />
-            Just your browser, your files and your recap.
-          </p>
-          <a href="https://github.com/btsouth/stackreplay">
-            Open source · AGPL-3.0 <ArrowRight size={16} />
-          </a>
-        </div>
-      </section>
-      <div className="replay-catalog">
-        <span>Also curious about the market?</span>
-        <a href="/models">
-          Compare models <ArrowRight size={16} />
-        </a>
-        <a href="/plans">
-          Explore coding plans <ArrowRight size={16} />
-        </a>
+        </Section>
       </div>
-      <section className="replay-closing replay-reveal">
-        <div className="replay-closing-orbit" aria-hidden="true" />
-        <p>You did the work.</p>
-        <h2>
-          Now hit <em>replay.</em>
-        </h2>
-        <a className="replay-button" href="/app/scan">
-          Scan my history <ArrowRight size={20} />
-        </a>
-        <span className="replay-trust">
-          <LockKeyhole size={14} /> Your logs never leave your browser.
-        </span>
-      </section>
     </div>
   );
 }

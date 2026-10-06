@@ -1,6 +1,6 @@
 "use client";
 
-import { Button } from "@stackreplay/ui";
+import { Button } from "@stackreplay/ui/components/button";
 import { Moon, Sun } from "lucide-react";
 import { useEffect, useState } from "react";
 import { themeStorageKey } from "@/lib/theme";

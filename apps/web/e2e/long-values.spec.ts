@@ -66,6 +66,6 @@ test("schema-valid long workload and model identities remain usable at 390px", a
     .getByRole("link", { name: /^Explore my stats/u })
     .getAttribute("href");
   await page.goto(href ?? "/app/stats");
-  await expect(page.getByTestId("stats-ready")).toBeVisible({ timeout: 60_000 });
+  await expect(page.getByTestId("recap-ready")).toBeVisible({ timeout: 60_000 });
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });

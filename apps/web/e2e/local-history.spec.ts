@@ -70,12 +70,9 @@ async function scanFixtures(page: Page, withUnresolved = false): Promise<void> {
 test("project names stay local through scan, recap and stats", async ({ page }) => {
   const requests = captureRequests(page);
   await scanFixtures(page);
-  await page.getByRole("tab", { name: "Projects" }).click();
-  await expect(page.getByRole("table", { name: "Projects in this period" })).toContainText(
-    PROJECT_MARKER,
-  );
+  await expect(page.locator("#section-06")).toContainText(PROJECT_MARKER);
   await page.getByRole("radio", { name: "All time", exact: true }).check();
-  await expect(page.getByTestId("stats-ready")).toHaveAttribute("data-period", "all");
+  await expect(page.getByTestId("recap-ready")).toHaveAttribute("data-period", "all");
   const id = new URL(page.url()).searchParams.get("import");
   await page.goto(`/app/recap?import=${id}`);
   await expect(page.getByTestId("recap-ready")).toBeVisible({ timeout: 60_000 });
@@ -106,14 +103,11 @@ test("a finished scan is saved by default and survives a reload", async ({ page 
   });
   await waitForWorkload(page);
   await page.reload();
-  await expect(page.getByTestId("stats-ready")).toBeVisible({ timeout: 60_000 });
-  // The app entry opens the saved recap; Stats stays one link away.
+  await expect(page.getByTestId("recap-ready")).toBeVisible({ timeout: 60_000 });
   await page.goto("/app");
   await expect(page).toHaveURL(/\/app\/recap$/);
   await expect(page.getByTestId("recap-ready")).toBeVisible({ timeout: 60_000 });
-  await page.getByRole("link", { name: "Explore your stats" }).click();
-  await expect(page).toHaveURL(/\/app\/stats\?import=/u);
-  await expect(page.getByTestId("stats-ready")).toBeVisible();
+  await expect(page.locator("#section-06")).toBeVisible();
 });
 
 test("a partial scan says so beside the totals and offers a rescan", async ({ page }) => {
@@ -152,10 +146,12 @@ test("a partial scan says so beside the totals and offers a rescan", async ({ pa
   const notice = page.getByTestId("partial-scan");
   await expect(notice).toBeVisible({ timeout: 30_000 });
   await expect(notice).toContainText("Partial scan");
-  await expect(notice).toContainText("could not be read to the end");
-  await expect(notice).toContainText("not in these totals");
+  await expect(notice).toContainText("missing usage is outside these totals");
   await expect(notice).not.toContainText(/malformed|changed/iu);
-  await expect(page.getByTestId("stats-rescan")).toHaveAttribute("href", "/app/scan");
+  await expect(notice.getByRole("link", { name: "Scan again" })).toHaveAttribute(
+    "href",
+    "/app/scan",
+  );
   const id = new URL(href).searchParams.get("import");
   await page.goto(`/app/recap?import=${id}`);
   const briefing = page.getByTestId("recap-ready").getByTestId("partial-scan");

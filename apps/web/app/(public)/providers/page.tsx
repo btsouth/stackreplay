@@ -1,3 +1,5 @@
+import "@/components/terminal/terminal.css";
+import "@/components/public/public-terminal.css";
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { MarketFooter, MarketHeader } from "@/components/public/market-header";
@@ -19,7 +21,7 @@ export default function ProvidersPage() {
     Object.fromEntries(data.directory.plans.map((plan) => [plan.id, planTools(plan)])),
   );
   return (
-    <div>
+    <div className="terminal public-terminal">
       <MarketHeader
         compact
         eyebrow="The people behind the tools"

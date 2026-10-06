@@ -27,7 +27,7 @@ import {
   directApiProviderIdsFor,
   loadBundledCatalog,
 } from "@stackreplay/catalog/bundled";
-import { selectExecutionVersionAt } from "@stackreplay/catalog/execution";
+import { selectExecutionVersionAt } from "@stackreplay/catalog/execution-selection";
 import { audienceWords, relativeValuePhrase } from "./plan-terms";
 import {
   includedAccessModels,

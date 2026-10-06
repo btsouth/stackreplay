@@ -60,12 +60,11 @@ for (const archive of [false, true]) {
           ],
     );
     await waitForWorkload(page);
-    await page.getByRole("tab", { name: "Tools" }).click();
-    await expect(page.getByRole("table", { name: "Tools in this period" })).toContainText(
-      "OpenCode",
-    );
+    await expect(
+      page.locator("#section-06 .lcol").filter({ has: page.getByText("Tools", { exact: true }) }),
+    ).toContainText("OpenCode");
     await page.reload();
-    await expect(page.getByTestId("stats-ready")).toBeVisible({ timeout: 60_000 });
+    await expect(page.getByTestId("recap-ready")).toBeVisible({ timeout: 60_000 });
     // Nothing is assumed about what the person pays.
     expect(await page.evaluate(() => localStorage.getItem("stackreplay.current-stack"))).toBeNull();
     expect(
@@ -100,8 +99,9 @@ test("OpenCode and Command Code appear as independent tools in Stats", async ({ 
     },
   ]);
   await waitForWorkload(page);
-  await page.getByRole("tab", { name: "Tools" }).click();
-  const tools = page.getByRole("table", { name: "Tools in this period" });
+  const tools = page
+    .locator("#section-06 .lcol")
+    .filter({ has: page.getByText("Tools", { exact: true }) });
   await expect(tools).toContainText("OpenCode");
   await expect(tools).toContainText("Command Code");
 });
@@ -117,7 +117,7 @@ test("individual OpenCode and Command Code connection controls remain accessible
   await page.getByTestId("connect-opencode").click();
   await (await chooser).setFiles(root);
   await waitForWorkload(page);
-  await expect(page.getByTestId("stats-ready")).toBeVisible();
+  await expect(page.getByTestId("recap-ready")).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   expect(
     (

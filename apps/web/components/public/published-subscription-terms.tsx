@@ -1,12 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type {
   PublishedTermsTable,
   SubscriptionPublishedTerms,
 } from "@/lib/subscription-published-terms";
 
 export function PublishedUsageTable({ table }: { table: PublishedTermsTable }) {
+  const [ready, setReady] = useState(false);
+  useEffect(() => setReady(true), []);
   const [query, setQuery] = useState("");
   const [all, setAll] = useState(false);
   const matches = table.rows.filter((row) =>
@@ -21,6 +23,7 @@ export function PublishedUsageTable({ table }: { table: PublishedTermsTable }) {
           Find in {table.title.toLowerCase()}
           <input
             type="search"
+            disabled={!ready}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             className="mt-2 min-h-11 w-full border border-border bg-background px-3 text-foreground"
@@ -85,7 +88,12 @@ export function PublishedUsageTable({ table }: { table: PublishedTermsTable }) {
         </p>
       )}
       {matches.length > visible.length && (
-        <button type="button" className="market-link mt-3 min-h-11" onClick={() => setAll(true)}>
+        <button
+          type="button"
+          disabled={!ready}
+          className="market-link mt-3 min-h-11"
+          onClick={() => setAll(true)}
+        >
           Show all {matches.length} entries ↓
         </button>
       )}

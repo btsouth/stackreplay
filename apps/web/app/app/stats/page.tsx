@@ -1,22 +1,12 @@
-import type { Metadata } from "next";
-import { StatsSurface } from "@/components/stats/stats-surface";
-
-export const metadata: Metadata = {
-  title: "Your stats",
-  description:
-    "How you actually use AI: chronology, working hours, peak windows, projects, models and token composition, analyzed in your browser.",
-};
-
-/**
- * The workload route accepts an opaque local import id only. Project names,
- * session hashes and timestamps never appear in a URL.
- */
+import { redirect } from "next/navigation";
 export default async function StatsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ import?: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  const params = await searchParams;
-  const importId = typeof params.import === "string" ? params.import : undefined;
-  return <StatsSurface initialImportId={importId} />;
+  const query = new URLSearchParams();
+  for (const [key, value] of Object.entries(await searchParams))
+    for (const v of Array.isArray(value) ? value : value === undefined ? [] : [value])
+      query.append(key, v);
+  redirect(`/app/recap${query.size ? `?${query}` : ""}`);
 }

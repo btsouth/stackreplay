@@ -204,7 +204,12 @@ export function HistoryDiscovery({
   const arm = useCallback(() => {
     setPhase((current) => (current === "intro" ? "armed" : current));
     setDropNote(undefined);
-    requestAnimationFrame(() => headingRef.current?.focus());
+    const trigger = document.activeElement;
+    requestAnimationFrame(() => {
+      // Do not steal focus if the person already moved to a chooser control.
+      if (document.activeElement === trigger || document.activeElement === document.body)
+        headingRef.current?.focus();
+    });
   }, []);
 
   const runDiscovery = useCallback(
@@ -519,11 +524,6 @@ export function HistoryDiscovery({
           </span>
         )}
         <div className="sr-find-machine" data-testid="discovery-machine">
-          <span
-            aria-hidden="true"
-            className="sr-find-knot sr-find-knot-machine"
-            data-rail-knot={roots.length > 0 ? "lit" : "idle"}
-          />
           <div className="sr-find-machine-body">
             <p className="sr-micro">Local machine</p>
             {roots.length > 0 ? (
@@ -581,21 +581,20 @@ export function HistoryDiscovery({
             type="button"
             size="lg"
             disabled={disabled}
-            onClick={arm}
-            data-testid="find-histories"
-          >
-            Where is my history?
-          </Button>
-          <Button
-            type="button"
-            size="lg"
-            disabled={disabled}
             onClick={() => openChooser()}
             data-testid="choose-history-folder"
           >
             Choose a history folder
           </Button>
-          {connectToggle("Connect individually →")}
+          <button
+            type="button"
+            className="sr-find-link sr-find-link-quiet"
+            disabled={disabled}
+            onClick={arm}
+            data-testid="find-histories"
+          >
+            Where is my history?
+          </button>
         </div>
       ) : null}
 

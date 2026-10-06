@@ -3,9 +3,19 @@ import { importDemo } from "./helpers";
 
 test("home copy scopes history and API value", async ({ page }) => {
   await page.goto("/");
-  await expect(page.locator("main")).toContainText("Illustrative comparison");
-  await expect(page.locator("main")).toContainText("estimate, not a bill or savings");
-  await expect(page.locator("main")).toContainText("fictional sample");
+  await expect(page.locator("#sample .side .kv").first().locator(".n")).toHaveText(
+    "AT LIST PRICES",
+  );
+  for (const side of await page.locator(".sample-readouts").all()) {
+    const gap = await side.evaluate(
+      (el) =>
+        el.getBoundingClientRect().bottom -
+        Math.max(...Array.from(el.children, (cell) => cell.getBoundingClientRect().bottom)),
+    );
+    expect(Math.abs(gap), "sample columns end at their last content cell").toBeLessThan(1);
+  }
+  await expect(page.locator("main")).toContainText("Fictional history. Real components.");
+  await expect(page.locator("main")).toContainText("Your scan supplies your numbers.");
   await expect(page.locator("main")).not.toContainText("every model call");
 });
 
@@ -46,18 +56,19 @@ test("Moderate week leads with a sourced list-price value and stays labelled dem
   page,
 }) => {
   await importDemo(page, "moderate");
-  await expect(page.getByTestId("stats-ready")).toContainText("Fictional demo");
+  await expect(page.getByTestId("recap-ready")).toContainText("Fictional demo");
   const id = new URL(page.url()).searchParams.get("import");
   await page.goto(`/app/recap?import=${id}`);
   await expect(page.getByTestId("recap-ready")).toBeVisible({ timeout: 60_000 });
-  await expect(page.locator(".recap-cost-number")).toBeVisible();
-  await expect(page.locator(".recap-hero-caption")).toContainText("API prices");
+  await expect(page.getByTestId("recap-value").locator(".v")).toBeVisible();
+  await expect(page.getByTestId("recap-value")).toContainText("AT LIST PRICES");
 });
 
 test("plan names wrap inside What you pay at 390px", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/app/settings");
   await page.getByRole("combobox", { name: "Add a plan" }).click();
+  await expect(page.getByRole("option").first()).toBeVisible();
   const names = await page.getByRole("option").allInnerTexts();
   const longest = names.reduce((a, b) => (b.length > a.length ? b : a), "");
   await page.getByRole("option", { name: longest, exact: true }).click();

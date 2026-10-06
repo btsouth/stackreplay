@@ -13,7 +13,7 @@ async function expectNoSeriousViolations(page: Page) {
   ).toEqual([]);
 }
 
-const targets = (page: Page) => page.getByTestId("compare-target");
+const targets = (page: Page) => page.getByRole("main").getByTestId("compare-target");
 
 for (const theme of ["dark", "light"] as const) {
   test.describe(`compare page in ${theme}`, () => {
@@ -36,7 +36,10 @@ for (const theme of ["dark", "light"] as const) {
       await page.getByRole("button", { name: "+ Add a third plan" }).click();
       await expect(targets(page)).toHaveCount(3);
       await expect(page).toHaveURL(/[?&]third=/u);
-      await selectCatalogOption(page.getByLabel("Second plan"), "opencode-go-plus");
+      await selectCatalogOption(
+        page.getByRole("combobox", { name: "Second plan", exact: true }),
+        "opencode-go-plus",
+      );
       await expect(page).toHaveURL(/[?&]right=opencode-go-plus(&|$)/u);
       await expect(
         page.evaluate(() => document.documentElement.scrollWidth <= innerWidth),
@@ -46,6 +49,7 @@ for (const theme of ["dark", "light"] as const) {
 
     test("shows matching statements once and links models to their pages", async ({ page }) => {
       await page.goto("/compare?left=anthropic-claude-max-5x&right=anthropic-claude-max-20x");
+      await expect(page.getByRole("combobox", { name: "First plan", exact: true })).toBeEnabled();
       await expect(
         page
           .locator('[data-testid^="compare-row-"]')
@@ -65,11 +69,17 @@ for (const theme of ["dark", "light"] as const) {
 
     test("duplicate selections stay explicit and recoverable", async ({ page }) => {
       await page.goto("/compare?left=kiro-pro&right=devin-teams");
-      await selectCatalogOption(page.getByLabel("Second plan"), "kiro-pro");
+      await selectCatalogOption(
+        page.getByRole("combobox", { name: "Second plan", exact: true }),
+        "kiro-pro",
+      );
       await expect(page.getByText("Choose different plans to see a comparison.")).toBeVisible();
       await expect(page.getByTestId("compare-table")).toHaveCount(0);
       await expect(page).toHaveURL(/left=kiro-pro&right=kiro-pro/u);
-      await selectCatalogOption(page.getByLabel("Second plan"), "devin-teams");
+      await selectCatalogOption(
+        page.getByRole("combobox", { name: "Second plan", exact: true }),
+        "devin-teams",
+      );
       await expect(page.getByTestId("compare-table")).toBeVisible();
     });
   });
@@ -96,11 +106,21 @@ test("a shared comparison never flashes the default pair before it applies", asy
   // inline bootstrap run, which is what a visitor sees on first paint.
   await page.route(/\.js(\?|$)/u, (route) => route.abort());
   await page.goto("/compare?left=clinepass&right=opencode-go");
-  await expect(page.getByTestId("compare-table")).toBeHidden();
-  // If the explorer never hydrates, the default pair comes back instead of staying hidden.
-  await expect(page.getByTestId("compare-table")).toBeVisible({ timeout: 8_000 });
-  await expect(targets(page).nth(0)).toContainText("Claude Max 20x");
-  await expect(targets(page).nth(1)).toContainText("ChatGPT Pro");
+  const comparison = page.getByRole("main").getByTestId("compare-table");
+  await expect(comparison).toHaveCount(1);
+  await expect(comparison).toBeHidden();
+  await expect(page.getByTestId("compare-table").filter({ visible: true })).toHaveCount(0);
+  // Next serves the static default fallback; Workers resolves the requested plans
+  // on the server. Both must reveal their exact server view if scripts never load.
+  await expect(comparison).toBeVisible({ timeout: 8_000 });
+  await expect(page.getByTestId("compare-table").filter({ visible: true })).toHaveCount(1);
+  if (process.env.STACKREPLAY_E2E_RUNTIME === "workers") {
+    await expect(targets(page).nth(0)).toContainText("ClinePass");
+    await expect(targets(page).nth(1)).toContainText("OpenCode Go");
+  } else {
+    await expect(targets(page).nth(0)).toContainText("Claude Max 20x");
+    await expect(targets(page).nth(1)).toContainText("ChatGPT Pro");
+  }
   await page.goto("/compare");
   await expect(page.getByTestId("compare-table")).toBeVisible();
 });

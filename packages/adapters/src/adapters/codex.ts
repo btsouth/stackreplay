@@ -43,6 +43,22 @@ import { CODEX_DISCOVERY } from "./codex.discovery.js";
 
 const ADAPTER_ID = "codex" as const;
 
+// Match the native completion record to a later UI token_count snapshot.
+// The latter can be persisted only after tools finish and is not then an end boundary.
+function completionKey(usage: Record<string, unknown>): string | undefined {
+  const fields = [
+    "input_tokens",
+    "output_tokens",
+    "total_tokens",
+    "cached_input_tokens",
+    "cache_write_input_tokens",
+    "reasoning_output_tokens",
+  ];
+  const counts = fields.map((field) => readCount(usage, field));
+  if (counts.slice(0, 3).some((value) => value === undefined)) return undefined;
+  return JSON.stringify(counts);
+}
+
 export function codexRoots(env: SourceEnvironment): string[] {
   return CODEX_DISCOVERY.history.map((location) =>
     joinPath(env.platform, env.homeDir, ...location.path),
@@ -125,7 +141,9 @@ export function createCodexAdapter(): LocalSourceAdapter {
           let lineIndex = 0;
           let fileEvents = 0;
           let requestStart: number | undefined;
-          let subagent = false;
+          let awaitingModelOutput = false;
+          let lastUsageIdentity: string | undefined;
+          let completion: { key: string; started?: number; ended?: number } | undefined;
 
           for await (const line of env.fs.readLines(file, maxBytes)) {
             lineIndex += 1;
@@ -143,11 +161,24 @@ export function createCodexAdapter(): LocalSourceAdapter {
             if (payload === undefined) continue;
 
             if (type === "session_meta") {
-              const source = payload.source;
-              subagent = typeof source === "object" && source !== null && "subagent" in source;
               sessionId =
                 readString(payload, "id") ?? readString(payload, "session_id") ?? sessionId;
               projectKey = readString(payload, "cwd") ?? projectKey;
+              continue;
+            }
+            if (type === "token_usage_record") {
+              const usage = asRecord(payload.usage);
+              const key = usage ? completionKey(usage) : undefined;
+              const timestamp = readString(record, "timestamp");
+              const ended = timestamp ? epochMsFromIso(timestamp) : undefined;
+              if (key) {
+                completion = {
+                  key,
+                  ...(requestStart !== undefined ? { started: requestStart } : {}),
+                  ...(ended !== undefined ? { ended } : {}),
+                };
+                requestStart = undefined;
+              }
               continue;
             }
             if (type === "turn_context") {
@@ -163,13 +194,31 @@ export function createCodexAdapter(): LocalSourceAdapter {
                   readString(payload, "type") ?? "",
                 )) ||
               (type === "response_item" &&
-                (readString(payload, "type") === "function_call_output" ||
+                (["function_call_output", "custom_tool_call_output", "agent_message"].includes(
+                  readString(payload, "type") ?? "",
+                ) ||
                   (readString(payload, "type") === "message" &&
                     readString(payload, "role") === "user")))
             ) {
               const at = readString(record, "timestamp");
               requestStart = at ? epochMsFromIso(at) : undefined;
+              awaitingModelOutput =
+                type === "response_item" &&
+                ["function_call_output", "custom_tool_call_output"].includes(
+                  readString(payload, "type") ?? "",
+                );
               continue;
+            }
+            if (
+              (type === "response_item" &&
+                (["reasoning", "function_call", "custom_tool_call"].includes(
+                  readString(payload, "type") ?? "",
+                ) ||
+                  (readString(payload, "type") === "message" &&
+                    readString(payload, "role") === "assistant"))) ||
+              (type === "event_msg" && readString(payload, "type") === "agent_message")
+            ) {
+              awaitingModelOutput = false;
             }
             if (type !== "event_msg") continue;
             if (readString(payload, "type") !== "token_count") continue;
@@ -292,6 +341,24 @@ export function createCodexAdapter(): LocalSourceAdapter {
               cumulative === undefined
                 ? `${ordinal ?? lineIndex}#${totalTokens}`
                 : `cumulative:${cumulative}#${JSON.stringify([inputTokens, outputTokens, cacheReadTokens, cacheWriteTokens, reasoningTokens, totalTokens])}`;
+            const repeatedSnapshot = cumulative !== undefined && identity === lastUsageIdentity;
+            lastUsageIdentity = identity;
+            // Compaction/resume can reset UI cumulative totals independently
+            // of thread_token_usage. Match the most recent native response by
+            // its complete usage vector, never by those differing aggregates.
+            const matchesCompletion = completion?.key === completionKey(lastUsage);
+            const started = completion
+              ? matchesCompletion
+                ? completion.started
+                : undefined
+              : awaitingModelOutput
+                ? undefined
+                : requestStart;
+            const ended = completion
+              ? matchesCompletion
+                ? completion.ended
+                : undefined
+              : occurredAtMs;
             events.push(
               buildEvent(
                 {
@@ -299,8 +366,11 @@ export function createCodexAdapter(): LocalSourceAdapter {
                   sessionId,
                   identity,
                   occurredAtMs,
-                  ...(!subagent && requestStart !== undefined && requestStart < occurredAtMs
-                    ? { requestStartedAtMs: requestStart, requestEndedAtMs: occurredAtMs }
+                  ...(!repeatedSnapshot &&
+                  started !== undefined &&
+                  ended !== undefined &&
+                  started < ended
+                    ? { requestStartedAtMs: started, requestEndedAtMs: ended }
                     : {}),
                   rawModel: currentModel,
                   usage,
@@ -316,7 +386,10 @@ export function createCodexAdapter(): LocalSourceAdapter {
                 eventContext(env, options),
               ),
             );
-            requestStart = undefined;
+            if (!repeatedSnapshot) {
+              if (!completion && !awaitingModelOutput) requestStart = undefined;
+              else if (matchesCompletion) completion = undefined;
+            }
             fileEvents += 1;
           }
           stats.sessionsScanned += 1;

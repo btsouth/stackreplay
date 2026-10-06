@@ -3,7 +3,7 @@ import type { CatalogV1 } from "@stackreplay/catalog";
 import { loadBundledCatalog } from "@stackreplay/catalog/bundled";
 import { Decimal, moneyUnitsForUsage, replayObservingQuotes } from "@stackreplay/replay-engine";
 import type { TextUsageEventV1 } from "@stackreplay/schema";
-
+import { localCalendar, nextDay } from "./recap-calendar";
 import { deepRecap, type RecapDeep } from "./recap-deep";
 
 export type RecapPeriod = "30" | "90" | "all";
@@ -94,10 +94,7 @@ export function totalTokensOf(event: TextUsageEventV1): number | undefined {
     (u.accounting?.reasoningIncludedInOutput === false ? (u.reasoningTokens ?? 0) : 0)
   );
 }
-const dayMs = 86400000;
-function nextDay(date: string, offset = 1) {
-  return new Date(Date.parse(`${date}T00:00:00Z`) + offset * dayMs).toISOString().slice(0, 10);
-}
+export { nextDay } from "./recap-calendar";
 /** Activity uses the full supplied history. Aggregate spans mark days without allocating tokens. */
 export function recapActivity(
   events: readonly TextUsageEventV1[],
@@ -149,41 +146,16 @@ export function buildRecap(
   timeZone: string,
   catalog: CatalogV1 = loadBundledCatalog(),
 ): Recap {
-  const mapper = createModelMapper(catalog);
-  events = events.map((e) =>
-    e.model.canonicalId
-      ? e
-      : {
-          ...e,
-          model: mapper.map(e.model.rawName, {
-            harness:
-              e.harness?.id === "t3-code"
-                ? e.source.adapterId
-                : (e.harness?.id ?? e.source.adapterId),
-          }).model,
-        },
-  );
-  const formatter = new Intl.DateTimeFormat("en-CA", {
-    timeZone,
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    hourCycle: "h23",
-  });
-  const local = (at: string) => {
-    const p = Object.fromEntries(
-      formatter.formatToParts(new Date(at)).map((x) => [x.type, x.value]),
-    );
-    return { date: `${p.year}-${p.month}-${p.day}`, hour: Number(p.hour) };
-  };
+  events = resolveRecapModels(events, catalog);
+  const local = localCalendar(timeZone);
+  const nowMs = Date.parse(now);
   const end = local(now).date;
   const activity = recapActivity(events, now, local);
   const first = [...activity.days.keys()].reduce((a, d) => (d < a ? d : a), end);
   const start = period === "all" ? first : nextDay(end, -(Number(period) - 1));
   const selected = events.filter((e) => {
     const d = local(e.occurredAt).date;
-    return d >= start && d <= end && Date.parse(e.occurredAt) <= Date.parse(now);
+    return d >= start && d <= end && Date.parse(e.occurredAt) <= nowMs;
   });
   const days = new Map<string, { date: string; records: number; output: number }>();
   for (let d = start; d <= end; d = nextDay(d))
@@ -278,95 +250,30 @@ export function buildRecap(
   const costDays = new Map<string, Decimal>();
   const months = new Map<string, { date: string; usd: string; priced: number }>();
   let cacheSavings = new Decimal(0);
-  // Price each model at its developer's published direct API route, never a cheapest-provider comparison.
-  for (const [id, row] of models) {
-    const model = catalog.models[id];
-    const provider = model?.developerId;
-    if (!provider) continue;
-    replayObservingQuotes(
-      {
-        events: selected.filter((e) => e.model.canonicalId === id),
-        catalog,
-        target: { type: "api", providerId: provider },
-        context: { rulesAsOf: now.slice(0, 10) },
-      },
-      (event, outcome, quote) => {
-        let low = quote.amount;
-        let high = quote.amount;
-        let scenario = false;
-        let chosenPrice = quote.pricingId ? catalog.pricing[quote.pricingId] : undefined;
-        // Claude logs do not retain cache TTL. Both documented TTL rates form a range,
-        // rather than treating an unreported TTL as a known 5-minute write.
-        if (
-          outcome === "price_category_undocumented" &&
-          provider === "anthropic" &&
-          (event.usage.cacheWriteTokens ?? 0) > 0 &&
-          quote.pricingId
-        ) {
-          const base = catalog.pricing[quote.pricingId];
-          const variants = ["cache-write-5m", "cache-write-1h"].map((variant) =>
-            Object.values(catalog.pricing).find(
-              (price) =>
-                price.modelId === id &&
-                price.variantId === variant &&
-                price.basis === "api_list_price" &&
-                price.effectiveFrom === base?.effectiveFrom &&
-                Date.parse(price.effectiveFrom) <= Date.parse(now) &&
-                (!price.effectiveTo || now.slice(0, 10) < price.effectiveTo),
-            ),
-          );
-          if (variants.every((price) => price !== undefined)) {
-            const amounts = variants.map((price) =>
-              moneyUnitsForUsage(event.usage, price!, { atMs: Date.parse(event.occurredAt) }),
-            );
-            if (amounts.every((amount) => amount.known)) {
-              const sorted = amounts.map((amount) => amount.units).sort((a, b) => a.comparedTo(b));
-              low = sorted[0]?.toString();
-              high = sorted[1]?.toString();
-              scenario = true;
-              chosenPrice = variants[0];
-            }
-          }
-        }
-        if (low === undefined || high === undefined || (outcome !== "priced" && !scenario)) return;
-        priced++;
-        const date = local(event.occurredAt).date;
-        costDays.set(date, (costDays.get(date) ?? new Decimal(0)).add(low));
-        const month = date.slice(0, 7);
-        const monthly = months.get(month) ?? { date: month, usd: "0", priced: 0 };
-        monthly.usd = new Decimal(monthly.usd).add(low).toString();
-        monthly.priced++;
-        months.set(month, monthly);
-        if (chosenPrice && (event.usage.cacheReadTokens ?? 0) > 0) {
-          const u = event.usage;
-          const uncached = {
-            ...u,
-            inputTokens:
-              (u.inputTokens ?? 0) +
-              (u.accounting?.cacheReadIncludedInInput === true ? 0 : (u.cacheReadTokens ?? 0)),
-            cacheReadTokens: 0,
-          };
-          const actual = moneyUnitsForUsage(u, chosenPrice, { atMs: Date.parse(event.occurredAt) });
-          const without = moneyUnitsForUsage(uncached, chosenPrice, {
-            atMs: Date.parse(event.occurredAt),
-          });
-          if (actual.known && without.known && without.units.greaterThanOrEqualTo(actual.units)) {
-            cacheSavings = cacheSavings.add(without.units.sub(actual.units));
-            deep.cacheSavingsRecords++;
-          }
-        }
-        row.priced++;
-        if (scenario) {
-          cacheScenarioRecords++;
-          row.cacheScenarioRecords++;
-        }
-        usd = usd.add(new Decimal(low));
-        usdHigh = usdHigh.add(new Decimal(high));
-        row.usd = new Decimal(row.usd).add(new Decimal(low)).toString();
-        row.usdHigh = new Decimal(row.usdHigh).add(new Decimal(high)).toString();
-      },
-    );
-  }
+  priceRecapEvents(selected, catalog, now, (event, cost) => {
+    const row = models.get(event.model.canonicalId!)!;
+    priced++;
+    const date = local(event.occurredAt).date;
+    costDays.set(date, (costDays.get(date) ?? new Decimal(0)).add(cost.low));
+    const month = date.slice(0, 7);
+    const monthly = months.get(month) ?? { date: month, usd: "0", priced: 0 };
+    monthly.usd = new Decimal(monthly.usd).add(cost.low).toString();
+    monthly.priced++;
+    months.set(month, monthly);
+    if (cost.savings !== undefined) {
+      cacheSavings = cacheSavings.add(cost.savings);
+      deep.cacheSavingsRecords++;
+    }
+    row.priced++;
+    if (cost.scenario) {
+      cacheScenarioRecords++;
+      row.cacheScenarioRecords++;
+    }
+    usd = usd.add(cost.low);
+    usdHigh = usdHigh.add(cost.high);
+    row.usd = new Decimal(row.usd).add(cost.low).toString();
+    row.usdHigh = new Decimal(row.usdHigh).add(cost.high).toString();
+  });
   deep.costDays = [...costDays]
     .map(([date, usd]) => ({ date, usd: usd.toString() }))
     .sort((a, b) => a.date.localeCompare(b.date));
@@ -419,4 +326,124 @@ export function buildRecap(
     cacheScenarioRecords,
     rulesAsOf: now.slice(0, 10),
   };
+}
+
+/** Resolve once, preserving the original sequence and serving-route evidence. */
+export function resolveRecapModels(events: readonly TextUsageEventV1[], catalog: CatalogV1) {
+  const mapper = createModelMapper(catalog);
+  return events.map((e) =>
+    e.model.canonicalId
+      ? e
+      : {
+          ...e,
+          model: mapper.map(e.model.rawName, {
+            harness:
+              e.harness?.id === "t3-code"
+                ? e.source.adapterId
+                : (e.harness?.id ?? e.source.adapterId),
+          }).model,
+        },
+  );
+}
+export interface RecapCost {
+  low: string;
+  high: string;
+  scenario: boolean;
+  savings: string | undefined;
+}
+/** Internal reducer boundary: these typed events have already passed intake/storage validation. */
+export function priceRecapEvents(
+  events: readonly TextUsageEventV1[],
+  catalog: CatalogV1,
+  now: string,
+  observe: (event: TextUsageEventV1, cost: RecapCost) => void,
+) {
+  const byModel = new Map<string, TextUsageEventV1[]>();
+  for (const event of events) {
+    if (!event.model.canonicalId) continue;
+    const id = event.model.canonicalId;
+    const group = byModel.get(id) ?? [];
+    group.push(event);
+    byModel.set(id, group);
+  }
+  // Price each model at its developer's published direct API route, never a cheapest-provider comparison.
+  for (const [id, grouped] of byModel) {
+    const model = catalog.models[id];
+    const provider = model?.developerId;
+    if (!provider) continue;
+    const nowMs = Date.parse(now);
+    const variantsByBase = new Map<string, (CatalogV1["pricing"][string] | undefined)[]>();
+    const pricing = Object.values(catalog.pricing);
+    replayObservingQuotes(
+      {
+        events: grouped,
+        catalog,
+        target: { type: "api", providerId: provider },
+        context: { rulesAsOf: now.slice(0, 10) },
+        options: { eventsValidated: true },
+      },
+      (event, outcome, quote) => {
+        let low = quote.amount;
+        let high = quote.amount;
+        let scenario = false;
+        let chosenPrice = quote.pricingId ? catalog.pricing[quote.pricingId] : undefined;
+        // Claude logs do not retain cache TTL. Both documented TTL rates form a range,
+        // rather than treating an unreported TTL as a known 5-minute write.
+        if (
+          outcome === "price_category_undocumented" &&
+          provider === "anthropic" &&
+          (event.usage.cacheWriteTokens ?? 0) > 0 &&
+          quote.pricingId
+        ) {
+          const base = catalog.pricing[quote.pricingId];
+          const variants =
+            variantsByBase.get(quote.pricingId) ??
+            ["cache-write-5m", "cache-write-1h"].map((variant) =>
+              pricing.find(
+                (price) =>
+                  price.modelId === id &&
+                  price.variantId === variant &&
+                  price.basis === "api_list_price" &&
+                  price.effectiveFrom === base?.effectiveFrom &&
+                  Date.parse(price.effectiveFrom) <= nowMs &&
+                  (!price.effectiveTo || now.slice(0, 10) < price.effectiveTo),
+              ),
+            );
+          variantsByBase.set(quote.pricingId, variants);
+          if (variants.every((price) => price !== undefined)) {
+            const amounts = variants.map((price) =>
+              moneyUnitsForUsage(event.usage, price!, { atMs: Date.parse(event.occurredAt) }),
+            );
+            if (amounts.every((amount) => amount.known)) {
+              const sorted = amounts.map((amount) => amount.units).sort((a, b) => a.comparedTo(b));
+              low = sorted[0]?.toString();
+              high = sorted[1]?.toString();
+              scenario = true;
+              chosenPrice = variants[0];
+            }
+          }
+        }
+        if (low === undefined || high === undefined || (outcome !== "priced" && !scenario)) return;
+        let savings: string | undefined;
+        if (chosenPrice && (event.usage.cacheReadTokens ?? 0) > 0) {
+          const u = event.usage;
+          const uncached = {
+            ...u,
+            inputTokens:
+              (u.inputTokens ?? 0) +
+              (u.accounting?.cacheReadIncludedInInput === true ? 0 : (u.cacheReadTokens ?? 0)),
+            cacheReadTokens: 0,
+          };
+          const actual = moneyUnitsForUsage(u, chosenPrice, { atMs: Date.parse(event.occurredAt) });
+          const without = moneyUnitsForUsage(uncached, chosenPrice, {
+            atMs: Date.parse(event.occurredAt),
+          });
+          if (actual.known && without.known && without.units.greaterThanOrEqualTo(actual.units)) {
+            savings = without.units.sub(actual.units).toString();
+          }
+        }
+        observe(event, { low, high, scenario, savings });
+      },
+    );
+  }
 }

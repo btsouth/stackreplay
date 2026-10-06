@@ -143,6 +143,7 @@ test("shared comparison normalization preserves its hash and restored choices", 
   page,
 }) => {
   await page.goto("/compare?left=devin-teams#limits");
+  await expect(page.getByRole("combobox", { name: "First plan", exact: true })).toBeEnabled();
   await expect(page).toHaveURL(/\/compare\?left=devin-teams&right=openai-chatgpt-pro#limits$/u);
   await expectCatalogSelection(
     page.getByRole("combobox", { name: "First plan", exact: true }),
@@ -170,6 +171,7 @@ test("shared comparison normalization preserves its hash and restored choices", 
     "devin-pro",
   );
   await page.goto("/compare?left=unknown&right=devin-pro&third=unknown#limits");
+  await expect(page.getByRole("combobox", { name: "First plan", exact: true })).toBeEnabled();
   await expect(page).toHaveURL(/\/compare\?left=anthropic-claude-max-20x&right=devin-pro#limits$/u);
   await expectCatalogSelection(
     page.getByRole("combobox", { name: "First plan", exact: true }),

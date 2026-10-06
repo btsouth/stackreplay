@@ -1,3 +1,5 @@
+import "@/components/terminal/terminal.css";
+import "@/components/public/public-terminal.css";
 import type { Metadata } from "next";
 import { UpdatesFeed } from "@/components/market/updates-feed";
 import { MarketFooter, MarketHeader } from "@/components/public/market-header";
@@ -33,7 +35,7 @@ export default async function UpdatesPage({
   const events = marketEventViews(catalog);
   const changes = deriveCatalogChanges();
   return (
-    <div>
+    <div className="terminal public-terminal">
       <MarketHeader
         eyebrow="AI updates"
         title="What changed in the AI market."

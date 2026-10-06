@@ -153,8 +153,8 @@ test("the happy path opens a recap after scanning and can reopen its details", a
     .getByRole("link", { name: /^Explore my stats/u })
     .first()
     .click();
-  await expect(page).toHaveURL(/\/app\/stats\?import=/u);
-  await expect(page.getByTestId("stats-ready")).toBeVisible();
+  await expect(page).toHaveURL(/\/app\/recap\?import=/u);
+  await expect(page.getByTestId("recap-ready")).toBeVisible();
 });
 
 test("a linked history needs additional access and connects without disturbing the others", async ({
@@ -232,8 +232,9 @@ test("an OpenCode data folder can be imported, dropped or chosen", async ({ page
   await page.getByTestId("select-codex").uncheck();
   await page.getByTestId("build-workload").click();
   await waitForWorkload(page);
-  await page.getByRole("tab", { name: "Tools" }).click();
-  await expect(page.getByRole("table", { name: "Tools in this period" })).toContainText("OpenCode");
+  await expect(
+    page.locator("#section-06 .lcol").filter({ has: page.getByText("Tools", { exact: true }) }),
+  ).toContainText("OpenCode");
 });
 
 test("a dropped bare projects folder asks for access and is never listed", async ({
@@ -516,6 +517,7 @@ test("discovery states pass axe and selection works from the keyboard", async ({
 
 test("the manual chooser stays one keyboard step away", async ({ page }) => {
   await gotoImport(page);
+  await page.getByTestId("find-histories").click();
   const toggle = page.getByTestId("connect-individually");
   await toggle.focus();
   await page.keyboard.press("Enter");

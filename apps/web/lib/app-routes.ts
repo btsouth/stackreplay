@@ -4,9 +4,9 @@ export type RouteQuery = Record<string, string | string[] | undefined>;
 export const removedAppRoutes = {
   plans: { to: "/app/settings", hash: "what-you-pay", keep: ["period"] },
   stack: { to: "/app/settings", hash: "what-you-pay", keep: ["period"] },
-  replay: { to: "/app/stats" },
-  compare: { to: "/app/stats" },
-  workload: { to: "/app/stats" },
+  replay: { to: "/app/recap" },
+  compare: { to: "/app/recap" },
+  workload: { to: "/app/recap" },
   import: { to: "/app/scan" },
 } as const satisfies Record<string, { to: string; hash?: string; keep?: readonly string[] }>;
 

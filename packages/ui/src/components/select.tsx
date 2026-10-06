@@ -1,7 +1,7 @@
 "use client";
 import { Select as BaseSelect } from "@base-ui-components/react/select";
 import { Check, ChevronDown } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { cn } from "../lib/cn";
 
 export interface SelectOption {
@@ -40,6 +40,8 @@ export function Select({
   portalContainer,
 }: SelectProps) {
   const [open, setOpen] = useState(false);
+  const [ready, setReady] = useState(false);
+  useEffect(() => setReady(true), []);
   return (
     <BaseSelect.Root
       items={options}
@@ -51,7 +53,7 @@ export function Select({
         if (next !== null) onValueChange?.(next);
       }}
       {...(name ? { name } : {})}
-      disabled={disabled ?? false}
+      disabled={!ready || (disabled ?? false)}
       required={required ?? false}
     >
       <BaseSelect.Trigger

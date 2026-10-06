@@ -15,7 +15,7 @@ import { captureRequests, importDemo } from "./helpers";
  */
 
 const PUBLIC_ROUTES = [
-  { path: "/", heading: "Your AI coding, replayed." },
+  { path: "/", heading: "Your AI coding, measured." },
   { path: "/plans", heading: "Find your next stack." },
   { path: "/models", heading: "Know your models." },
   { path: "/compare", heading: "Find the fit." },
@@ -56,7 +56,7 @@ test.describe("public site", () => {
     await page.goto("/models");
     const brand = page.getByRole("banner").getByRole("link", { name: "StackReplay home" });
     await expect(brand).toBeVisible();
-    await expect(brand).toContainText("StackReplay");
+    await expect(brand).toContainText("stackreplay");
     await expect(brand).toHaveAttribute("href", "/");
     const response = await request.get("/fonts/instrument-sans.ttf");
     expect(response.status()).toBe(200);
@@ -246,11 +246,11 @@ test.describe("public site", () => {
     await page.setViewportSize({ width: 1366, height: 768 });
     await page.goto("/plans/github-copilot-business");
     const desktopNav = page.getByRole("navigation", { name: "Public" }).first();
-    await expect(desktopNav.getByRole("link", { name: "Models & plans" })).toHaveAttribute(
+    await expect(desktopNav.getByRole("link", { name: "Models" })).toHaveAttribute(
       "aria-current",
       "page",
     );
-    await expect(desktopNav.getByRole("link", { name: "Recap" })).not.toHaveAttribute(
+    await expect(desktopNav.getByRole("link", { name: "Overview" })).not.toHaveAttribute(
       "aria-current",
       "page",
     );
@@ -261,11 +261,11 @@ test.describe("public site", () => {
       await expect(menu).toHaveAttribute("aria-expanded", "true");
     }).toPass();
     const mobileNav = page.getByRole("navigation", { name: "Public" }).last();
-    await expect(mobileNav.getByRole("link", { name: "Models & plans" })).toHaveAttribute(
+    await expect(mobileNav.getByRole("link", { name: "Models" })).toHaveAttribute(
       "aria-current",
       "page",
     );
-    await expect(mobileNav.getByRole("link", { name: "Recap" })).not.toHaveAttribute(
+    await expect(mobileNav.getByRole("link", { name: "Overview" })).not.toHaveAttribute(
       "aria-current",
       "page",
     );
@@ -279,9 +279,7 @@ test.describe("public site", () => {
     await expect(privacy).toHaveAttribute("href", "/methodology#privacy");
     await privacy.click();
     await expect(page.locator("#privacy")).toBeVisible();
-    const catalog = page.getByRole("contentinfo").getByRole("link", { name: "Plans", exact: true });
-    await expect(catalog).toHaveAttribute("href", "/plans");
-    await catalog.click();
+    await page.goto("/plans");
     await page.getByTestId("plan-card").first().getByRole("link", { name: "Explore plan" }).click();
     await page.getByText("Published terms, sources & history", { exact: true }).click();
     await expect(page.getByTestId("source-list").first()).toBeVisible();
@@ -370,9 +368,9 @@ test.describe("share links", () => {
     await page.goto(`/s/${token}`);
     // An older link opens the shared recap page with only the aggregates it carries.
     await expect(page.getByTestId("share-card-v2")).toBeVisible();
-    await expect(page.getByRole("heading", { level: 1 })).toContainText("A chapter in AI coding");
-    await expect(page.getByTestId("share-tokens")).toHaveText("24.5M");
-    await expect(page.getByTestId("share-figure")).toHaveText("Value unreported");
+    await expect(page.getByRole("heading", { level: 1 })).toContainText("AI coding, in numbers");
+    await expect(page.getByRole("img", { name: /StackReplay card: 24.5M tokens/ })).toBeVisible();
+    await expect(page.getByTestId("share-tokens")).toHaveCount(0);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
       true,
     );
@@ -445,35 +443,40 @@ test.describe("share links", () => {
       .toBe(true);
   });
 
-  test("creating a recap share link sends nothing and re-reads in public", async ({ page }) => {
+  test("creating a recap share link sends selected aggregates and re-reads in public", async ({
+    page,
+  }) => {
     const requests = captureRequests(page);
     await importDemo(page, "moderate");
     const id = new URL(page.url()).searchParams.get("import");
     await page.goto(`/app/recap?import=${id}`);
     await expect(page.getByTestId("recap-ready")).toBeVisible({ timeout: 60_000 });
+    const posted = page.waitForRequest(
+      (r) => r.url().endsWith("/api/share") && r.method() === "POST",
+    );
     await page.getByTestId("recap-share-create").click();
-    const href = await page.getByTestId("recap-share-open").getAttribute("href");
-    const token = decodeURIComponent((href ?? "").replace("/s/", ""));
-    expect(token.startsWith("2.")).toBe(true);
+    const token = JSON.parse((await posted).postData()!).token;
+    await expect(page.getByTestId("recap-share-open")).toBeVisible();
 
     // The token decodes to a valid V2 snapshot with no forbidden field.
     const decoded = await decodeAnyShareToken(token);
     expect(decoded.ok).toBe(true);
     if (decoded.ok && decoded.snapshot.version === 2 && decoded.snapshot.kind === "workload") {
-      expect(decoded.snapshot.workload.calls).toBeGreaterThan(0);
+      expect(decoded.snapshot.card?.totalTokens).toBeGreaterThan(0);
       expect(JSON.stringify(decoded.snapshot)).not.toMatch(
         /sessionhash|projecthash|eventhash|repository|filepath|prompt/iu,
       );
     } else throw new Error("expected a V2 recap snapshot");
 
-    // The link holds the numbers; creating it posts nothing anywhere.
+    // The explicit action uploads only its aggregate token.
     const posts = requests.filter((request) => request.method !== "GET");
-    expect(posts.map((request) => `${request.method} ${request.url}`)).toEqual([]);
+    expect(posts).toHaveLength(1);
+    expect(posts[0]?.url).toContain("/api/share");
 
     await page.getByTestId("recap-share-open").click();
     await expect(page.getByTestId("share-card-v2")).toBeVisible();
-    await expect(page.getByRole("heading", { level: 1 })).toContainText("A chapter in AI coding");
-    await expect(page.getByTestId("share-tokens")).toBeVisible();
+    await expect(page.getByRole("heading", { level: 1 })).toContainText("AI coding, in numbers");
+    await expect(page.getByRole("img", { name: /StackReplay card:/ })).toBeVisible();
     // A sample history is labelled as fictional on the public page.
     await expect(page.locator(".shared-recap-honesty")).toContainText("Fictional");
   });

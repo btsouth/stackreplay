@@ -51,9 +51,12 @@ test("no imported data is uploaded during scan, recap, stats or sharing", async 
   );
   expect(markerInHeaders.map((request) => request.url)).toEqual([]);
 
-  // Nothing is posted anywhere: scan, recap and share send no request bodies at all.
+  // Only the explicit share action posts its guarded aggregate token.
   const withBody = requests.filter((request) => (request.body ?? "").length > 0);
-  expect(withBody.map((request) => `${request.method} ${request.url}`)).toEqual([]);
+  expect(withBody).toHaveLength(1);
+  expect(withBody[0]?.method).toBe("POST");
+  expect(new URL(withBody[0]!.url).pathname).toBe("/api/share");
+  expect(Object.keys(JSON.parse(withBody[0]!.body!))).toEqual(["token"]);
 
   // No request may target an import/upload endpoint at all.
   const uploadLike = requests.filter((request) =>

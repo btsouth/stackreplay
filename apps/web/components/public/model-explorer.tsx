@@ -323,14 +323,18 @@ export function ModelExplorer({
           />
         </div>
       </div>
-      {spotlight && <div className="model-library-spotlight">{spotlight}</div>}
       {selected.length > 0 && (
         <div className="flex flex-wrap items-center justify-between py-3">
           <p className="market-muted">
             Your selected models are compared below. View their published rates in the rate
             comparison.
           </p>
-          <button type="button" onClick={() => setSelected([])} className="market-link">
+          <button
+            disabled={!ready}
+            type="button"
+            onClick={() => setSelected([])}
+            className="market-link"
+          >
             Clear comparison
           </button>
         </div>
@@ -346,6 +350,7 @@ export function ModelExplorer({
         <div className="py-10" data-testid="model-empty">
           <p>No models match these filters.</p>
           <button
+            disabled={!ready}
             type="button"
             className="market-link"
             onClick={() => {
@@ -481,6 +486,7 @@ export function ModelExplorer({
       )}
       {layout !== "table" && visible.length > 12 && (
         <button
+          disabled={!ready}
           type="button"
           className="market-link my-4"
           data-layout-pending={pending("cards")}
@@ -489,6 +495,7 @@ export function ModelExplorer({
           {expanded ? "Show fewer models ↑" : `Show all ${visible.length} models ↓`}
         </button>
       )}
+      {spotlight && <div className="model-library-spotlight">{spotlight}</div>}
       <ModelPriceComparison models={models} prices={prices} selected={selected} />
     </div>
   );

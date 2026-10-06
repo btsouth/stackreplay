@@ -1,0 +1,101 @@
+"use client";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
+import { listHistoryMetadata } from "@/lib/local-history";
+import { themeStorageKey } from "@/lib/theme";
+import { TerminalBrand } from "./brand";
+
+export function TerminalHeader() {
+  const path = usePathname();
+  const [scanned, setScanned] = useState<string>();
+  const [ready, setReady] = useState(false);
+  // biome-ignore lint/correctness/useExhaustiveDependencies: navigation refreshes the last-scan label.
+  useEffect(() => {
+    let active = true;
+    setReady(true);
+    listHistoryMetadata()
+      .then((rows) => {
+        if (active && rows[0]) {
+          const minutes = Math.max(
+            0,
+            Math.floor((Date.now() - Date.parse(rows[0].createdAt)) / 60000),
+          );
+          setScanned(
+            minutes < 1
+              ? "JUST SCANNED"
+              : minutes < 60
+                ? `SCANNED ${minutes} MIN AGO`
+                : minutes < 1440
+                  ? `SCANNED ${Math.floor(minutes / 60)} H AGO`
+                  : `SCANNED ${Math.floor(minutes / 1440)} D AGO`,
+          );
+        }
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, [path]);
+  function theme() {
+    const dark = !document.documentElement.classList.contains("dark");
+    document.documentElement.classList.toggle("dark", dark);
+    try {
+      localStorage.setItem(themeStorageKey, dark ? "dark" : "light");
+    } catch {}
+  }
+  return (
+    <>
+      <Link
+        prefetch={false}
+        href="#main-content"
+        className="sr-skip"
+        onClick={() => document.getElementById("main-content")?.focus({ preventScroll: true })}
+      >
+        Skip to content
+      </Link>
+      <header className="terminal-header">
+        <div className="wrap">
+          <TerminalBrand />
+          <nav aria-label="App navigation">
+            <Link
+              prefetch={false}
+              href="/app/recap"
+              className={path === "/app/recap" ? "on" : ""}
+              aria-current={path === "/app/recap" ? "page" : undefined}
+            >
+              OVERVIEW
+            </Link>
+            <Link
+              prefetch={false}
+              href="/app/settings"
+              className={path === "/app/settings" ? "on" : ""}
+              aria-current={path === "/app/settings" ? "page" : undefined}
+            >
+              SETTINGS
+            </Link>
+          </nav>
+          <div className="hright">
+            <span className="live">
+              <i />
+              LOCAL · NOTHING UPLOADED
+            </span>
+            <span className="scan-age">{scanned ?? "NO SCAN YET"}</span>
+            <Link prefetch={false} className="btn" href="/app/scan">
+              ↻ RESCAN
+            </Link>
+            <button
+              type="button"
+              className="btn icon"
+              aria-label="Toggle theme"
+              disabled={!ready}
+              onClick={theme}
+            >
+              ◐
+            </button>
+          </div>
+        </div>
+      </header>
+    </>
+  );
+}

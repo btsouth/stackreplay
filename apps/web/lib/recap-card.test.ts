@@ -39,11 +39,11 @@ describe("recap card rendering", () => {
       }));
       await renderRecapCard(sampleRecap, portrait, undefined, true);
       expect([canvas.width, canvas.height]).toEqual(portrait ? [1080, 1350] : [1200, 630]);
-      expect(written).toContain("41.2B");
+      expect(written).toContain("20.4B");
       expect(written).toContain("total tokens processed");
       expect(written).toContain("Fictional sample. Illustrative values.");
-      expect(written).not.toContain("148M");
-      expect(written.indexOf("DeepSeek-V4.1-Flash")).toBeLessThan(written.indexOf("GPT-6.1 Sol"));
+      expect(written).not.toContain("76.3M");
+      expect(written.indexOf("DeepSeek-V4.1-Flash")).toBeLessThan(written.indexOf("GPT-6 Sol"));
     });
   it("keeps fictional activity, model mix and totals consistent", () => {
     expect(sampleRecap.days.reduce((n, d) => n + d.records, 0)).toBe(sampleRecap.records);

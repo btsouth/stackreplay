@@ -3,7 +3,7 @@ import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { Mix } from "../components/recap/recap-charts";
-import { RecapStory } from "../components/recap/recap-story";
+import { Overview } from "../components/terminal/overview";
 import { buildRecap, totalTokensOf } from "./recap";
 import { costTrendBuckets, developerNames } from "./recap-deep";
 
@@ -146,7 +146,11 @@ describe("deep recap provenance", () => {
     expect(s).toMatchObject({ n: 50, median: 34.5, p25: 22.25, p75: 46.75, wait: 10 });
     expect(
       buildRecap(
-        events.map((e) => ({ ...e, source: { ...e.source, adapterId: "hermes" } })),
+        events.map((e) => ({
+          ...e,
+          source: { ...e.source, adapterId: "hermes" },
+          confidence: { ...e.confidence, usage: "estimated" as const },
+        })),
         "30",
         now,
         "UTC",
@@ -193,7 +197,7 @@ it("uses catalog developer display names in the legend", () => {
   expect(developerNames.alibaba).toBe("Alibaba Cloud (Qwen)");
 });
 
-it("keeps unpriced rows muted and partial pricing in popovers", () => {
+it("keeps unpriced rows explicit in the continuous overview", () => {
   const recap = buildRecap([event("priced", "2026-10-03T12:00:00Z", "codex")], "30", now, "UTC");
   const priced = {
     ...recap.models[0]!,
@@ -206,11 +210,11 @@ it("keeps unpriced rows muted and partial pricing in popovers", () => {
   recap.models = [priced, { ...priced, id: "unknown", name: "Unknown model", priced: 0, usd: "0" }];
   recap.priced = 1;
   const html = renderToStaticMarkup(
-    createElement(RecapStory, { recap, period: "30", projects: [] }),
+    createElement(Overview, { recap, period: "30", onPeriod: () => {} }),
   );
-  expect(html).toContain('class="recap-unpriced">not priced');
-  expect(html).toContain('aria-label="About pricing for Partial model"');
-  expect(html).toContain('aria-label="About the model API equivalent"');
+  expect(html).toContain("unpriced");
+  expect(html).toContain("Partial model");
+  expect(html).not.toContain("popover");
   expect(html).not.toContain("subset");
   expect(html).not.toContain("$0 API equivalent");
 });

@@ -1,3 +1,5 @@
+import "@/components/terminal/terminal.css";
+import "@/components/public/public-terminal.css";
 import { PageHeader, Panel } from "@stackreplay/ui";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -114,7 +116,7 @@ export default function MethodologyPage() {
   const catalog = loadPublicCatalog();
 
   return (
-    <div className="methodology-page flex flex-col gap-8 pb-8">
+    <div className="terminal public-terminal methodology-page flex flex-col gap-8 pb-8">
       <PageHeader
         eyebrow="Privacy & methodology"
         title="Your history. Your browser."

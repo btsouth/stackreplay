@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import { formatCatalogDate } from "@/lib/catalog-copy";
 import {
   calculateFullDeveloperSeatMonthlyTotal,
@@ -26,6 +26,8 @@ export function PlanPriceCalculator({
   source,
 }: PlanPriceCalculatorProps) {
   const [seatInput, setSeatInput] = useState("1");
+  const [ready, setReady] = useState(false);
+  useEffect(() => setReady(true), []);
   const titleId = useId();
   const hintId = useId();
   const errorId = useId();
@@ -53,6 +55,7 @@ export function PlanPriceCalculator({
             Full developer seats
           </label>
           <input
+            disabled={!ready}
             id={`${titleId}-seats`}
             type="text"
             inputMode="numeric"

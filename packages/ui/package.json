@@ -12,7 +12,15 @@
     },
     "./styles/tokens.css": "./src/styles/tokens.css",
     "./styles/theme.css": "./src/styles/theme.css",
-    "./styles/premium.css": "./src/styles/premium.css"
+    "./styles/premium.css": "./src/styles/premium.css",
+    "./components/*": {
+      "types": "./src/components/*.tsx",
+      "default": "./src/components/*.tsx"
+    },
+    "./lib/public-nav": {
+      "types": "./src/lib/public-nav.ts",
+      "default": "./src/lib/public-nav.ts"
+    }
   },
   "scripts": {
     "typecheck": "tsc --noEmit",

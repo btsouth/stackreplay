@@ -1,4 +1,4 @@
-import { BUNDLED_CATALOG_VERSION } from "@stackreplay/catalog/bundled";
+import { BUNDLED_CATALOG_VERSION } from "@stackreplay/catalog/metadata";
 import { assertNoForbiddenFields, type ShareWorkloadV2, shareableToolId } from "@stackreplay/share";
 
 /**
@@ -34,6 +34,30 @@ export function recapShareV2(recap: import("./recap").Recap, synthetic = false):
       knownTokens: recap.total,
       sessions: recap.sessions,
       tools: recap.tools.slice(0, 8).map((t) => ({ id: shareableToolId(t.id), calls: t.records })),
+    },
+    facts: [],
+    versions: { catalog: BUNDLED_CATALOG_VERSION },
+  };
+  assertNoForbiddenFields(snapshot);
+  return snapshot;
+}
+
+/** Only selected card figures enter a terminal link; no local projects or labels. */
+export function terminalShareV2(
+  card: import("./terminal-card").PublicCard,
+  synthetic = false,
+): ShareWorkloadV2 {
+  const snapshot: ShareWorkloadV2 = {
+    version: 2,
+    kind: "workload",
+    ...(synthetic ? { synthetic: true as const } : {}),
+    card,
+    workload: {
+      calls: 0,
+      spanDays: 0,
+      activeDays: 0,
+      knownTokens: card.totalTokens ?? 0,
+      tools: [],
     },
     facts: [],
     versions: { catalog: BUNDLED_CATALOG_VERSION },

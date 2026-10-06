@@ -166,6 +166,9 @@ export interface WorkloadSummary {
 }
 
 export interface ImportRecord {
+  /** Opaque revision and serialized byte count, set atomically with each saved payload. */
+  payloadRevision?: string;
+  payloadBytes?: number;
   id: string;
   label: string;
   createdAt: string;

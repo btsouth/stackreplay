@@ -67,22 +67,18 @@ test("a recap link can be stored as a short link that carries only its aggregate
   const id = new URL(page.url()).searchParams.get("import");
   await page.goto(`/app/recap?import=${id}`);
   await expect(page.getByTestId("recap-ready")).toBeVisible({ timeout: 60_000 });
+  const posted = page.waitForRequest(
+    (r) => r.url().endsWith("/api/share") && r.method() === "POST",
+  );
   await page.getByTestId("recap-share-create").click();
-  const href = (await page.getByTestId("recap-share-open").getAttribute("href")) ?? "";
-  const token = decodeURIComponent(href.replace("/s/", ""));
+  const token = JSON.parse((await posted).postData()!).token;
   const decoded = await decodeAnyShareToken(token);
   expect(decoded.ok && decoded.snapshot.version === 2 && decoded.snapshot.kind).toBe("workload");
   expectNoMarkers(decoded.ok ? JSON.stringify(decoded.snapshot) : "");
-
-  const origin = `http://localhost:${process.env.STACKREPLAY_E2E_PORT ?? "3100"}`;
-  const stored = await request.post("/api/share", {
-    headers: { "content-type": "application/json", origin },
-    data: { token },
-  });
-  expect(stored.status()).toBe(201);
-  const { id: shortId, path } = (await stored.json()) as { id: string; path: string };
+  await expect(page.getByTestId("recap-share-open")).toBeVisible();
+  const path = (await page.getByTestId("recap-share-open").getAttribute("href"))!;
+  const shortId = path.replace("/s/", "");
   expect(shortId).toMatch(/^[A-Za-z0-9_-]{22}$/u);
-  expect(path).toBe(`/s/${shortId}`);
 
   // The public page renders from the stored token, with nothing private.
   const response = await request.get(`/s/${shortId}`);
@@ -94,7 +90,7 @@ test("a recap link can be stored as a short link that carries only its aggregate
   await page.goto(`/s/${shortId}`);
   await expect(page.getByTestId("share-card-v2")).toBeVisible();
   expectNoMarkers(await page.locator("main").innerText());
-  const shortTokens = await page.getByTestId("share-tokens").innerText();
+  const shortTokens = await page.locator(".public-terminal-card").getAttribute("alt");
 
   const image = await request.get(`/s/${shortId}/image`);
   expect(image.status()).toBe(200);
@@ -102,7 +98,7 @@ test("a recap link can be stored as a short link that carries only its aggregate
 
   // The same result as a self-contained link reads exactly the same.
   await page.goto(`/s/${token}`);
-  await expect(page.getByTestId("share-tokens")).toHaveText(shortTokens);
+  await expect(page.locator(".public-terminal-card")).toHaveAttribute("alt", shortTokens!);
 });
 
 test("an unknown or malformed short id is a friendly page and a fallback image", async ({
@@ -113,8 +109,7 @@ test("an unknown or malformed short id is a friendly page and a fallback image",
   expect(missing?.status()).toBe(404);
   await expect(page.getByRole("main")).toContainText("not");
   const image = await request.get("/s/AAAAAAAAAAAAAAAAAAAAAA/image");
-  expect(image.status()).toBe(200);
-  expect(image.headers()["content-type"]).toBe("image/png");
+  expect(image.status()).toBe(404);
   const invalid = await page.goto("/s/not-a-link");
   expect(invalid?.status()).toBe(404);
   await expect(page.getByRole("link", { name: /Scan/i }).first()).toBeVisible();

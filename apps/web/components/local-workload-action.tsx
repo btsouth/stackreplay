@@ -1,6 +1,6 @@
 "use client";
 
-import { primaryCta, returningCta } from "@stackreplay/ui";
+import { primaryCta, returningCta } from "@stackreplay/ui/lib/public-nav";
 import Link from "next/link";
 import { useLocalWorkload } from "@/lib/local-workload";
 

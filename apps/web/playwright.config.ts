@@ -18,7 +18,7 @@ export default defineConfig({
   },
   webServer: {
     command: workersRuntime
-      ? `pnpm run start:vinext --port ${port}`
+      ? `pnpm run start:vinext --port ${port} --persist-to .wrangler/e2e-${port}`
       : `pnpm exec next start -p ${port}`,
     url: baseURL,
     reuseExistingServer: false,

@@ -1,15 +1,27 @@
 import type { StackReplayExportV1 } from "@stackreplay/schema";
-import { stackReplayExportV1Schema } from "@stackreplay/schema";
 import {
   LOCAL_DATABASE_NAME as DATABASE_NAME,
   LOCAL_DATABASE_VERSION as DATABASE_VERSION,
   IMPORTS_STORE,
   PAYLOADS_STORE,
+  RECAP_INDEXES_STORE,
   WORKLOAD_RESULTS_STORE,
 } from "./local-database";
-import { decodeLocalPayload, encodeLocalPayload, isBlobPayload } from "./local-payload";
-import { importRecordSchema, validateStoredPair } from "./local-record-schema";
+import { decodeLocalPayload, encodeLocalPayloadWithMetadata, isBlobPayload } from "./local-payload";
+import type { RecapIndex } from "./recap-index";
 import type { ImportRecord } from "./worker-protocol";
+
+let recordSchemas: Promise<typeof import("./local-record-schema")> | undefined;
+/** Listing and recap reads share one ordered load of the split validation modules. */
+function localRecordSchemas() {
+  recordSchemas ??= import("zod")
+    .then(() => import("./local-record-schema"))
+    .catch((error) => {
+      recordSchemas = undefined;
+      throw error;
+    });
+  return recordSchemas;
+}
 
 /**
  * Browser-local persistence (M3 brief).
@@ -114,6 +126,10 @@ function openDatabase(): Promise<IDBDatabase> {
       if (!database.objectStoreNames.contains(PAYLOADS_STORE)) {
         database.createObjectStore(PAYLOADS_STORE, { keyPath: "id" });
       }
+      if (!database.objectStoreNames.contains(RECAP_INDEXES_STORE)) {
+        const store = database.createObjectStore(RECAP_INDEXES_STORE, { keyPath: "id" });
+        store.createIndex("importId", "importId");
+      }
       if (!database.objectStoreNames.contains(WORKLOAD_RESULTS_STORE)) {
         database.createObjectStore(WORKLOAD_RESULTS_STORE, { keyPath: "id" });
       }
@@ -210,6 +226,8 @@ export async function saveImport(
   exported: StackReplayExportV1,
   options: { observed?: StoreGeneration; signal?: AbortSignal } = {},
 ): Promise<StorageResult<ImportRecord>> {
+  const { importRecordSchema } = await localRecordSchemas();
+  const { stackReplayExportV1Schema } = await import("@stackreplay/schema");
   // This is the generic persistence boundary, including calls outside intake.
   // Both values must satisfy the strict allowlists before either store is touched.
   if (
@@ -228,12 +246,14 @@ export async function saveImport(
     return { ok: false, code: "IMPORT_CANCELLED" };
   }
   try {
-    const payload = encodeLocalPayload(record.id, exported);
+    const encoded = encodeLocalPayloadWithMetadata(record.id, exported);
+    const payload = encoded.payload;
+    record = { ...record, payloadRevision: encoded.revision, payloadBytes: encoded.bytes };
     // Both stores are written in one transaction: a reader can never see the
     // listing without its payload, which is what two transactions allowed
     // (benchmark finding F005).
     return await withStores(
-      [IMPORTS_STORE, PAYLOADS_STORE, WORKLOAD_RESULTS_STORE],
+      [IMPORTS_STORE, PAYLOADS_STORE, WORKLOAD_RESULTS_STORE, RECAP_INDEXES_STORE],
       "readwrite",
       async (transaction) => {
         const abort = () => {
@@ -256,6 +276,7 @@ export async function saveImport(
             transaction.abort();
             throw new Error("import cancelled");
           }
+          await deleteRecapIndexesFor(transaction, record.id);
           await requestToPromise(storeOf(transaction, IMPORTS_STORE).put(record));
           if (cancelled()) {
             transaction.abort();
@@ -292,6 +313,7 @@ export async function saveImport(
  * here. Full schema validation still happens when the workload is opened.
  */
 export async function listImports(): Promise<ImportRecord[]> {
+  const { importRecordSchema } = await localRecordSchemas();
   const [records, payloadKeys] = await withStores(
     [IMPORTS_STORE, PAYLOADS_STORE],
     "readonly",
@@ -325,6 +347,7 @@ export async function listImports(): Promise<ImportRecord[]> {
 }
 
 async function deleteResultsFor(transaction: IDBTransaction, importId: string): Promise<void> {
+  await deleteRecapIndexesFor(transaction, importId);
   // At most eight bounded aggregates exist. A cursor avoids cloning every
   // result into one array merely to remove the affected workload's entries.
   await new Promise<void>((resolve, reject) => {
@@ -343,9 +366,10 @@ async function deleteResultsFor(transaction: IDBTransaction, importId: string): 
 }
 
 async function removeCorruptPair(importId: string, damagedBlobRevision?: string): Promise<void> {
+  const { importRecordSchema, validateStoredPair } = await localRecordSchemas();
   try {
     await withStores(
-      [IMPORTS_STORE, PAYLOADS_STORE, WORKLOAD_RESULTS_STORE],
+      [IMPORTS_STORE, PAYLOADS_STORE, WORKLOAD_RESULTS_STORE, RECAP_INDEXES_STORE],
       "readwrite",
       async (transaction) => {
         const [record, payload] = await Promise.all([
@@ -379,6 +403,7 @@ async function removeCorruptPair(importId: string, damagedBlobRevision?: string)
 
 /** Loads a stored export. Unknown or incompatible payloads fail safely. */
 export async function loadImport(importId: string): Promise<StorageResult<StackReplayExportV1>> {
+  const { validateStoredPair } = await localRecordSchemas();
   try {
     const [record, payload] = await withStores(
       [IMPORTS_STORE, PAYLOADS_STORE],
@@ -414,7 +439,7 @@ export async function loadImport(importId: string): Promise<StorageResult<StackR
 export async function deleteImport(importId: string): Promise<StorageResult<true>> {
   try {
     await withStores(
-      [IMPORTS_STORE, PAYLOADS_STORE, WORKLOAD_RESULTS_STORE],
+      [IMPORTS_STORE, PAYLOADS_STORE, WORKLOAD_RESULTS_STORE, RECAP_INDEXES_STORE],
       "readwrite",
       async (transaction) => {
         await requestToPromise(storeOf(transaction, PAYLOADS_STORE).delete(importId));
@@ -437,9 +462,10 @@ export async function deleteImport(importId: string): Promise<StorageResult<true
 export async function clearLocalData(): Promise<StorageResult<true>> {
   try {
     await withStores(
-      [IMPORTS_STORE, PAYLOADS_STORE, WORKLOAD_RESULTS_STORE],
+      [IMPORTS_STORE, PAYLOADS_STORE, WORKLOAD_RESULTS_STORE, RECAP_INDEXES_STORE],
       "readwrite",
       async (transaction) => {
+        await requestToPromise(storeOf(transaction, RECAP_INDEXES_STORE).clear());
         await requestToPromise(storeOf(transaction, WORKLOAD_RESULTS_STORE).clear());
         await requestToPromise(storeOf(transaction, PAYLOADS_STORE).clear());
         await requestToPromise(storeOf(transaction, IMPORTS_STORE).clear());
@@ -459,4 +485,70 @@ export function createLocalImportId(random: () => number = Math.random): string 
     bytes[index] = Math.floor(random() * 256);
   }
   return Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join("");
+}
+
+export function recapPayloadRevision(record: ImportRecord) {
+  return record.payloadRevision ?? `legacy:${record.createdAt}:${record.eventCount}`;
+}
+export interface StoredRecapIndex {
+  id: string;
+  importId: string;
+  revision: string;
+  index: RecapIndex;
+}
+function recapIndexKey(importId: string, revision: string, index: RecapIndex) {
+  return JSON.stringify([importId, revision, index.timeZone, index.catalogVersion, index.version]);
+}
+async function deleteRecapIndexesFor(transaction: IDBTransaction, importId: string) {
+  const keys = await requestToPromise(
+    storeOf(transaction, RECAP_INDEXES_STORE).index("importId").getAllKeys(importId),
+  );
+  await Promise.all(
+    keys.map((key) => requestToPromise(storeOf(transaction, RECAP_INDEXES_STORE).delete(key))),
+  );
+}
+/** Small metadata and derived data only. Never requests the payload store. */
+export async function readRecapIndex(
+  importId: string,
+): Promise<{ record: ImportRecord; rows: StoredRecapIndex[] } | undefined> {
+  const { importRecordSchema } = await localRecordSchemas();
+  const [record, rows] = await withStores(
+    [IMPORTS_STORE, RECAP_INDEXES_STORE],
+    "readonly",
+    (transaction) =>
+      Promise.all([
+        requestToPromise(storeOf(transaction, IMPORTS_STORE).get(importId) as IDBRequest<unknown>),
+        requestToPromise(
+          storeOf(transaction, RECAP_INDEXES_STORE)
+            .index("importId")
+            .getAll(importId) as IDBRequest<StoredRecapIndex[]>,
+        ),
+      ]),
+  );
+  const checked = importRecordSchema.safeParse(record);
+  return checked.success ? { record: checked.data as ImportRecord, rows } : undefined;
+}
+/** Revision checked under the write lock: a background builder cannot undo deletion/replacement. */
+export async function saveRecapIndex(
+  importId: string,
+  revision: string,
+  index: RecapIndex,
+): Promise<boolean> {
+  return withStores([IMPORTS_STORE, RECAP_INDEXES_STORE], "readwrite", async (transaction) => {
+    const record = await requestToPromise(
+      storeOf(transaction, IMPORTS_STORE).get(importId) as IDBRequest<ImportRecord | undefined>,
+    );
+    if (!record || recapPayloadRevision(record) !== revision) return false;
+    // Keep one index per import. The current timezone/catalog replaces stale derived bytes.
+    await deleteRecapIndexesFor(transaction, importId);
+    await requestToPromise(
+      storeOf(transaction, RECAP_INDEXES_STORE).put({
+        id: recapIndexKey(importId, revision, index),
+        importId,
+        revision,
+        index,
+      } satisfies StoredRecapIndex),
+    );
+    return true;
+  });
 }

@@ -292,6 +292,7 @@ export function BenchmarkExplorer({
         <div className="bench-edition">
           <span className="market-muted">Evidence edition</span>
           <Select
+            disabled={!ready}
             label="Evidence edition"
             placeholder="Select evidence edition"
             value={state.edition}
@@ -306,7 +307,7 @@ export function BenchmarkExplorer({
             <button
               type="button"
               key={m.id}
-              disabled={state.modelIds.length === 1 || Boolean(source)}
+              disabled={!ready || state.modelIds.length === 1 || Boolean(source)}
               aria-label={`Remove ${m.name}`}
               onClick={() =>
                 change({
@@ -320,6 +321,7 @@ export function BenchmarkExplorer({
           ))}
         </fieldset>
         <button
+          disabled={!ready}
           type="button"
           className="bench-text-button"
           onClick={() =>
@@ -334,7 +336,7 @@ export function BenchmarkExplorer({
         >
           Frontier preset
         </button>
-        <button type="button" className="bench-text-button" onClick={copy}>
+        <button disabled={!ready} type="button" className="bench-text-button" onClick={copy}>
           {copied ? "Link copied" : "Copy comparison link"}
         </button>
         <button
@@ -373,6 +375,7 @@ export function BenchmarkExplorer({
             Find a model
             <input
               type="search"
+              disabled={!ready}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="DeepSeek, Sonnet, Grok…"
@@ -392,6 +395,7 @@ export function BenchmarkExplorer({
                     type="checkbox"
                     checked={state.modelIds.includes(m.id)}
                     disabled={
+                      !ready ||
                       (!state.modelIds.includes(m.id) && state.modelIds.length === 6) ||
                       (state.modelIds.includes(m.id) && state.modelIds.length === 1)
                     }
@@ -426,6 +430,7 @@ export function BenchmarkExplorer({
         <fieldset className="market-tabs" aria-label="Benchmark coverage">
           {(["all", "shared"] as const).map((c) => (
             <button
+              disabled={!ready}
               type="button"
               key={c}
               aria-pressed={state.coverage === c}
@@ -438,6 +443,7 @@ export function BenchmarkExplorer({
         <div className="bench-source-views">
           {source && (
             <button
+              disabled={!ready}
               type="button"
               onClick={() => change({ sourceSetId: undefined, observationIds: [] })}
             >
@@ -446,6 +452,7 @@ export function BenchmarkExplorer({
           )}
           {completeSets.map((s) => (
             <button
+              disabled={!ready}
               type="button"
               key={s.id}
               aria-pressed={source?.id === s.id}
@@ -466,6 +473,7 @@ export function BenchmarkExplorer({
       </div>
       <fieldset className="bench-categories" aria-label="Benchmark categories">
         <button
+          disabled={!ready}
           type="button"
           aria-pressed={state.category === "all"}
           onClick={() => change({ category: "all" })}
@@ -474,6 +482,7 @@ export function BenchmarkExplorer({
         </button>
         {benchmarkCategories.map((c) => (
           <button
+            disabled={!ready}
             type="button"
             key={c.id}
             aria-pressed={state.category === c.id}
@@ -537,7 +546,9 @@ export function BenchmarkExplorer({
                 <th scope="col">Benchmark</th>
                 {selectedModels.map((m) => (
                   <th scope="col" key={m.id}>
-                    <Link href={`/models/${m.id}`}>{m.name}</Link>
+                    <Link prefetch={false} href={`/models/${m.id}`}>
+                      {m.name}
+                    </Link>
                     <span>{m.developer}</span>
                   </th>
                 ))}
@@ -548,6 +559,7 @@ export function BenchmarkExplorer({
                 <tr key={row.definition.id} data-benchmark-id={row.definition.id}>
                   <th scope="row">
                     <button
+                      disabled={!ready}
                       type="button"
                       aria-haspopup="dialog"
                       onClick={() => setDetail({ definition: row.definition })}
@@ -575,6 +587,7 @@ export function BenchmarkExplorer({
                       >
                         {cell.observation ? (
                           <button
+                            disabled={!ready}
                             type="button"
                             className="bench-score"
                             aria-haspopup="dialog"
@@ -717,6 +730,7 @@ export function BenchmarkExplorer({
         onClose={() => setDetail(null)}
       >
         <button
+          disabled={!ready}
           type="button"
           className="bench-dialog-close"
           onClick={() => dialog.current?.close()}

@@ -1,11 +1,13 @@
 "use client";
 import { Button } from "@stackreplay/ui";
-import { useId, useState } from "react";
+import { useEffect, useId, useState } from "react";
 
 /** An exact model identifier with a copy control. */
 export function CopyApiId({ value }: { value: string }) {
   const id = useId();
   const [status, setStatus] = useState("");
+  const [ready, setReady] = useState(false);
+  useEffect(() => setReady(true), []);
   async function copy() {
     try {
       await navigator.clipboard.writeText(value);
@@ -20,6 +22,7 @@ export function CopyApiId({ value }: { value: string }) {
         {value}
       </code>
       <Button
+        disabled={!ready}
         variant="outline"
         size="sm"
         aria-label="Copy model identifier"

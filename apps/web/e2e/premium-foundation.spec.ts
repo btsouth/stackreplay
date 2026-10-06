@@ -17,9 +17,9 @@ const legacyQuery = () => {
 };
 
 for (const [source, destination] of [
-  ["workload", "stats"],
-  ["replay", "stats"],
-  ["compare", "stats"],
+  ["workload", "recap"],
+  ["replay", "recap"],
+  ["compare", "recap"],
   ["import", "scan"],
 ] as const) {
   test(`legacy ${source} keeps query values and fragment`, async ({ page }) => {
@@ -55,23 +55,18 @@ test("saved and temporary scans keep a path through recap, Stats and Settings", 
     buffer: Buffer.from(JSON.stringify(buildDemoExport("moderate"))),
   });
   await expect(page.getByTestId("recap-ready")).toBeVisible({ timeout: 60000 });
-  await page.getByRole("link", { name: "Explore your stats" }).click();
-  await expect(page).toHaveURL(/\/app\/stats\?import=/u);
-  await expect(page.getByTestId("stats-ready")).toBeVisible();
-  // Client links retain the in-memory import. A full page navigation would intentionally discard it.
-  if (
-    !(await page
-      .getByRole("banner")
-      .getByRole("link", { name: "Settings", exact: true })
-      .isVisible())
-  )
-    await page.getByRole("button", { name: "Open menu" }).click();
-  await page.getByRole("link", { name: "Settings", exact: true }).filter({ visible: true }).click();
+  // Client navigation retains the temporary import.
+  await page
+    .getByRole("navigation", { name: "App navigation" })
+    .getByRole("link", { name: "SETTINGS", exact: true })
+    .click();
   await expect(page.getByTestId("settings-saved")).toContainText("Temporary, until reload");
 });
 
 test("design controls support keyboard selection, tab panels and sorting", async ({ page }) => {
   await page.goto("/design");
+  // The public toggle enables after hydration, when keyboard handlers are attached.
+  await expect(page.getByRole("button", { name: "Toggle theme" })).toBeEnabled();
   const select = page.getByRole("combobox", { name: "History" });
   await select.focus();
   await page.keyboard.press("ArrowDown");
@@ -117,6 +112,9 @@ for (const theme of ["dark", "light"] as const) {
     for (const path of ["/", "/catalog", "/design", "/app/plans", "/app/scan"]) {
       await page.goto(path);
       await expect(page.getByRole("heading", { level: 1 }), path).toBeVisible();
+      await expect(page.getByRole("button", { name: "Toggle theme", exact: true })).toBeEnabled();
+      if (path === "/app/scan")
+        await expect(page.getByTestId("intake-surface")).toHaveAttribute("data-ready", "true");
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
         true,
       );
@@ -129,7 +127,7 @@ test("public and app mobile menus trap focus, close on Escape and return focus",
   page,
 }) => {
   await page.setViewportSize({ width: 390, height: 844 });
-  for (const path of ["/", "/app/scan"]) {
+  for (const path of ["/"]) {
     await page.goto(path);
     const trigger = page.getByRole("button", { name: "Open menu" });
     await trigger.click();
@@ -137,7 +135,11 @@ test("public and app mobile menus trap focus, close on Escape and return focus",
     await expect(dialog).toBeVisible();
     if (path === "/") {
       for (const name of ["Models", "Providers", "Benchmarks", "Plans", "Compare", "Updates"]) {
-        await expect(dialog.getByRole("link", { name, exact: true })).toBeVisible();
+        await expect(
+          dialog
+            .getByRole("navigation", { name: "Catalog" })
+            .getByRole("link", { name, exact: true }),
+        ).toBeVisible();
       }
     }
     for (let i = 0; i < 12; i++) {

@@ -916,3 +916,15 @@ it("never automatically selects an explicitly bound pricing variant", () => {
   };
   expect(apiReplay(events, { catalog })).toEqual(before);
 });
+
+it("reuses validated events only on explicit opt-in, preserving the default boundary", () => {
+  const input = {
+    events: [apiEvent("trusted", Object.keys(apiFixtureModels)[0]!)],
+    target: apiTarget(),
+    catalog: makeApiFixtureCatalog(),
+    context: fixtureContext,
+  };
+  expect(replay({ ...input, options: { eventsValidated: true } })).toEqual(replay(input));
+  const invalid = { ...input.events[0]!, id: "" };
+  expect(() => replay({ ...input, events: [invalid] })).toThrow();
+});

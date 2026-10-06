@@ -68,7 +68,7 @@ export const shareReplayV2Schema = z.strictObject({
     /** The catalog id: a plan id, or a Direct API provider id. */
     id: z.string().min(1).max(80),
     /** The plan version replayed against, for a subscription. */
-    versionId: z.string().min(1).max(120).optional(),
+    versionId: z.string().min(1).max(64).optional(),
     verificationStatus: verificationStatusV1Schema,
     lastVerifiedAt: isoDateV1Schema.optional(),
     sources: z.array(shareSourceV1Schema).max(4),
@@ -91,6 +91,32 @@ export const shareWorkloadV2Schema = z.strictObject({
       rulesAsOf: isoDateV1Schema,
       streak: count,
       models: z.array(z.strictObject({ id: z.string().min(1).max(100), tokenCount: count })).max(5),
+    })
+    .optional(),
+  /** Explicitly chosen public card figures. No local labels or raw identifiers. */
+  card: z
+    .strictObject({
+      theme: z.enum(["dark", "light"]),
+      start: isoDateV1Schema,
+      end: isoDateV1Schema,
+      totalTokens: count.optional(),
+      usd: amount.optional(),
+      speed: z
+        .strictObject({
+          id: z.string().min(1).max(100),
+          median: z.number().finite().nonnegative(),
+          replies: count,
+        })
+        .optional(),
+      github: count.optional(),
+      streak: count.optional(),
+      models: z
+        .array(z.strictObject({ id: z.string().min(1).max(100), tokenCount: count }))
+        .max(5)
+        .optional(),
+      peakHour: z.number().int().min(0).max(23).optional(),
+      paidMultiplier: z.number().finite().nonnegative().optional(),
+      spark: z.array(z.number().int().min(0).max(1000)).max(64).optional(),
     })
     .optional(),
   /** Present only for a synthetic demo workload. */

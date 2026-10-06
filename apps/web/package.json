@@ -6,7 +6,7 @@
   "description": "StackReplay web application.",
   "scripts": {
     "dev": "node scripts/build-worker.mjs && next dev",
-    "build": "node scripts/build-worker.mjs && next build",
+    "build": "node scripts/build-worker.mjs && next build --webpack",
     "start": "next start",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
@@ -17,7 +17,8 @@
     "build:vinext": "turbo run build --filter=@stackreplay/web^... && node scripts/build-worker.mjs && vinext build && node scripts/build-cloudflare-headers.mjs",
     "start:vinext": "wrangler dev --config dist/server/wrangler.json",
     "deploy:vinext": "vinext-cloudflare deploy --name stackreplay --config dist/server/wrangler.json --skip-build",
-    "smoke:deployment": "node scripts/check-deployment.mjs"
+    "smoke:deployment": "node scripts/check-deployment.mjs",
+    "build:sample": "node scripts/build-home-sample.mjs"
   },
   "dependencies": {
     "@stackreplay/adapters": "workspace:*",

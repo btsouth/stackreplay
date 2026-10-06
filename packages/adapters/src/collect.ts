@@ -238,8 +238,8 @@ export async function collectUsage(options: CollectRunOptions): Promise<CollectR
       perAdapter[adapter.id] = emptyStats();
       continue;
     }
-    allEvents.push(...result.events);
-    capacityEvents.push(...(result.capacityEvents ?? []));
+    for (const event of result.events) allEvents.push(event);
+    for (const event of result.capacityEvents ?? []) capacityEvents.push(event);
     capacityInspected ||= result.capacityEvents !== undefined;
     warnings.push(...result.warnings);
     perAdapter[adapter.id] = result.stats;

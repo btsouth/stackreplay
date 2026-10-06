@@ -70,6 +70,21 @@ test("a delayed storage lookup never appears empty or sends the recap through Sc
   // Delay only metadata requests. This reproduces the gap between the page
   // painting and IndexedDB answering without constructing a large payload.
   await page.addInitScript(() => {
+    const getAll = IDBObjectStore.prototype.getAll;
+    IDBObjectStore.prototype.getAll = function (...args: Parameters<typeof getAll>) {
+      const request = getAll.apply(this, args);
+      if (this.name === "imports") {
+        const native = Object.getOwnPropertyDescriptor(IDBRequest.prototype, "onsuccess")!;
+        Object.defineProperty(request, "onsuccess", {
+          get: () => native.get?.call(request),
+          set: (callback: (event: Event) => void) =>
+            native.set?.call(request, (event: Event) =>
+              setTimeout(() => callback.call(request, event), 900),
+            ),
+        });
+      }
+      return request;
+    };
     const NativeWorker = window.Worker;
     window.Worker = class extends NativeWorker {
       override postMessage(message: unknown) {
@@ -88,9 +103,11 @@ test("a delayed storage lookup never appears empty or sends the recap through Sc
   await expect(page.getByTestId("stored-imports")).toBeVisible();
 
   await page.goto((workloadHref ?? "/app/recap").replace("/app/recap", "/app/stats"));
-  await expect(page.getByTestId("workload-restoring")).toBeVisible();
-  await expect(page.getByTestId("workload-empty")).toHaveCount(0);
-  await expect(page.getByTestId("stats-ready")).toBeVisible({ timeout: 60_000 });
+  await expect(
+    page.getByRole("status").filter({ hasText: "Calculating your overview" }),
+  ).toBeVisible();
+  await expect(page.getByTestId("recap-empty")).toHaveCount(0);
+  await expect(page.getByTestId("recap-ready")).toBeVisible({ timeout: 60_000 });
 });
 
 test("deleting a workload removes it from storage, not just from the view", async ({ page }) => {
@@ -150,7 +167,7 @@ test("two imports coexist without overwriting each other", async ({ page }) => {
 test("a corrupted payload is rejected when opened and then removed", async ({ page }) => {
   await importDemo(page, "moderate");
   // Corrupt after the import has finished and the page has read the payload.
-  await expect(page.getByTestId("stats-ready")).toBeVisible();
+  await expect(page.getByTestId("recap-ready")).toBeVisible();
 
   // Replace the stored payload with something incompatible, as an older or
   // broken writer would have left behind.
@@ -159,7 +176,9 @@ test("a corrupted payload is rejected when opened and then removed", async ({ pa
       const request = indexedDB.open("stackreplay");
       request.onsuccess = () => {
         const database = request.result;
-        const transaction = database.transaction("payloads", "readwrite");
+        const transaction = database.transaction(["payloads", "recap-indexes"], "readwrite");
+        // A changed source invalidates its derived index; the lazy open validates it.
+        transaction.objectStore("recap-indexes").clear();
         const store = transaction.objectStore("payloads");
         const keys = store.getAllKeys();
         keys.onsuccess = () => {
@@ -183,7 +202,9 @@ test("a corrupted payload is rejected when opened and then removed", async ({ pa
     .getByRole("link", { name: /^Open my recap/u })
     .click();
   await expect(
-    page.getByRole("alert").filter({ hasText: /unavailable|no longer stored/ }),
+    page
+      .getByRole("alert")
+      .filter({ hasText: /unavailable|no longer stored|scanning the history/ }),
   ).toBeVisible();
   await page.goto("/app/scan");
   await expect(page.getByTestId("no-stored-imports")).toBeVisible();
@@ -293,7 +314,7 @@ test("a version 1 local database upgrades in place and keeps the saved workload"
   // A genuine canonical pair, built the same way the importer builds one. The
   // database is seeded at version 1 (imports + payloads only) on a document that
   // does not run the app, so the production open is provably the first writer to
-  // ask for version 3 and the migration, not a fresh install, is what runs.
+  // ask for version 4 and the migration, not a fresh install, is what runs.
   const exported = buildDemoExport("moderate");
   const record = {
     id: "0123456789abcdef0123456789abcdef",
@@ -338,14 +359,15 @@ test("a version 1 local database upgrades in place and keeps the saved workload"
   expect(seeded).toEqual({ version: 1, stores: ["imports", "payloads"] });
   await page.unroute("**/__seed__");
 
-  // The app opens version 3 for the first time here; it must migrate, not reset.
+  // The app opens version 4 for the first time here; it must migrate, not reset.
   await page.goto("/app/scan");
   await expect(page.getByTestId("stored-imports")).toBeVisible();
   await expect(page.getByTestId("stored-imports")).toContainText(record.label);
 
   const upgraded = await localDatabaseShape(page);
-  expect(upgraded.version).toBe(3);
+  expect(upgraded.version).toBe(4);
   expect(upgraded.stores).toContain("workload-results");
+  expect(upgraded.stores).toContain("recap-indexes");
 
   const preserved = await page.evaluate(async (id) => {
     const open = indexedDB.open("stackreplay");

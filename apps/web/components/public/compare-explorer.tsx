@@ -69,6 +69,8 @@ function ModelMatrix({
   plans: readonly { plan: PublicDirectoryPlan; facts: CompareFacts }[];
   testIdPrefix?: "compare" | "compare-mobile";
 }) {
+  const [hydrated, setHydrated] = useState(false);
+  useEffect(() => setHydrated(true), []);
   const [expanded, setExpanded] = useState(false);
   const rows = compareModelMatrix(plans.map((entry) => entry.facts));
   if (plans.some((entry) => entry.plan.kind === "public_offer"))
@@ -134,6 +136,7 @@ function ModelMatrix({
           type="button"
           className="market-link mt-2 inline-flex min-h-11 items-center text-sm"
           onClick={() => setExpanded(!expanded)}
+          disabled={!hydrated}
         >
           {expanded ? "Show fewer models ↑" : `Show all ${rows.length} models ↓`}
         </button>
@@ -536,6 +539,7 @@ function TargetHeader({
   facts,
   asOf,
   onRemove,
+  hydrated,
   compactClass,
   showPrivacy,
 }: {
@@ -543,6 +547,7 @@ function TargetHeader({
   facts: CompareFacts;
   asOf: string;
   onRemove?: (() => void) | undefined;
+  hydrated: boolean;
   compactClass: string;
   showPrivacy: boolean;
 }) {
@@ -555,6 +560,7 @@ function TargetHeader({
           <button
             type="button"
             onClick={onRemove}
+            disabled={!hydrated}
             className="min-h-11 -mt-3 text-xs text-muted-foreground underline underline-offset-4 hover:text-foreground"
             aria-label={`Remove ${plan.name} from the comparison`}
           >
@@ -626,6 +632,7 @@ export function CompareExplorer({
   asOf: string;
 }) {
   const router = useRouter();
+  const [hydrated, setHydrated] = useState(false);
   const [ids, setIds] = useState<string[]>(() =>
     routedSearch === undefined
       ? [...defaultPair]
@@ -657,6 +664,7 @@ export function CompareExplorer({
     const next = `/compare${compareSearch(nextIds, defaultPair)}${window.location.hash}`;
     if (next !== `${window.location.pathname}${window.location.search}${window.location.hash}`)
       router.replace(next, { scroll: false });
+    setHydrated(true);
   }, [routedSearch, planIds, defaultPair, router]);
   const selectPlans = (nextIds: string[]) => {
     setIds(nextIds);
@@ -682,6 +690,7 @@ export function CompareExplorer({
       {label}
       <CatalogSelect
         label={label}
+        disabled={!hydrated}
         value={ids[index]}
         onChange={(event) => setAt(index, event.target.value)}
         className="min-h-11 w-full border border-control-border bg-surface px-3 text-sm text-foreground focus-visible:outline-2 focus-visible:outline-ring"
@@ -716,6 +725,7 @@ export function CompareExplorer({
           <button
             type="button"
             onClick={addThird}
+            disabled={!hydrated}
             className="min-h-11 border border-control-border px-4 text-sm text-foreground hover:border-accent hover:text-accent focus-visible:outline-2 focus-visible:outline-ring"
           >
             + Add a third plan
@@ -732,6 +742,7 @@ export function CompareExplorer({
             {chosen.map((entry, index) => (
               <TargetHeader
                 asOf={asOf}
+                hydrated={hydrated}
                 compactClass={layout.stackedOnly}
                 facts={entry.facts}
                 key={entry.plan.id}

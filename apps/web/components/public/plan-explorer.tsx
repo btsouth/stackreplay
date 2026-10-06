@@ -88,6 +88,7 @@ export function PlanExplorer({
         <label className="grow">
           Find a plan
           <input
+            disabled={!restored}
             type="search"
             placeholder="Plan, provider or model…"
             value={query}
@@ -97,6 +98,7 @@ export function PlanExplorer({
         <div className="catalog-control">
           Provider
           <CatalogSelect
+            disabled={!restored}
             label="Provider"
             value={provider}
             onChange={(e) => setProvider(e.target.value)}
@@ -222,7 +224,12 @@ export function PlanExplorer({
         ))}
       </div>
       {visible.length > 12 && (
-        <button type="button" className="market-link my-4" onClick={() => setExpanded(!expanded)}>
+        <button
+          disabled={!restored}
+          type="button"
+          className="market-link my-4"
+          onClick={() => setExpanded(!expanded)}
+        >
           {expanded ? "Show fewer plans ↑" : `Show all ${visible.length} plans ↓`}
         </button>
       )}
@@ -230,6 +237,7 @@ export function PlanExplorer({
         <p className="py-8 text-muted-foreground">
           No plans match these filters. Try another tool or provider.
           <button
+            disabled={!restored}
             className="market-link block"
             type="button"
             onClick={() => {
