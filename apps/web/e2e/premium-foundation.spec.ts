@@ -132,7 +132,11 @@ test("public and app mobile menus trap focus, close on Escape and return focus",
     await expect(dialog).toBeVisible();
     if (path === "/") {
       for (const name of ["Models", "Providers", "Benchmarks", "Plans", "Compare", "Updates"]) {
-        await expect(dialog.getByRole("link", { name, exact: true })).toBeVisible();
+        await expect(
+          dialog
+            .getByRole("navigation", { name: "Catalog" })
+            .getByRole("link", { name, exact: true }),
+        ).toBeVisible();
       }
     }
     for (let i = 0; i < 12; i++) {
