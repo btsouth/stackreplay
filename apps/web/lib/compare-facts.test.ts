@@ -1,14 +1,11 @@
 import { describe, expect, it } from "vitest";
 import {
   buildCompareFacts,
-  CAPACITY_REPLAY,
-  COMPATIBILITY_ONLY,
   type CompareFacts,
   codingToolsFor,
   compareModelMatrix,
   DEFAULT_COMPARE_PAIR,
   defaultComparePair,
-  NO_NAMED_MODEL,
   statementExcerpt,
 } from "./compare-facts";
 import { loadPublicCatalog } from "./public-catalog";
@@ -35,7 +32,6 @@ function primaryText(facts: CompareFacts): string {
     ...facts.codingTools,
     ...facts.usage.lines.map((line) => line.text),
     facts.usage.lines.length ? "" : "No numeric allowance is recorded in this snapshot.",
-    facts.simulation,
     ...facts.afterLimit.lines,
     ...facts.afterLimit.quotes.map((quote) => quote.text),
     facts.evidence,
@@ -95,7 +91,6 @@ describe("public compare facts", () => {
     expect(facts.models.more.some((model) => model.name === "Claude Opus 4.7")).toBe(true);
     expect(facts.codingTools).toEqual(["Claude Code"]);
     expect(facts.usage.numeric).toBe(false);
-    expect(facts.simulation).toBe(COMPATIBILITY_ONLY);
     expect(facts.afterLimit.quotes[0]?.text).toContain("Usage credits");
     expect(facts.evidence).toMatch(/^Verified Sep \d+, 2026$/u);
   });
@@ -104,7 +99,6 @@ describe("public compare facts", () => {
     const facts = factsFor("github-copilot-pro-plus");
     expect(facts.usage.numeric).toBe(true);
     expect(facts.usage.lines[0]?.text).toBe("$70 of usage credit per month");
-    expect(facts.simulation).toBe(CAPACITY_REPLAY);
     expect(facts.afterLimit.lines[0]).toMatch(/continue past the included amount/u);
     expect(facts.codingTools).toEqual(["GitHub Copilot"]);
   });
@@ -124,10 +118,6 @@ describe("public compare facts", () => {
     expect(quote?.excerpt).toContain("temporarily unavailable until the allowance resets.");
     expect(quote?.excerpt.endsWith(" …")).toBe(true);
     expect(statementExcerpt("Short. Enough.")).toBe("Short. Enough.");
-  });
-
-  it("says when no named model can be replayed", () => {
-    expect(factsFor("github-copilot-free").simulation).toBe(NO_NAMED_MODEL);
   });
 
   it("names a coding tool only when the plan's own evidence names it", () => {

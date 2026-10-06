@@ -11,7 +11,6 @@ import { SubscriptionModelAccess } from "@/components/public/subscription-model-
 import {
   buildCompareFacts,
   defaultComparePair,
-  PUBLIC_OFFER_REPLAY_UNAVAILABLE,
   publicOfferObservationText,
 } from "@/lib/compare-facts";
 import { compareSearch } from "@/lib/compare-url";
@@ -156,9 +155,6 @@ export default async function PlanPage({ params }: Props) {
       </section>
       {plan.kind === "catalog_plan" && plan.timeline !== undefined && (
         <PlanHistory asOf={catalog.asOf} followToday id="history" plan={plan.timeline} />
-      )}
-      {plan.kind === "public_offer" && (
-        <p className="market-muted my-5">{PUBLIC_OFFER_REPLAY_UNAVAILABLE}</p>
       )}
       <section id="usage" className="scroll-mt-24">
         <div className="market-section-title">

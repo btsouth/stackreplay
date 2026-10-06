@@ -242,7 +242,6 @@ function InspectContent({
     return (
       <div className="space-y-3 pb-4 pt-2 text-sm" data-testid={testId}>
         <p>{facts.effective}</p>
-        <p>{facts.simulation}</p>
         <SourceList sources={plan.sources} />
       </div>
     );
@@ -795,12 +794,6 @@ export function CompareExplorer({
               testId="usage"
               names={names}
               cells={chosen.map((entry) => <UsageCell key={entry.plan.id} facts={entry.facts} />)}
-            />
-            <TextRow
-              label="StackReplay can simulate"
-              testId="simulation"
-              names={names}
-              texts={chosen.map((entry) => entry.facts.simulation)}
             />
             <Row
               label="After the limit"

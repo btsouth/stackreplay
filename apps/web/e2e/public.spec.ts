@@ -179,9 +179,6 @@ test.describe("public site", () => {
     await expect(page.getByTestId("compare-row-models")).toContainText("13 models included");
     await expect(page.getByTestId("compare-model-matrix")).toContainText("Claude Opus 5.5");
     await expect(page.getByTestId("compare-row-usage")).toContainText("20× Pro");
-    await expect(page.getByTestId("compare-row-simulation")).toContainText(
-      "not exact capacity replay",
-    );
     // Lineup caveats stay on the plan pages; side by side they read as differences.
     await expect(page.getByTestId("compare-row-models")).not.toContainText("billed separately");
     // Use in other apps is stated for both providers, each with its own terms.
@@ -196,25 +193,12 @@ test.describe("public site", () => {
       page.getByTestId("compare-row-sources").getByText(/^Published terms checked/u),
     ).toHaveCount(2);
     // The primary rows speak plan questions; catalog vocabulary stays under inspect.
-    for (const row of [
-      "models",
-      "model-matrix",
-      "coding-tools",
-      "usage",
-      "simulation",
-      "after-limit",
-    ]) {
+    for (const row of ["models", "model-matrix", "coding-tools", "usage", "after-limit"]) {
       await expect(page.getByTestId(`compare-row-${row}`)).not.toContainText(
         /documented routes|qualitative/iu,
       );
     }
-    await expect(page.getByTestId("compare-with-workload")).toHaveText(
-      "Compare against my workload →",
-    );
-    await expect(page.getByTestId("compare-with-workload")).toHaveAttribute(
-      "href",
-      "/app/plans?section=compare",
-    );
+    await expect(page.getByTestId("compare-with-workload")).toHaveCount(0);
     const compactSummary = page.getByTestId("compare-compact-summary").filter({ visible: true });
     const mobile = (await compactSummary.count()) > 0;
     const inspectSummary = mobile

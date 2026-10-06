@@ -1,6 +1,6 @@
 import { bundledPlanModelsAt } from "@stackreplay/catalog/bundled";
 import { describe, expect, it } from "vitest";
-import { buildCompareFacts, PUBLIC_OFFER_REPLAY_UNAVAILABLE } from "./compare-facts";
+import { buildCompareFacts } from "./compare-facts";
 import { marketDiscovery } from "./market-discovery";
 import { catalogPlansAt, loadCatalog, loadPublicCatalog } from "./public-catalog";
 import { loadPublicDirectory } from "./public-directory";
@@ -212,7 +212,6 @@ describe("commercial offer facts", () => {
       if (!offer) throw new Error("Missing offer");
       const facts = buildCompareFacts(offer, current.modelById);
       expect(facts.price).toBe(prices[id]);
-      expect(facts.simulation).toBe(PUBLIC_OFFER_REPLAY_UNAVAILABLE);
       expect(facts.rules).toEqual([]);
       expect(facts.usage.numeric).toBe(false);
       expect(facts.models.featured).toEqual([]);

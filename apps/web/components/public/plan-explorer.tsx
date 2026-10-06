@@ -213,11 +213,6 @@ export function PlanExplorer({
                 Compare plans →
               </Link>
             </div>
-            {plan.kind === "public_offer" && (
-              <p className="market-plan-note text-xs text-muted-foreground">
-                {facts[plan.id]?.simulation}
-              </p>
-            )}
             {plan.publishedTerms?.availabilityNote && (
               <p className="market-plan-note text-xs text-warning">
                 {plan.publishedTerms.availabilityNote}

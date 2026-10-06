@@ -46,7 +46,9 @@ for (const theme of ["dark", "light"] as const) {
 
     test("shows matching statements once and links models to their pages", async ({ page }) => {
       await page.goto("/compare");
-      await expect(page.getByTestId("compare-row-simulation")).toContainText("Same for both plans");
+      await expect(page.getByTestId("compare-row-coding-tools")).toContainText(
+        "Same for both plans",
+      );
       const mobileDisclosure = page.getByTestId("compare-mobile-model-matrix-details");
       const matrix = (await mobileDisclosure.isVisible())
         ? page.getByTestId("compare-mobile-model-matrix")
