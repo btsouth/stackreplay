@@ -516,6 +516,7 @@
     border-bottom: 1px solid var(--line);
   }
   .public-terminal .market-rate-table :is(th, td):first-child {
+    display: table-cell;
     padding-left: 0;
   }
   .public-terminal .market-rate-table .market-table-label {
