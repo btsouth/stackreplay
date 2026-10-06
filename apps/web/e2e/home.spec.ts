@@ -14,8 +14,9 @@ test("recap homepage renders, links to scan and keeps the sample public", async 
   });
   await page.goto("/");
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Your AI coding,replayed.");
-  for (const link of await page.getByRole("link", { name: "Replay my history", exact: true }).all())
-    await expect(link).toHaveAttribute("href", "/app/scan");
+  const scanLinks = page.getByRole("link", { name: "Scan my history", exact: true });
+  await expect(scanLinks.first()).toBeVisible();
+  for (const link of await scanLinks.all()) await expect(link).toHaveAttribute("href", "/app/scan");
   await expect(page.getByRole("link", { name: "See a sample recap" })).toHaveAttribute(
     "href",
     "#sample",

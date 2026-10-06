@@ -105,7 +105,7 @@ export function ReplayHomepage() {
           <p className="replay-lede">Turn your coding history into a recap worth sharing.</p>
           <div className="replay-actions">
             <a className="replay-button" href="/app/scan">
-              Replay my history <ArrowRight size={20} />
+              Scan my history <ArrowRight size={20} />
             </a>
             <a className="replay-text-button" href="#sample">
               <Play size={14} fill="currentColor" /> See a sample recap
@@ -151,7 +151,7 @@ export function ReplayHomepage() {
           </div>
         </div>
         <a className="replay-scroll-hint" href="#sample">
-          <ArrowDown size={16} /> Scroll to replay
+          <ArrowDown size={16} /> Scroll to see a sample
         </a>
       </section>
       <section className="replay-tools" aria-label="Supported coding tools">
@@ -377,7 +377,7 @@ export function ReplayHomepage() {
           Now hit <em>replay.</em>
         </h2>
         <a className="replay-button" href="/app/scan">
-          Replay my history <ArrowRight size={20} />
+          Scan my history <ArrowRight size={20} />
         </a>
         <span className="replay-trust">
           <LockKeyhole size={14} /> Your logs never leave your browser.
