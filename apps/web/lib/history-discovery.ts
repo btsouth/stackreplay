@@ -119,7 +119,7 @@ export function handleDirectory(handle: FileSystemDirectoryHandle): DiscoveryDir
   };
 }
 
-/** A tool's Connect control can confirm a bare projects/sessions folder by name. */
+/** A tool's Connect control can confirm its history folder or a Codex date folder. */
 export async function discoverPickedDirectory(
   handle: FileSystemDirectoryHandle,
   platform: DiscoveryPlatform | undefined,
@@ -130,8 +130,11 @@ export async function discoverPickedDirectory(
   const source = DISCOVERY_REGISTRY.find((entry) => entry.adapterId === adapterId);
   if (
     source?.inventory !== undefined &&
-    run.findings.some((finding) => finding.adapterId === adapterId && finding.unconfirmed) &&
-    source.history.some((location) => location.path.at(-1) === handle.name)
+    ((run.findings.some((finding) => finding.adapterId === adapterId && finding.unconfirmed) &&
+      source.history.some((location) => location.path.at(-1) === handle.name)) ||
+      (adapterId === "codex" &&
+        /^(?:\d{4}|\d{2})$/u.test(handle.name) &&
+        run.findings.every((finding) => finding.status !== "found")))
   ) {
     const confirmed = await discoverHistories(directory, {
       platform,

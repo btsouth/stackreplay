@@ -167,6 +167,46 @@ test("per-tool chooser uses a lazy handle and completes a scan", async ({ page }
   await expect(page.getByTestId("detected-sources").first()).toContainText("Claude Code");
 });
 
+test("permission lost during discovery releases both chooser paths", async ({ page }, testInfo) => {
+  await page.addInitScript(() => {
+    const missing = async () => {
+      throw new DOMException("Missing", "NotFoundError");
+    };
+    const projects = {
+      kind: "directory",
+      name: "projects",
+      getDirectoryHandle: missing,
+      getFileHandle: missing,
+      values() {
+        throw new DOMException("Permission revoked", "NotAllowedError");
+      },
+    };
+    const tool = {
+      kind: "directory",
+      name: ".claude",
+      async getDirectoryHandle(name: string) {
+        if (name === "projects") return projects;
+        return missing();
+      },
+      getFileHandle: missing,
+    };
+    Object.defineProperty(window, "showDirectoryPicker", {
+      configurable: true,
+      value: async () => tool,
+    });
+  });
+  await gotoImport(page);
+  if (testInfo.project.name === "desktop") {
+    await page.getByTestId("choose-history-folder").click();
+    await expect(page.getByTestId("discovery-drop-note")).toContainText("Drag Home");
+    await expect(page.getByTestId("choose-history-folder")).toBeEnabled();
+  }
+  await openConnectIndividually(page);
+  await page.getByTestId("connect-claude-code").click();
+  await expect(page.getByTestId("source-picker-note")).toContainText("Drag Home");
+  await expect(page.getByTestId("connect-claude-code")).toBeEnabled();
+});
+
 test("legacy chooser copy steers to tool folders", async ({ page }, testInfo) => {
   await page.addInitScript(() =>
     Object.defineProperty(window, "showDirectoryPicker", { configurable: true, value: undefined }),

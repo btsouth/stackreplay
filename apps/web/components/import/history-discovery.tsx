@@ -64,8 +64,9 @@ import {
  * import and presses Make my recap; the scan instrument then takes over
  * with the same histories.
  *
- * Linked, WSL, relocated and external histories go through the folder chooser,
- * the reliable path that follows links, and join the same list.
+ * Tool folders and custom roots can also use the lazy directory picker.
+ * Older browsers use a file-list chooser; linked folders may need their actual
+ * location or individual files when the browser cannot grant folder access.
  */
 
 type Phase = "intro" | "armed" | "discovering" | "selecting";

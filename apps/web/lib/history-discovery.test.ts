@@ -111,6 +111,12 @@ describe("lazy directory handles", () => {
     expect(sessions.findings.find((finding) => finding.adapterId === "codex")?.status).toBe(
       "found",
     );
+    const year = await discoverPickedDirectory(
+      fakeHandle("2026", { "10": tree }, log),
+      undefined,
+      "codex",
+    );
+    expect(year.findings.find((finding) => finding.adapterId === "codex")?.status).toBe("found");
     log.length = 0;
     await discoverPickedDirectory(fakeHandle("bts", { unrelated: tree }, log), undefined, "codex");
     expect(log.some((entry) => entry.startsWith("list:"))).toBe(false);
