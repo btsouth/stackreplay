@@ -117,7 +117,6 @@ export interface CardText {
   dim?: boolean;
   signal?: boolean;
   tight?: boolean;
-  color?: string;
 }
 export interface CardTextBox {
   id: string;
@@ -337,7 +336,7 @@ export function drawCard(
       size *= t.width / width;
       width = measure();
     }
-    ctx.fillStyle = t.color ?? (t.signal ? signal : t.dim ? dim : fg);
+    ctx.fillStyle = t.signal ? signal : t.dim ? dim : fg;
     ctx.textAlign = "left";
     let x = t.align === "right" ? t.x - width : t.x;
     const left = x;
