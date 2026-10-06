@@ -152,23 +152,25 @@ export function WhatYouPayEditor() {
           Nothing entered. This is optional.
         </p>
       )}
-      <div className="flex min-w-0 flex-col gap-1.5 sm:max-w-sm">
-        <span className="text-xs text-muted-foreground">Add a plan</span>
-        <Select
-          label="Add a plan"
-          placeholder="Choose a plan"
-          options={addable.map((plan) => ({
-            value: plan.id,
-            label: `${plan.name} · ${usdText(plan.price.amount)}/${plan.price.interval}`,
-          }))}
-          value={adding}
-          disabled={subscriptions === undefined || addable.length === 0}
-          onValueChange={(id) => {
-            setAdding("");
-            if (id) save(withQuantity(readStackSubscriptions(), `plan:${id}`, 1));
-          }}
-        />
-      </div>
+      {subscriptions === undefined ? null : (
+        <div className="flex min-w-0 flex-col gap-1.5 sm:max-w-sm">
+          <span className="text-xs text-muted-foreground">Add a plan</span>
+          <Select
+            label="Add a plan"
+            placeholder="Choose a plan"
+            options={addable.map((plan) => ({
+              value: plan.id,
+              label: `${plan.name} · ${usdText(plan.price.amount)}/${plan.price.interval}`,
+            }))}
+            value={adding}
+            disabled={addable.length === 0}
+            onValueChange={(id) => {
+              setAdding("");
+              if (id) save(withQuantity(readStackSubscriptions(), `plan:${id}`, 1));
+            }}
+          />
+        </div>
+      )}
       {saveFailed ? (
         <p role="alert" className="text-sm text-warning">
           Could not save this selection. Browser storage is unavailable.
