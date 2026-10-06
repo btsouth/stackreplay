@@ -47,6 +47,7 @@ export function TerminalHeader() {
   return (
     <>
       <Link
+        prefetch={false}
         href="#main-content"
         className="sr-skip"
         onClick={() => document.getElementById("main-content")?.focus({ preventScroll: true })}
@@ -58,6 +59,7 @@ export function TerminalHeader() {
           <TerminalBrand />
           <nav aria-label="App navigation">
             <Link
+              prefetch={false}
               href="/app/recap"
               className={path === "/app/recap" ? "on" : ""}
               aria-current={path === "/app/recap" ? "page" : undefined}
@@ -65,6 +67,7 @@ export function TerminalHeader() {
               OVERVIEW
             </Link>
             <Link
+              prefetch={false}
               href="/app/settings"
               className={path === "/app/settings" ? "on" : ""}
               aria-current={path === "/app/settings" ? "page" : undefined}
@@ -78,7 +81,7 @@ export function TerminalHeader() {
               LOCAL · NOTHING UPLOADED
             </span>
             <span className="scan-age">{scanned ?? "NO SCAN YET"}</span>
-            <Link className="btn" href="/app/scan">
+            <Link prefetch={false} className="btn" href="/app/scan">
               ↻ RESCAN
             </Link>
             <button

@@ -6,11 +6,16 @@ export function CatalogSubNav() {
   const pathname = usePathname();
   return (
     <nav aria-label="Catalog" className="sr-catalog-nav">
-      <Link href="/catalog" aria-current={pathname === "/catalog" ? "page" : undefined}>
+      <Link
+        prefetch={false}
+        href="/catalog"
+        aria-current={pathname === "/catalog" ? "page" : undefined}
+      >
         Overview
       </Link>
       {catalogNavItems.map((item) => (
         <Link
+          prefetch={false}
           key={item.href}
           href={item.href}
           aria-current={isPublicNavItemActive(pathname, item.href) ? "page" : undefined}

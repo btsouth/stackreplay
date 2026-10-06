@@ -36,6 +36,7 @@ export function TerminalPublicNav() {
   const links = () =>
     items.map((item) => (
       <Link
+        prefetch={false}
         key={item.href}
         href={item.href}
         className={active(item.href) ? "on" : undefined}
@@ -75,6 +76,7 @@ export function TerminalPublicNav() {
             <nav aria-label="Catalog" className="terminal-menu-catalog">
               {catalogNavItems.map((item) => (
                 <Link
+                  prefetch={false}
                   key={item.href}
                   href={item.href}
                   aria-current={

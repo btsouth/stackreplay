@@ -2,6 +2,7 @@ import Link from "next/link";
 export function TerminalBrand({ href = "/app/recap" }: { href?: string }) {
   return (
     <Link
+      prefetch={false}
       href={href}
       className="logo"
       aria-label={href === "/" ? "StackReplay home" : "StackReplay overview"}
