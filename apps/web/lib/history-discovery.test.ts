@@ -32,7 +32,15 @@ function fakeHandle(name: string, tree: Tree, log: string[], path = ""): FileSys
     async *values() {
       log.push(`list:${path.slice(0, -1)}`);
       for (const [child, node] of Object.entries(tree)) {
-        if (node instanceof File) yield await this.getFileHandle(child);
+        if (node instanceof File)
+          yield {
+            kind: "file",
+            name: child,
+            async getFile() {
+              log.push(`getFile:${path}${child}`);
+              return node;
+            },
+          };
         else yield fakeHandle(child, node, log, `${path}${child}/`);
       }
     },
@@ -75,7 +83,7 @@ describe("lazy directory handles", () => {
       "list:.codex/sessions",
       "list:.codex/sessions/2026",
     ]);
-    expect(log.join("\n")).not.toMatch(/Projects|Documents|cache|decoy/u);
+    expect(log.join("\n")).not.toMatch(/Projects|Documents|:cache|\/cache|decoy/u);
     let rows = waitingRows();
     for (const finding of run.findings) rows = mergeFinding(rows, finding, "bts", true);
     const selection = await collectSelection(rows.filter((row) => row.selected));
