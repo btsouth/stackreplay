@@ -105,5 +105,6 @@ export function makeSample() {
       });
     }
   }
+  for (const event of events) textUsageEventV1Schema.parse(event);
   return { recap: buildRecap(events, "all", "2026-10-06T23:59:59Z", "UTC", catalog), github };
 }

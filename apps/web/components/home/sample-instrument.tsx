@@ -72,7 +72,14 @@ export function SampleInstrument({ recap: r }: { recap: Recap }) {
               label="API value"
               value={dollars(r.usd)}
               signal
-              note="AT LIST PRICES / NOT AN INVOICE"
+              note={
+                <>
+                  AT LIST PRICES / NOT AN INVOICE
+                  <br />
+                  {Math.round((r.priced / r.records) * 100)}% OF CALLS PRICED
+                  {r.usdHigh !== r.usd && <> · UP TO {dollars(r.usdHigh)}</>}
+                </>
+              }
             />
             <Readout label="Models" value={p.models.length} note="IN THIS SAMPLE" />
             <Readout
@@ -231,7 +238,7 @@ export function SampleInstrument({ recap: r }: { recap: Recap }) {
                       {((m.total / r.total) * 100).toFixed(1)}%
                     </td>
                     <td data-label="API VALUE" className="num">
-                      {dollars(m.usd)}
+                      {m.priced ? dollars(m.usd) : "Unpriced"}
                     </td>
                     <td data-label="TOK/S" className="num">
                       {p.speeds.find((s) => s.id === m.id)?.median.toFixed(1) ?? "Unreported"}
