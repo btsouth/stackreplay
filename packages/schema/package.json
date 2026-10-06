@@ -9,6 +9,10 @@
     ".": {
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
+    },
+    "./catalog-namespace": {
+      "types": "./dist/catalog-namespace.d.ts",
+      "default": "./dist/catalog-namespace.js"
     }
   },
   "files": [

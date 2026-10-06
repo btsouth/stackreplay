@@ -1,4 +1,4 @@
-import { isSyntheticCatalogId } from "@stackreplay/share";
+import { isSyntheticCatalogId } from "@stackreplay/schema/catalog-namespace";
 import type { ImportRecord } from "./worker-protocol";
 
 /**
