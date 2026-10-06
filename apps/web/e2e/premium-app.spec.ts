@@ -40,11 +40,12 @@ test("a temporary scan remains usable through recap, Stats and Plans", async ({ 
     if (request.method() !== "GET") requests.push(request.url());
   });
   const id = await load(page, true);
+  await expect(page.locator(".recap-cost-number")).toHaveText("$2,949");
   await navigate(page, "Stats");
   await expect(page.getByTestId("overview-api-total")).toContainText("$");
   expect(new URL(page.url()).searchParams.get("import")).toBe(id);
   await navigate(page, "Plans");
-  await expect(page.locator(".plan-headline")).toContainText("$3,600", { timeout: 60_000 });
+  await expect(page.locator(".plan-headline")).toContainText("$2,949", { timeout: 60_000 });
   await expect(page.getByRole("button", { name: "Save plans", exact: true })).toBeVisible();
   const alternatives = page.locator("[data-testid^=alternative-]");
   const optionId = (await alternatives.first().getAttribute("data-testid"))?.replace(

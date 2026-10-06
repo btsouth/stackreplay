@@ -1,6 +1,6 @@
 import { buildDemoExport } from "@stackreplay/test-fixtures";
 import { describe, expect, it } from "vitest";
-import { buildPlanExplorer } from "./plan-explorer";
+import { buildPlanExplorer, knownLimitDays } from "./plan-explorer";
 import { buildRecap } from "./recap";
 
 describe("plan explorer", () => {
@@ -37,5 +37,16 @@ describe("plan explorer", () => {
     expect(api?.error).not.toBe(true);
     expect(api?.monthly).toBeUndefined();
     expect(api?.limits).toEqual([]);
+  });
+  it("does not present a window boundary as the day a limit was reached", () => {
+    const dayOf = (at: string) => at.slice(0, 10);
+    expect(knownLimitDays([{ exceededAt: undefined }], dayOf)).toBeUndefined();
+    expect(knownLimitDays([], dayOf)).toBe(0);
+    expect(
+      knownLimitDays(
+        [{ exceededAt: "2026-10-01T01:00:00Z" }, { exceededAt: "2026-10-01T02:00:00Z" }],
+        dayOf,
+      ),
+    ).toBe(1);
   });
 });

@@ -188,57 +188,6 @@ export function PlansSurface({ initialImportId }: { initialImportId?: string | u
     .slice(0, 6);
   const href = (params: Record<string, string>) =>
     `/app/plans?${new URLSearchParams({ ...Object.fromEntries([...query].filter(([key]) => !["detail", "target", "api", "section", "options"].includes(key))), import: data.id ?? "", period: data.period, ...params })}`;
-  const Card = ({ option }: { option: PlanOption }) => (
-    <article className="plan-alternative" data-testid={`alternative-${option.id}`}>
-      <h3>{option.name}</h3>
-      <p className="plan-price">
-        {option.kind === "api"
-          ? "Pay as you go"
-          : option.monthly
-            ? recapUsd(option.monthly)
-            : "Price unreported"}
-        {option.monthly && <small> / month</small>}
-      </p>
-      <dl>
-        <div>
-          <dt>Models for your work</dt>
-          <dd>{Math.round(option.share * 100)}% covered</dd>
-        </div>
-        <div>
-          <dt>Days it would run out</dt>
-          <dd>
-            {option.daysOut === undefined ? "Not enough limit evidence" : `${option.daysOut} days`}
-          </dd>
-        </div>
-        <div>
-          <dt>Compared with your plans</dt>
-          <dd>
-            {monthly && option.monthly
-              ? difference(option.monthly, monthly)
-              : "Confirm your plans to compare"}
-          </dd>
-        </div>
-      </dl>
-      <div className="plan-alternative-actions">
-        <Link href={href({ detail: option.id })} className="recap-button secondary">
-          See details
-        </Link>
-        <label>
-          <input
-            type="checkbox"
-            checked={selected.includes(option.id)}
-            disabled={!selected.includes(option.id) && selected.length >= 3}
-            onChange={(e) =>
-              setSelected((old) =>
-                e.target.checked ? [...old, option.id] : old.filter((id) => id !== option.id),
-              )
-            }
-          />
-          Compare<span className="sr-only"> {option.name}</span>
-        </label>
-      </div>
-    </article>
-  );
   return (
     <div
       className="recap-page explorer-page plans-flow"
@@ -270,7 +219,12 @@ export function PlansSurface({ initialImportId }: { initialImportId?: string | u
       {detail ? (
         <section className="plan-detail" data-testid="plan-detail">
           <div className="plan-alternatives">
-            <Card option={detail} />
+            <PlanCard
+              option={detail}
+              monthly={confirmed ? monthly : undefined}
+              href={href}
+              showActions={false}
+            />
           </div>
           <section className="plan-section">
             <div className="plan-section-heading">
@@ -282,16 +236,16 @@ export function PlansSurface({ initialImportId }: { initialImportId?: string | u
             <div className="explorer-panel">
               <div className="explorer-section-title">
                 <h2>When the limits matter</h2>
-                <p>Days when your recorded activity would exceed an included allowance.</p>
+                <p>Time periods when your recorded activity would exceed an included allowance.</p>
               </div>
               <DataTable
-                label="Days beyond included limits"
+                label="Activity beyond included limits"
                 rows={detail.windows}
                 rowKey={(r) => r.id}
                 columns={[
                   {
                     key: "date",
-                    label: "Day",
+                    label: "Period starting",
                     render: (r) => r.date,
                     compare: (a, b) => a.date.localeCompare(b.date),
                   },
@@ -345,7 +299,12 @@ export function PlansSurface({ initialImportId }: { initialImportId?: string | u
           {comparisons.length >= (proposal.length ? 1 : 2) ? (
             <div className="plan-alternatives">
               {comparisons.map((option) => (
-                <Card key={option.id} option={option} />
+                <PlanCard
+                  key={option.id}
+                  option={option}
+                  monthly={confirmed ? monthly : undefined}
+                  href={href}
+                />
               ))}
             </div>
           ) : (
@@ -491,7 +450,19 @@ export function PlansSurface({ initialImportId }: { initialImportId?: string | u
             {alternatives.length ? (
               <div className="plan-alternatives">
                 {alternatives.map((option) => (
-                  <Card key={option.id} option={option} />
+                  <PlanCard
+                    key={option.id}
+                    option={option}
+                    monthly={confirmed ? monthly : undefined}
+                    href={href}
+                    selection={{
+                      selected,
+                      onSelect: (id, checked) =>
+                        setSelected((old) =>
+                          checked ? [...old, id] : old.filter((item) => item !== id),
+                        ),
+                    }}
+                  />
                 ))}
               </div>
             ) : (
@@ -510,6 +481,76 @@ export function PlansSurface({ initialImportId }: { initialImportId?: string | u
     </div>
   );
 }
+function PlanCard({
+  option,
+  monthly,
+  href,
+  showActions = true,
+  selection,
+}: {
+  option: PlanOption;
+  monthly?: string | undefined;
+  href: (params: Record<string, string>) => string;
+  showActions?: boolean;
+  selection?: { selected: string[]; onSelect: (id: string, checked: boolean) => void };
+}) {
+  return (
+    <article className="plan-alternative" data-testid={`alternative-${option.id}`}>
+      <h3>{option.name}</h3>
+      <p className="plan-price">
+        {option.kind === "api"
+          ? "Pay as you go"
+          : option.monthly
+            ? recapUsd(option.monthly)
+            : "Price unreported"}
+        {option.monthly && <small> / month</small>}
+      </p>
+      <dl>
+        <div>
+          <dt>Models for your work</dt>
+          <dd>{Math.round(option.share * 100)}% covered</dd>
+        </div>
+        <div>
+          <dt>Days it would run out</dt>
+          <dd>
+            {option.kind === "api"
+              ? "No subscription limit"
+              : option.daysOut === undefined
+                ? "Not enough limit evidence"
+                : `${option.daysOut} days`}
+          </dd>
+        </div>
+        <div>
+          <dt>Compared with your plans</dt>
+          <dd>
+            {monthly && option.monthly
+              ? difference(option.monthly, monthly)
+              : "Confirm your plans to compare"}
+          </dd>
+        </div>
+      </dl>
+      {showActions && (
+        <div className="plan-alternative-actions">
+          <Link href={href({ detail: option.id })} className="recap-button secondary">
+            See details
+          </Link>
+          {selection && (
+            <label>
+              <input
+                type="checkbox"
+                checked={selection.selected.includes(option.id)}
+                disabled={!selection.selected.includes(option.id) && selection.selected.length >= 3}
+                onChange={(e) => selection.onSelect(option.id, e.target.checked)}
+              />
+              Compare<span className="sr-only"> {option.name}</span>
+            </label>
+          )}
+        </div>
+      )}
+    </article>
+  );
+}
+
 function Usage({ option }: { option: PlanOption }) {
   return (
     <article className="plan-use">
@@ -522,7 +563,9 @@ function Usage({ option }: { option: PlanOption }) {
             <p key={`${option.id}-${limit.name}`}>
               {limit.uncertain
                 ? "Some usage needed for this limit wasn’t recorded."
-                : `Would reach the ${limit.name.toLowerCase()} limit on ${limit.days} ${limit.days === 1 ? "day" : "days"}.${limit.continues ? " Work can continue beyond this allowance under the plan’s terms." : ""}`}
+                : limit.days === undefined
+                  ? `Your activity would exceed the ${limit.name.toLowerCase()} allowance. The exact days aren’t reported.${limit.continues ? " Work can continue beyond this allowance under the plan’s terms." : ""}`
+                  : `Would reach the ${limit.name.toLowerCase()} limit on ${limit.days} ${limit.days === 1 ? "day" : "days"}.${limit.continues ? " Work can continue beyond this allowance under the plan’s terms." : ""}`}
             </p>
           ))}
           {option.kind === "api" ? (
@@ -530,7 +573,7 @@ function Usage({ option }: { option: PlanOption }) {
           ) : (
             option.daysOut === undefined && (
               <p>
-                {option.limits.some((limit) => limit.uncertain)
+                {option.limits.length > 0
                   ? "The available evidence cannot tell us when this plan would run out."
                   : "Limits aren’t published, so we can’t say when this plan would run out."}
               </p>

@@ -15,11 +15,23 @@ export interface PlanOption {
   quantity: number;
   share: number;
   daysOut?: number | undefined;
-  limits: { name: string; days: number; uncertain: boolean; continues: boolean }[];
+  limits: { name: string; days: number | undefined; uncertain: boolean; continues: boolean }[];
   windows: { id: string; date: string; limit: string; stopped: number }[];
   models: { id: string; name: string; tokens: number; requests: number; included: boolean }[];
   peak?: { date: string; tokens: number } | undefined;
   error?: boolean;
+}
+/** Missing crossing times never turn a billing-window boundary into a reached-limit date. */
+export function knownLimitDays(
+  violations: readonly { exceededAt?: string | undefined }[],
+  dateOf: (at: string) => string,
+): number | undefined {
+  const dates: string[] = [];
+  for (const violation of violations) {
+    if (!violation.exceededAt) return undefined;
+    dates.push(dateOf(violation.exceededAt));
+  }
+  return new Set(dates).size;
 }
 /** The existing suggestion ranking and replay engine supply model access and limit evidence. */
 export function buildPlanExplorer(
@@ -139,18 +151,22 @@ export function buildPlanExplorer(
       const included = modelRows
         .filter((m) => !unsupported.has(m.id))
         .reduce((sum, m) => sum + m.requests, 0);
-      const limits = result.constraints.map((c) => ({
-        name: c.window.description,
-        days: new Set(
-          result.violations
-            .filter((v) => v.constraintId === c.id)
-            .map((v) => local(v.exceededAt ?? v.startedAt)),
-        ).size,
-        uncertain: c.status === "unknown" || c.indeterminateEvents > 0,
-        continues: c.exceed === "allow_overage" || c.exceed === "record_only",
-      }));
+      const limits = result.constraints.map((c) => {
+        const exceeded = result.violations.filter((v) => v.constraintId === c.id);
+        return {
+          name: c.window.description
+            .replace(/calendar month[^)]*\)?/i, "monthly")
+            .replace(/calendar week[^)]*\)?/i, "weekly")
+            .replace(/calendar day[^)]*\)?/i, "daily"),
+          days: knownLimitDays(exceeded, local),
+          uncertain: c.status === "unknown" || c.indeterminateEvents > 0,
+          continues: c.exceed === "allow_overage" || c.exceed === "record_only",
+        };
+      });
       const daysOut =
-        limits.length && limits.every((c) => !c.uncertain)
+        limits.length &&
+        limits.every((c) => !c.uncertain) &&
+        result.violations.filter((v) => v.affectedEvents > 0).every((v) => v.exceededAt)
           ? new Set(
               result.violations
                 .filter((v) => v.affectedEvents > 0)
@@ -171,7 +187,7 @@ export function buildPlanExplorer(
         limits,
         windows: result.violations.map((v, index) => ({
           id: `${v.constraintId}-${v.startedAt}-${index}`,
-          date: local(v.exceededAt ?? v.startedAt),
+          date: local(v.startedAt),
           limit:
             result.constraints.find((c) => c.id === v.constraintId)?.window.description ??
             "Included limit",

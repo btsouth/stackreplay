@@ -22,7 +22,8 @@ export function CalculationNote({ recap }: { recap: Recap }) {
       <p>
         This is an estimate at current API prices, not an invoice. Plan comparisons use published
         monthly prices, prorated at 30.4 days per month. Model access is separate from capacity:
-        unpublished limits remain unknown.
+        unpublished limits remain unknown. Monthly prices exclude taxes and extra usage; some plans
+        let work continue beyond an included allowance.
       </p>
     </details>
   );

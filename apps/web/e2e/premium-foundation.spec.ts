@@ -54,7 +54,10 @@ test("Plans details and comparison keep the selected history and browser navigat
   expect(new URL(page.url()).searchParams.get("future")).toBe("preserve-me");
   await page.goBack();
   await expect(page.locator(".plan-headline")).toBeVisible();
-  await cards.nth(0).getByRole("checkbox").check();
+  await cards.nth(0).getByRole("checkbox").focus();
+  await page.keyboard.press("Space");
+  await expect(cards.nth(0).getByRole("checkbox")).toBeChecked();
+  await expect(cards.nth(0).getByRole("checkbox")).toBeFocused();
   await cards.nth(1).getByRole("checkbox").check();
   await page.getByRole("link", { name: "Compare 2 plans", exact: true }).click();
   await expect(page.getByTestId("plans-comparison").locator("article")).toHaveCount(2);

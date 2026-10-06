@@ -36,8 +36,8 @@ export const publicFooterGroups = [
   {
     title: "Your story",
     items: [
-      { label: "Scan your history", href: "/app/scan" },
-      { label: "Open your recap", href: "/app/recap" },
+      { label: "Scan my history", href: "/app/scan" },
+      { label: "Open my recap", href: "/app/recap" },
       { label: "Explore your stats", href: "/app/stats" },
       { label: "Your plans", href: "/app/plans" },
     ],
