@@ -14,6 +14,9 @@
   gap: 16px;
   margin-bottom: 32px;
 }
+.explorer-stats[data-paid] {
+  grid-template-columns: 1.3fr 1.3fr 1fr 1fr 1fr;
+}
 .explorer-stats > div {
   display: flex;
   flex-direction: column;
@@ -319,9 +322,13 @@
   margin-top: 24px;
 }
 @media (max-width: 700px) {
-  .explorer-stats {
+  .explorer-stats,
+  .explorer-stats[data-paid] {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 10px;
+  }
+  .explorer-stats > div:last-child:nth-child(odd) {
+    grid-column: 1 / -1;
   }
   .explorer-stats > div {
     padding: 20px;

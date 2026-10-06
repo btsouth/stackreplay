@@ -7,6 +7,7 @@ import { PeriodControl } from "@/components/recap/period-control";
 import { familyColors } from "@/lib/recap";
 import { compactNumber, recapUsd } from "@/lib/recap-card";
 import { developerNames, harnessNames, providerNames } from "@/lib/recap-deep";
+import { usePaidMultiplier } from "@/lib/use-paid-multiplier";
 import { useRecapData } from "@/lib/use-recap-data";
 import { isSyntheticWorkload } from "@/lib/workload-kind";
 import "@/components/recap/recap.css";
@@ -26,6 +27,7 @@ const tabs = ["Models", "Tools", "Providers", "Projects", "Days", "Hours"] as co
 export function StatsSurface({ initialImportId }: { initialImportId?: string | undefined }) {
   const data = useRecapData(initialImportId);
   const { recap, period, selectPeriod, record } = data;
+  const paid = usePaidMultiplier(recap);
   const [tab, setTab] = useState<(typeof tabs)[number]>("Models");
   const [all, setAll] = useState(false);
   if (data.error)
@@ -185,15 +187,24 @@ export function StatsSurface({ initialImportId }: { initialImportId?: string | u
       {data.record && isSyntheticWorkload(data.record) && (
         <p className="plan-muted">Fictional demo. These numbers are sample data.</p>
       )}
-      <div className="explorer-stats">
+      <div className="explorer-stats" data-paid={paid ? "" : undefined}>
         {[
           [compactNumber(recap.total), "Total tokens"],
           [recapUsd(recap.usd), "at API prices"],
           [recap.sessions.toLocaleString(), "Sessions"],
           [recap.days.filter((d) => d.records > 0).length.toLocaleString(), "Active days"],
+          ...(paid ? [[paid.text, "what you paid"]] : []),
         ].map(([value, label]) => (
           <div key={label}>
-            <strong data-testid={label === "at API prices" ? "overview-api-total" : undefined}>
+            <strong
+              data-testid={
+                label === "at API prices"
+                  ? "overview-api-total"
+                  : label === "what you paid"
+                    ? "overview-paid"
+                    : undefined
+              }
+            >
               {value}
             </strong>
             <span>{label}</span>
