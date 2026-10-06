@@ -675,3 +675,21 @@
     line-height: 1.55;
   }
 }
+.public-terminal .sr-segmented,
+.public-terminal .sr-segmented span,
+.public-terminal button {
+  border-radius: 3px;
+}
+.public-terminal .sr-segmented {
+  box-shadow: none;
+  background: var(--panel);
+  border: 1px solid var(--line2);
+}
+.public-terminal .sr-segmented span {
+  font: 11px var(--mono);
+  color: var(--dim);
+}
+.public-terminal .sr-segmented input:checked + span {
+  background: var(--fg);
+  color: var(--bg);
+}

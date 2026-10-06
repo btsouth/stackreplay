@@ -5,6 +5,7 @@ import { loadPublicCatalog } from "@/lib/public-catalog";
 import { loadPublicProviderDirectory } from "@/lib/public-providers";
 import { loadPublicBenchmarks } from "@/lib/public-benchmarks";
 import { buildRecap } from "@/lib/recap";
+import { modelsInView } from "@/lib/model-library";
 import { SampleInstrument } from "./sample-instrument";
 import "@/components/terminal/terminal.css";
 import "@/components/public/public-terminal.css";
@@ -106,7 +107,7 @@ export function ReplayHomepage() {
             {[
               [
                 "Models",
-                catalog.models.filter((m) => m.kind !== "family").length,
+                modelsInView(catalog.models, "models").length,
                 "/models",
                 "Published prices and exact identities",
               ],
