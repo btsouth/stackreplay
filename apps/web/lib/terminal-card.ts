@@ -1,5 +1,5 @@
 import type { ShareWorkloadV2 } from "@stackreplay/share";
-import { type Recap, requestCountOf } from "./recap";
+import type { Recap } from "./recap";
 import {
   compact,
   dateLabel,
@@ -70,7 +70,7 @@ export function makeCard(
         }
       : {}),
     ...(selected.usd && r.priced
-      ? { usd: r.usd, pricedRequests: r.priced, requests: requestCountOf(r) }
+      ? { usd: r.usd, pricedRequests: r.priced, requests: r.records }
       : {}),
     ...(selected.speed && p.speeds.length
       ? { speeds: p.speeds.map((m) => ({ id: m.id, median: m.median })) }
@@ -268,6 +268,9 @@ export function cardLayout(card: PublicCard, format: CardFormat, options: CardRe
       lines: headlineLines,
     });
   const metrics = cardMetrics(card);
+  // Landscape with models: hero left, ranked models right, a full-width chart,
+  // then one row of readouts. Without models the readouts take the right half.
+  const wide = landscape && (card.models?.length ?? 0) > 0;
   const speeds = card.speeds ?? (card.speed ? [card.speed] : []),
     dense = speeds.length > 0 || metrics.length > 4;
   const heroY = story
@@ -278,9 +281,13 @@ export function cardLayout(card: PublicCard, format: CardFormat, options: CardRe
       ? hasHeadline
         ? 176
         : 138
-      : hasHeadline
-        ? 168
-        : 120;
+      : wide
+        ? hasHeadline
+          ? 136
+          : 104
+        : hasHeadline
+          ? 168
+          : 120;
   const heroSize = story
     ? hasHeadline
       ? 150
@@ -289,10 +296,14 @@ export function cardLayout(card: PublicCard, format: CardFormat, options: CardRe
       ? hasHeadline
         ? 132
         : 156
-      : hasHeadline
-        ? 104
-        : 144;
-  const heroWidth = landscape ? 620 : square ? 490 : width;
+      : wide
+        ? hasHeadline
+          ? 100
+          : 124
+        : hasHeadline
+          ? 104
+          : 144;
+  const heroWidth = wide ? 580 : landscape ? 620 : square ? 490 : width;
   add("hero", cardTitle(card), pad, heroY, heroSize, heroWidth, { tight: true });
   const captionText =
     card.totalTokens !== undefined
@@ -303,9 +314,13 @@ export function cardLayout(card: PublicCard, format: CardFormat, options: CardRe
   });
   // Landscape spends the right half on the readouts; square and story keep the
   // ranked model list beside the hero.
-  const models = landscape ? [] : (card.models?.slice(0, 5) ?? []);
-  const modelX = square ? 600 : pad;
-  const modelWidth = square ? 424 : width;
+  const models = wide
+    ? (card.models?.slice(0, 4) ?? [])
+    : landscape
+      ? []
+      : (card.models?.slice(0, 5) ?? []);
+  const modelX = wide ? 680 : square ? 600 : pad;
+  const modelWidth = wide ? w - pad - 680 : square ? 424 : width;
   const modelY = story
     ? hasHeadline
       ? dense
@@ -318,9 +333,9 @@ export function cardLayout(card: PublicCard, format: CardFormat, options: CardRe
       ? hasHeadline
         ? 214
         : 182
-      : 0;
-  const modelStep = story ? (dense ? 84 : 110) : 58;
-  const modelSize = story ? (dense ? 40 : 44) : 24;
+      : heroY + 40;
+  const modelStep = story ? (dense ? 84 : 110) : wide ? 42 : 58;
+  const modelSize = story ? (dense ? 40 : 44) : wide ? 22 : 24;
   if (models.length)
     add(
       "models-heading",
@@ -352,14 +367,30 @@ export function cardLayout(card: PublicCard, format: CardFormat, options: CardRe
     bars.push({
       id: `model-bar-${i}`,
       x: modelX,
-      y: y + (story ? 60 : 36),
+      y: y + (story ? 60 : wide ? 30 : 36),
       width: modelWidth * Math.min(1, m.tokenCount / Math.max(1, total)),
       height: story ? 8 : 5,
       color: familyColor(m.family ?? "other")!,
     });
   });
   let statsBottom = 0;
-  if (landscape) {
+  const footerY = h - (story ? 68 : 44);
+  // Wide landscape: readouts in one row (two if many are chosen) above the footer.
+  const statColumns = Math.min(Math.max(1, metrics.length), 4),
+    statRows = Math.ceil(metrics.length / statColumns),
+    statValueSize = statRows > 1 ? 28 : 38,
+    statStep = statValueSize + 8 + 18 + (statRows > 1 ? 10 : 0),
+    statsTop = footerY - 18 - statRows * statStep;
+  if (wide) {
+    metrics.forEach((m, i) => {
+      const x = pad + ((i % statColumns) * width) / statColumns,
+        y = statsTop + Math.floor(i / statColumns) * statStep,
+        cellWidth = width / statColumns - 20;
+      add(`stat-${i}`, m.value, x, y, statValueSize, cellWidth, { tight: true });
+      add(`label-${i}`, m.label, x, y + statValueSize + 8, 18, cellWidth, { dim: true });
+      statsBottom = Math.max(statsBottom, y + statValueSize + 8 + 18);
+    });
+  } else if (landscape) {
     // One readout per row in the right half, scaled to the count that was chosen.
     const columnX = 680,
       columnWidth = w - pad - columnX,
@@ -423,8 +454,11 @@ export function cardLayout(card: PublicCard, format: CardFormat, options: CardRe
   const tokenSeries = card.spark ?? [],
     githubSeries = card.github !== undefined ? (card.githubSpark ?? []) : [];
   const connected = githubSeries.length > 0;
-  const activityY = landscape
-    ? 380
+  const lastModelBottom = models.length ? modelY + (models.length - 1) * modelStep + 36 : 0;
+  const activityY = wide
+    ? Math.max(heroY + heroSize + 48, lastModelBottom + 16)
+    : landscape
+      ? 380
     : story
       ? Math.max(
           hasHeadline ? (speeds.length ? 1550 : 1560) : speeds.length ? 1630 : 1560,
@@ -437,9 +471,13 @@ export function cardLayout(card: PublicCard, format: CardFormat, options: CardRe
         : hasHeadline
           ? 406
           : 348;
-  const chartWidth = landscape ? 620 : width;
-  const chartTop = landscape ? 404 : activityY + (story ? 46 : square ? 42 : 24);
-  const chartBottom = landscape ? 520 : story ? 1800 : square ? 976 : hasHeadline ? 510 : 500,
+  const chartWidth = landscape && !wide ? 620 : width;
+  const chartTop = wide
+    ? activityY + 30
+    : landscape
+      ? 404
+      : activityY + (story ? 46 : square ? 42 : 24);
+  const chartBottom = wide ? statsTop - 22 : landscape ? 520 : story ? 1800 : square ? 976 : hasHeadline ? 510 : 500,
     chartHeight = chartBottom - chartTop;
   const tokenHeight = tokenSeries.length ? (connected ? (chartHeight - 4) * 0.55 : chartHeight) : 0,
     baseline = chartTop + tokenHeight;
@@ -494,32 +532,33 @@ export function cardLayout(card: PublicCard, format: CardFormat, options: CardRe
       color: green,
     });
   });
-  const footerBrandY = h - (story ? 68 : 44);
+  const footerBrandY = footerY;
+  const coverage = cardCoverage(card);
+  const oneLineFooter = !story && coverage !== undefined;
   add(
     "footer-brand",
     "STACKREPLAY.COM",
     pad,
     footerBrandY,
     story ? 26 : square ? 20 : 18,
-    width / 2,
+    oneLineFooter ? width * 0.28 : width / 2,
     {
       dim: true,
     },
   );
   add(
     "footer-note",
-    "REPORTED USAGE · NOT A BILL",
+    oneLineFooter ? `LIST-PRICE ESTIMATE · ${coverage} · NOT A BILL` : "REPORTED USAGE · NOT A BILL",
     w - pad,
     footerBrandY,
     story ? 26 : square ? 20 : 18,
-    width / 2,
+    oneLineFooter ? width * 0.68 : width / 2,
     {
       dim: true,
       align: "right",
     },
   );
-  const coverage = cardCoverage(card);
-  if (coverage !== undefined)
+  if (coverage !== undefined && !oneLineFooter)
     add(
       "footer-coverage",
       `API LIST-PRICE ESTIMATE · ${coverage}`,

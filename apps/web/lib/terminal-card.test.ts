@@ -4,7 +4,7 @@ import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { TerminalLandscape } from "../components/share/terminal-landscape";
-import { buildRecap, requestCountOf } from "./recap";
+import { buildRecap } from "./recap";
 import { terminalShareV2 } from "./share-v2";
 import {
   CARD_SIZES,
@@ -476,15 +476,22 @@ describe("honest card typography", () => {
   it("labels the dollar figure as a list-price estimate with its request coverage", () => {
     const card = makeCard(recap, DEFAULT_SELECTIONS, "dark");
     expect(card.pricedRequests).toBe(recap.priced);
-    expect(card.requests).toBe(requestCountOf(recap));
-    expect(cardLayout(card, "landscape").texts.find((t) => t.id === "footer-coverage")?.text).toBe(
-      `API LIST-PRICE ESTIMATE · ${Math.round((recap.priced / requestCountOf(recap)) * 100)}% PRICED`,
+    // Same denominator as the overview's "N% of requests priced".
+    expect(card.requests).toBe(recap.records);
+    const coverage = `${Math.round((recap.priced / recap.records) * 100)}% PRICED`;
+    // Landscape and square carry the estimate on the footer line.
+    for (const format of ["landscape", "square"] as const)
+      expect(cardLayout(card, format).texts.find((t) => t.id === "footer-note")?.text).toBe(
+        `LIST-PRICE ESTIMATE · ${coverage} · NOT A BILL`,
+      );
+    expect(cardLayout(card, "story").texts.find((t) => t.id === "footer-coverage")?.text).toBe(
+      `API LIST-PRICE ESTIMATE · ${coverage}`,
     );
     expect(
       cardLayout(
         { theme: "dark", start: recap.start, end: recap.end, usd: "10" },
         "landscape",
-      ).texts.find((t) => t.id === "footer-coverage")?.text,
-    ).toBe("API LIST-PRICE ESTIMATE · COVERAGE UNREPORTED");
+      ).texts.find((t) => t.id === "footer-note")?.text,
+    ).toBe("LIST-PRICE ESTIMATE · COVERAGE UNREPORTED · NOT A BILL");
   });
 });

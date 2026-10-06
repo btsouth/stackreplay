@@ -2913,3 +2913,31 @@
     order: 2;
   }
 }
+
+/* GitHub not connected: one prompt cell with the username field. */
+.terminal .actside.connect-side {
+  grid-template-rows: 1fr;
+}
+.terminal .connect-side .cell {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.terminal .connect-copy {
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--dim);
+  margin: 0;
+}
+.terminal .connect-side .connect {
+  margin: 0;
+}
+.terminal .connect-side .connect input {
+  flex: 1 1 140px;
+  min-width: 0;
+}
+@media (max-width: 760px) {
+  .terminal .actside.connect-side {
+    grid-template-columns: 1fr;
+  }
+}

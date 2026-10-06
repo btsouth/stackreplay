@@ -862,3 +862,44 @@
     margin: 8px 0;
   }
 }
+
+/* Phones: get the first model on the first screen. */
+@media (max-width: 640px) {
+  .public-terminal .market-header,
+  .public-terminal .public-opening,
+  .public-terminal .sr-page-heading {
+    margin-bottom: 12px;
+    padding-bottom: 12px;
+  }
+  .public-terminal :is(.sr-page-heading h1, .market-header h1) {
+    font-size: 30px;
+    margin: 6px 0 10px;
+  }
+  .public-terminal .market-section-title {
+    display: none;
+  }
+  .public-terminal .market-filters {
+    padding: 12px 14px;
+    gap: 10px 12px;
+    margin-bottom: 12px;
+  }
+  .public-terminal .market-filters > :is(label, .catalog-control) {
+    flex: 1 1 calc(50% - 6px);
+  }
+  .public-terminal .market-filters > :is(label, .catalog-control).grow {
+    flex-basis: 100%;
+  }
+  .public-terminal .market-filters .sr-select,
+  .public-terminal .market-filters .sr-select * {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .public-terminal .sr-segmented {
+    flex-wrap: nowrap;
+    flex-shrink: 0;
+  }
+  .public-terminal .sr-segmented span {
+    padding: 8px 12px;
+  }
+}

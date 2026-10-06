@@ -217,10 +217,10 @@ export function Overview({
             />
           )}
           <Readout
-            label="Current streak · all time"
+            label="Current streak"
             value={integer(r.streak)}
             unit="days"
-            note={`LONGEST ${r.longestStreak} DAYS · ALL TIME`}
+            note={`ALL TIME · LONGEST ${integer(r.longestStreak)}`}
           />
           <Readout
             label="Sessions"
@@ -275,55 +275,63 @@ export function Overview({
               days={p.days.map((d) => ({ date: d.date, value: d.total }))}
               github={ghDays}
             />
-            {gh.state !== "ready" && (
-              <form
-                className="connect"
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  void gh.connect(login);
-                }}
-              >
-                <label htmlFor="github-login">GitHub username</label>
-                <input
-                  id="github-login"
-                  value={login}
-                  onChange={(e) => setLogin(e.target.value)}
-                  placeholder="username"
-                  autoComplete="off"
-                  required
-                />
-                <button className="btn" type="submit" disabled={gh.state === "loading"}>
-                  {gh.state === "loading" ? "Connecting…" : "Connect"}
-                </button>
-                {gh.error && <p role="alert">{gh.error}</p>}
-              </form>
-            )}
           </div>
+          {!activity ? (
+            <div className="actside connect-side">
+              <div className="cell">
+                <div className="label">GitHub</div>
+                <p className="connect-copy">
+                  Add your GitHub username to mirror your public contributions under the token
+                  bars and see how the two line up.
+                </p>
+                <form
+                  className="connect"
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    void gh.connect(login);
+                  }}
+                >
+                  <label htmlFor="github-login">GitHub username</label>
+                  <input
+                    id="github-login"
+                    value={login}
+                    onChange={(e) => setLogin(e.target.value)}
+                    placeholder="username"
+                    autoComplete="off"
+                    required
+                  />
+                  <button className="btn" type="submit" disabled={gh.state === "loading"}>
+                    {gh.state === "loading" ? "Connecting…" : "Connect"}
+                  </button>
+                  {gh.error && <p role="alert">{gh.error}</p>}
+                </form>
+              </div>
+            </div>
+          ) : (
           <div className="actside">
             <Readout
               label="GitHub contributions"
-              value={activity ? integer(activity.contributions) : "Connect GitHub"}
+              value={integer(activity.contributions)}
             />
             <Readout
               label="Tokens per contribution"
               value={
-                activity?.tokensPerContribution
-                  ? compact(activity.tokensPerContribution)
-                  : "No count yet"
+                activity.tokensPerContribution ? compact(activity.tokensPerContribution) : "None"
               }
             />
             <Readout
               label="Days with AI and GitHub"
-              value={activity ? activity.longestJointStreak : "Connect to compare"}
-              unit={activity ? "days" : undefined}
-              note={activity ? "LONGEST RUN" : undefined}
+              value={activity.longestJointStreak}
+              unit="days"
+              note="LONGEST RUN"
             />
             <Readout
               label="Most GitHub contributions in a day"
-              value={activity?.bestDay ? integer(activity.bestDay.count) : "See your best day"}
-              note={activity?.bestDay ? dateLabel(activity.bestDay.date).toUpperCase() : undefined}
+              value={activity.bestDay ? integer(activity.bestDay.count) : "None"}
+              note={activity.bestDay ? dateLabel(activity.bestDay.date).toUpperCase() : undefined}
             />
           </div>
+          )}
         </div>
       </Section>
       <Section
@@ -566,7 +574,7 @@ export function Overview({
               })}
             </section>
             {p.tail.length > 0 && (
-              <details className="tail">
+              <details className="tail" open>
                 <summary className="label">Unidentified labels ({p.tail.length})</summary>
                 <p className="tail-note">
                   Log entries whose model the catalog does not name. No identity is guessed.
