@@ -119,6 +119,8 @@ export const shareWorkloadV2Schema = z.strictObject({
         .max(64)
         .optional(),
       github: count.optional(),
+      /** Normalized daily contributions aligned with spark, only with GitHub selected. */
+      githubSpark: z.array(z.number().int().min(0).max(1000)).max(64).optional(),
       streak: count.optional(),
       models: z
         .array(

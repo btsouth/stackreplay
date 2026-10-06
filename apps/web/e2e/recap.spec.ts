@@ -187,6 +187,9 @@ test("all card formats measure non-overlapping text with every stat selected", a
         height: number;
       }[];
       const faults: string[] = [];
+      // Use measured glyph and data-bar bounds, excluding the decorative background grid.
+      if (Number(canvas.dataset.emptyBand) / canvas.height >= 0.15)
+        faults.push(`${canvas.width}: empty horizontal band exceeds 15%`);
       for (let i = 0; i < boxes.length; i++) {
         const a = boxes[i]!;
         if (

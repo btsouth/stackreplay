@@ -41,12 +41,14 @@ export function TerminalShare({
   recap,
   paid,
   github,
+  githubDays,
   synthetic,
   previewOnly = false,
 }: {
   recap: Recap;
   paid?: PaidFigure | undefined;
   github?: number | undefined;
+  githubDays?: ReadonlyMap<string, number> | undefined;
   synthetic?: boolean | undefined;
   previewOnly?: boolean;
 }) {
@@ -64,8 +66,8 @@ export function TerminalShare({
     return () => observer.disconnect();
   }, []);
   const card = useMemo(
-    () => makeCard(recap, selected, theme, paid, github),
-    [recap, selected, theme, paid, github],
+    () => makeCard(recap, selected, theme, paid, github, githubDays),
+    [recap, selected, theme, paid, github, githubDays],
   );
   const toggles: [CardToggle, string][] = [
     ["tokens", "Total tokens"],
@@ -163,9 +165,6 @@ export function TerminalShare({
               </button>
             ))}
           </fieldset>
-          {selected.speed && card.speeds?.length ? (
-            <p>On landscape, Speed board replaces the top models strip.</p>
-          ) : null}
           <div className="card-actions">
             <button
               type="button"
