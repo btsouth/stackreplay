@@ -180,7 +180,7 @@ test("cold scan routes load metadata validation without module errors", async ({
   baseURL,
 }) => {
   for (let visit = 0; visit < 5; visit++) {
-    const context = await browser.newContext({ baseURL });
+    const context = await browser.newContext(baseURL ? { baseURL } : {});
     const page = await context.newPage();
     const errors: string[] = [];
     page.on("pageerror", (error) => errors.push(error.message));
