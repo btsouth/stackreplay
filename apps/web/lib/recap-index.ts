@@ -5,16 +5,19 @@ import type { StackReplayExportV1, TextUsageEventV1 } from "@stackreplay/schema"
 import {
   outputOf,
   priceRecapEvents,
+  type Recap,
+  type RecapModel,
   recapActivity,
   resolveRecapModels,
   totalTokensOf,
-  type Recap,
-  type RecapModel,
 } from "./recap";
 import { localCalendar } from "./recap-calendar";
-import { deepRecap, recapSpeedSample, recapRoutes, type RecapDeep } from "./recap-deep";
+import { deepRecap, type RecapDeep, recapRoutes, recapSpeedSample } from "./recap-deep";
 
-export const RECAP_INDEX_VERSION = 1;
+import { RECAP_INDEX_VERSION } from "./recap-index-version";
+
+export { RECAP_INDEX_VERSION } from "./recap-index-version";
+
 type Ordered<T> = T & { order: number };
 export interface RecapIndexDay {
   date: string;

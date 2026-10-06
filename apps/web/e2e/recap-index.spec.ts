@@ -104,3 +104,73 @@ test("a missing or stale index rebuilds lazily, then deletion clears it", async 
   await expect(page.getByTestId("no-stored-imports")).toBeVisible();
   expect(await indexes(page)).toEqual([]);
 });
+
+for (const route of ["recap", "stats"] as const)
+  test(`${route} keeps the previous result visible until its worker replaces the stale index`, async ({
+    page,
+  }) => {
+    await importDemo(page, "moderate");
+    const id = new URL(page.url()).searchParams.get("import")!;
+    const original = (await indexes(page))[0]!;
+    await page.evaluate(async () => {
+      const open = indexedDB.open("stackreplay");
+      const db = await new Promise<IDBDatabase>((resolve) => {
+        open.onsuccess = () => resolve(open.result);
+      });
+      await new Promise<void>((resolve) => {
+        const tx = db.transaction("recap-indexes", "readwrite");
+        const store = tx.objectStore("recap-indexes");
+        const read = store.getAll();
+        read.onsuccess = () => {
+          for (const row of read.result) {
+            row.index.catalogVersion = "stale";
+            // An intentionally different previous result proves the UI is replaced too.
+            for (const day of row.index.days) {
+              day.total = 1;
+              day.output = 1;
+              for (const model of day.models) {
+                model.total = 1;
+                model.output = 1;
+              }
+            }
+            store.put(row);
+          }
+        };
+        tx.oncomplete = () => resolve();
+      });
+      db.close();
+    });
+    let release!: () => void;
+    const held = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    await page.route("**/stackreplay-recap-worker.js", async (request) => {
+      await held;
+      await request.continue();
+    });
+    await page.goto(`/app/${route}?import=${id}&period=all`);
+    const ready = page.getByTestId(`${route}-ready`);
+    await expect(ready).toBeVisible();
+    expect((await indexes(page))[0]!.index.catalogVersion).toBe("stale");
+    const previous = await ready.textContent();
+    release();
+    await expect
+      .poll(async () => (await indexes(page))[0]?.index.catalogVersion)
+      .toBe(original.index.catalogVersion);
+    await expect.poll(() => ready.textContent()).not.toBe(previous);
+    await expect(ready).toBeVisible();
+  });
+
+test("a new import replaces the cached selection and persists its own index", async ({ page }) => {
+  await importDemo(page, "moderate");
+  const previousId = new URL(page.url()).searchParams.get("import")!;
+  const previous = await page.getByTestId("stats-ready").textContent();
+  await importDemo(page, "heavy");
+  const id = new URL(page.url()).searchParams.get("import")!;
+  expect(id).not.toBe(previousId);
+  await expect(page.getByTestId("stats-ready")).toBeVisible();
+  expect(await page.getByTestId("stats-ready").textContent()).not.toBe(previous);
+  expect(await indexes(page)).toHaveLength(2);
+  await page.goto(`/app/recap?import=${id}&period=all`);
+  await expect(page.getByTestId("recap-ready")).toBeVisible();
+});

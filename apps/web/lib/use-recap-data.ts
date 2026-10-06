@@ -1,9 +1,9 @@
 "use client";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { listHistoryMetadata, subscribeHistory } from "./local-history";
 import type { Recap, RecapPeriod } from "./recap";
 import { loadCachedRecap } from "./recap-cache";
-import { listHistoryMetadata, subscribeHistory } from "./local-history";
 import type { ImportRecord } from "./worker-protocol";
 
 /** Recap and Stats share persisted indexes, period results and metadata-only history reads. */
@@ -17,7 +17,27 @@ export function useRecapData(initialImportId?: string | undefined) {
   const [recap, setRecap] = useState<Recap>();
   const [error, setError] = useState<string>();
   const [revision, setRevision] = useState(0);
+  const hydratedAt = useRef<number | undefined>(undefined);
+  const resolvedAt = useRef<number | undefined>(undefined);
+  useEffect(() => {
+    hydratedAt.current = performance.now();
+    performance.mark("stackreplay:recap:hydrated");
+  }, []);
+  useEffect(() => {
+    if (!recap || resolvedAt.current === undefined) return;
+    const end = performance.now();
+    performance.measure("stackreplay:recap:render", { start: resolvedAt.current, end });
+    if (hydratedAt.current !== undefined)
+      performance.measure("stackreplay:recap:hydration-to-ready", {
+        start: hydratedAt.current,
+        end,
+      });
+    resolvedAt.current = undefined;
+    hydratedAt.current = undefined;
+  }, [recap]);
+  // biome-ignore lint/correctness/useExhaustiveDependencies: revision deliberately resamples the clock.
   const now = useMemo(() => new Date().toISOString(), [revision]);
+  // biome-ignore lint/correctness/useExhaustiveDependencies: revision detects timezone changes on return to the tab.
   const timeZone = useMemo(() => Intl.DateTimeFormat().resolvedOptions().timeZone, [revision]);
   useEffect(() => {
     setId(initialImportId);
@@ -38,6 +58,7 @@ export function useRecapData(initialImportId?: string | undefined) {
     [],
   );
   // Long-lived tabs refresh at the next local calendar day and on return to the tab.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: rearm the one-shot timer after each refresh.
   useEffect(() => {
     const refresh = () => setRevision((v) => v + 1);
     const timer = setTimeout(refresh, 60_000);
@@ -47,6 +68,7 @@ export function useRecapData(initialImportId?: string | undefined) {
       window.removeEventListener("focus", refresh);
     };
   }, [revision]);
+  // biome-ignore lint/correctness/useExhaustiveDependencies: reread metadata when a scan is saved or deleted.
   useEffect(() => {
     let active = true;
     listHistoryMetadata()
@@ -63,15 +85,22 @@ export function useRecapData(initialImportId?: string | undefined) {
       active = false;
     };
   }, [revision]);
+  // biome-ignore lint/correctness/useExhaustiveDependencies: history revisions invalidate cached recaps even within the same instant.
   useEffect(() => {
     if (!id) return;
     let active = true;
     setError(undefined);
     loadCachedRecap(id, period, now, timeZone, (previous) => {
-      if (active) setRecap(previous);
+      if (active) {
+        resolvedAt.current = performance.now();
+        setRecap(previous);
+      }
     })
       .then((value) => {
-        if (active) setRecap(value);
+        if (active) {
+          resolvedAt.current = performance.now();
+          setRecap(value);
+        }
       })
       .catch((error) => {
         if (active)
