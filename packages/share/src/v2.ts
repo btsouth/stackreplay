@@ -108,10 +108,26 @@ export const shareWorkloadV2Schema = z.strictObject({
           replies: count,
         })
         .optional(),
+      /** Ranked median response speeds, only when Speed board is selected. */
+      speeds: z
+        .array(
+          z.strictObject({
+            id: z.string().min(1).max(100),
+            median: z.number().finite().nonnegative(),
+          }),
+        )
+        .max(64)
+        .optional(),
       github: count.optional(),
       streak: count.optional(),
       models: z
-        .array(z.strictObject({ id: z.string().min(1).max(100), tokenCount: count }))
+        .array(
+          z.strictObject({
+            id: z.string().min(1).max(100),
+            tokenCount: count,
+            family: z.string().min(1).max(40).optional(),
+          }),
+        )
         .max(5)
         .optional(),
       peakHour: z.number().int().min(0).max(23).optional(),

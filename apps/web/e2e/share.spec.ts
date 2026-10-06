@@ -3,7 +3,7 @@ import { expect, test } from "@playwright/test";
 import { encodeShareTokenV2 } from "@stackreplay/share";
 import { buildArchetypeExport } from "@stackreplay/test-fixtures";
 import { buildRecap } from "../lib/recap";
-import { recapShareV2 } from "../lib/share-v2";
+import { recapShareV2, terminalShareV2 } from "../lib/share-v2";
 
 /**
  * Every link has its own image drawn from its own aggregate data, and the
@@ -64,3 +64,38 @@ for (const theme of ["dark", "light"] as const) {
     expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
   });
 }
+
+test("old terminal speed links and ranked boards keep a volume hero", async ({ page, request }) => {
+  for (const speedFields of [
+    { speed: { id: "claude-opus-5-5", median: 87.1, replies: 100 } },
+    {
+      speeds: [
+        { id: "claude-opus-5-5", median: 87.1 },
+        { id: "gpt-5-4", median: 75.2 },
+      ],
+    },
+  ]) {
+    const shared = await encodeShareTokenV2(
+      terminalShareV2({
+        theme: "dark",
+        start: "2026-09-01",
+        end: "2026-10-01",
+        totalTokens: 50_600_000_000,
+        ...speedFields,
+      }),
+    );
+    const image = await request.get(`/s/${shared}/image`);
+    expect(image.status()).toBe(200);
+    expect((await image.body()).byteLength).toBeGreaterThan(10_000);
+    await page.goto(`/s/${shared}`);
+    await expect(page.getByTestId("share-card-v2")).toBeVisible();
+    await expect
+      .poll(() =>
+        page
+          .locator(".public-terminal-card")
+          .evaluate((n) => n instanceof HTMLImageElement && n.complete && n.naturalWidth === 1200),
+      )
+      .toBe(true);
+    await expect(page.locator(".public-terminal-card")).toHaveAttribute("alt", /50.6B tokens/);
+  }
+});

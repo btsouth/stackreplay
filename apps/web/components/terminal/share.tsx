@@ -7,35 +7,25 @@ import {
   type CardFormat,
   type CardSelections,
   type CardToggle,
-  cardName,
   DEFAULT_SELECTIONS,
   drawCard,
   makeCard,
   type PublicCard,
   renderTerminalCard,
 } from "@/lib/terminal-card";
-import { presentation } from "@/lib/terminal-presentation";
 import type { PaidFigure } from "@/lib/use-paid-multiplier";
 
-function CardPreview({
-  card,
-  format,
-  speeds,
-}: {
-  card: PublicCard;
-  format: CardFormat;
-  speeds: { name: string; median: number }[];
-}) {
+function CardPreview({ card, format }: { card: PublicCard; format: CardFormat }) {
   const ref = useRef<HTMLCanvasElement>(null);
   useEffect(() => {
     let active = true;
     void document.fonts.ready.then(() => {
-      if (active && ref.current) drawCard(ref.current, card, format, speeds);
+      if (active && ref.current) drawCard(ref.current, card, format);
     });
     return () => {
       active = false;
     };
-  }, [card, format, speeds]);
+  }, [card, format]);
   return (
     <canvas
       ref={ref}
@@ -77,14 +67,10 @@ export function TerminalShare({
     () => makeCard(recap, selected, theme, paid, github),
     [recap, selected, theme, paid, github],
   );
-  const speeds = useMemo(() => {
-    const p = presentation(recap);
-    return selected.speed ? p.speeds.map((s) => ({ name: cardName(s.id), median: s.median })) : [];
-  }, [recap, selected.speed]);
   const toggles: [CardToggle, string][] = [
     ["tokens", "Total tokens"],
     ["usd", "API value"],
-    ["speed", "Speed"],
+    ["speed", "Speed board"],
     ["github", "GitHub"],
     ["streak", "Streak"],
     ["models", "Top models"],
@@ -95,7 +81,7 @@ export function TerminalShare({
     setBusy(true);
     setError(undefined);
     try {
-      const blob = await renderTerminalCard(card, format, speeds);
+      const blob = await renderTerminalCard(card, format);
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
@@ -137,10 +123,11 @@ export function TerminalShare({
       <div className="sharegrid">
         {(["landscape", "square", "story"] as const).map((format) => (
           <div key={format}>
-            <CardPreview card={card} format={format} speeds={speeds} />
+            <CardPreview card={card} format={format} />
             <div className="fmt">
               <span>
-                {format.toUpperCase()} · {CARD_SIZES[format].join(" × ")}
+                {format === "square" ? "TOP MODELS" : format.toUpperCase()} ·{" "}
+                {CARD_SIZES[format].join(" × ")}
               </span>
               <button
                 type="button"

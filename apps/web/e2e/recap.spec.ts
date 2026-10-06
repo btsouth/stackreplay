@@ -136,13 +136,20 @@ test("all card formats measure non-overlapping text with every stat selected", a
     .getByTestId("import-file-input")
     .setInputFiles({ ...fixture, buffer: Buffer.from(JSON.stringify(timed)) });
   await expect(page.getByTestId("recap-ready")).toBeVisible();
+  await expect(page.getByRole("button", { name: "SPEED BOARD", exact: true })).toHaveAttribute(
+    "aria-pressed",
+    "false",
+  );
   await page.getByRole("radio", { name: "All time" }).check();
   await page.getByRole("textbox", { name: "GitHub username" }).fill("btsouth");
   await page.getByRole("button", { name: "Connect", exact: true }).click();
   await expect(page.getByRole("button", { name: "Disconnect", exact: true })).toBeVisible();
   await expect(page.getByTestId("recap-paid")).toBeVisible();
-  for (const label of ["STREAK", "TOP MODELS", "PEAK HOUR", "WHAT YOU PAID"])
-    await page.getByRole("button", { name: label, exact: true }).click();
+  for (const button of await page
+    .getByRole("group", { name: "Card stats" })
+    .getByRole("button")
+    .all())
+    if ((await button.getAttribute("aria-pressed")) === "false") await button.click();
   await expect
     .poll(() =>
       page
