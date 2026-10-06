@@ -395,13 +395,7 @@ export function cardLayout(card: PublicCard, format: CardFormat, options: CardRe
   const connected = githubSeries.length > 0;
   const activityY = story
     ? Math.max(
-        hasHeadline
-          ? speeds.length
-            ? 1550
-            : 1560
-          : speeds.length
-            ? 1630
-            : 1560,
+        hasHeadline ? (speeds.length ? 1550 : 1560) : speeds.length ? 1630 : 1560,
         statsBottom + 24,
       )
     : square

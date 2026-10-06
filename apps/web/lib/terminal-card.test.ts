@@ -308,7 +308,10 @@ describe("poster composition", () => {
         const bottom = Math.max(...stats.map((t) => t.y + cardTextHeight(t)));
         const heading = layout.texts.find((t) => t.id === "activity-heading");
         expect(heading, `heading missing (GitHub ${connected})`).toBeDefined();
-        expect(heading!.y - bottom, `gap (GitHub ${connected}, headline ${withHeadline})`).toBeGreaterThanOrEqual(24);
+        expect(
+          heading!.y - bottom,
+          `gap (GitHub ${connected}, headline ${withHeadline})`,
+        ).toBeGreaterThanOrEqual(24);
       }
   });
   it("measures horizontal gaps after merging overlapping regions and including canvas edges", () => {

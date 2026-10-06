@@ -103,6 +103,13 @@ describe("period insight facts", () => {
       { date: "2026-09-07", families: { openai: 200 } },
       { date: "2026-09-21", families: { openai: 620 } },
     ];
+    // History starts in the week of Aug 31; the three earlier empty weeks are
+    // outside the AI span and must not halve the median.
+    r.days = ["2026-08-31", "2026-09-07", "2026-09-21"].map((date) => ({
+      date,
+      records: 1,
+      output: 0,
+    }));
     // Counting the three empty weeks would halve the median and report 12.4x.
     expect(find(r, "week:peak")).toMatchObject({
       headline: "Your busiest full week (Sep 21) ran 3.1x your usual week",
@@ -292,7 +299,11 @@ describe("period insight facts", () => {
     };
     const allDates = ["2026-07-10", "2026-08-20", "2026-08-21", "2026-09-01", "2026-10-04"];
     const ninety = build("90", "2026-07-09", allDates);
-    const all = build("all", "2026-08-21", allDates.filter((d) => d >= "2026-08-21"));
+    const all = build(
+      "all",
+      "2026-08-21",
+      allDates.filter((d) => d >= "2026-08-21"),
+    );
     expect(ninety?.figure).toBe("23");
     expect(all?.figure).toBe(ninety?.figure);
   });
