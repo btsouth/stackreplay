@@ -20,7 +20,7 @@ export function NotFoundContent() {
       )}
       <div className="flex flex-wrap gap-3">
         <Link href="/app/scan" className={buttonVariants({ variant: "primary" })}>
-          Make my recap
+          Scan my history
         </Link>
         {local.presence === "present" && (
           <Link href="/app/recap" className={buttonVariants({ variant: "outline" })}>

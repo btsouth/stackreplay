@@ -127,6 +127,15 @@ export function SavedWorkloads() {
       active = false;
     };
   }, []);
+  useEffect(() => {
+    let active=true;
+    async function measure() {
+      for(const record of records ?? []) {
+        try {const bytes=await getWorkerClient().exportImport(record.id);if(active)setSizes(old=>({...old,[record.id]:bytes.byteLength}));} catch {}
+      }
+    }
+    void measure();return()=>{active=false;};
+  },[records]);
   async function download(record: ImportRecord, save = true) {
     setBusy(record.id);
     setError(undefined);
@@ -210,21 +219,21 @@ export function SavedWorkloads() {
           >
             <h3>{record.label}</h3>
             <p className="saved-scan-meta">
-              {record.eventCount.toLocaleString()} calls ·{" "}
+              {record.eventCount.toLocaleString()} requests ·{" "}
               {record.savedLocally === false
                 ? "Temporary, until reload"
                 : `Saved ${new Date(record.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`}{" "}
               ·{" "}
               {sizes[record.id] !== undefined
                 ? `${formatBytes(sizes[record.id] ?? 0)} export`
-                : "Export size not checked"}
+                : "Calculating export size…"}
             </p>
             <div className="saved-scan-actions">
               <Link
                 href={`/app/recap?import=${encodeURIComponent(record.id)}`}
                 className={buttonVariants({ variant: "secondary" })}
               >
-                Open recap
+                Open my recap
               </Link>
               <Button
                 variant="outline"
@@ -233,15 +242,6 @@ export function SavedWorkloads() {
               >
                 {busy === record.id ? "Exporting…" : "Export scan"}
               </Button>
-              {sizes[record.id] === undefined && (
-                <Button
-                  variant="ghost"
-                  disabled={busy === record.id}
-                  onClick={() => void download(record, false)}
-                >
-                  Check export size
-                </Button>
-              )}
               <Button
                 variant="ghost"
                 className="text-negative"

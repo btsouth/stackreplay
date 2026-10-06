@@ -81,6 +81,16 @@ export const shareReplayV2Schema = z.strictObject({
 export const shareWorkloadV2Schema = z.strictObject({
   version: z.literal(SHARE_SNAPSHOT_V2),
   kind: z.literal("workload"),
+  /** Optional recap aggregates. Old tokens stay valid; no local identities enter this object. */
+  recap: z.strictObject({
+    totalTokens: count,
+    usd: amount,
+    usdHigh: amount.optional(),
+    pricedRequests: count,
+    rulesAsOf: isoDateV1Schema,
+    streak: count,
+    models: z.array(z.strictObject({id:z.string().min(1).max(100), tokenCount:count})).max(5),
+  }).optional(),
   /** Present only for a synthetic demo workload. */
   synthetic: z.literal(true).optional(),
   workload: z.strictObject({

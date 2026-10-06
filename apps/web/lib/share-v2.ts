@@ -290,3 +290,14 @@ export function workloadShareV2(
   assertNoForbiddenFields(snapshot);
   return snapshot;
 }
+
+/** A recap link contains only the aggregates printed on the card. Model labels resolve from catalog IDs. */
+export function recapShareV2(recap: import("./recap").Recap): ShareWorkloadV2 {
+  const snapshot: ShareWorkloadV2 = {
+    version:2,kind:"workload",
+    recap:{totalTokens:recap.total,usd:recap.usd,usdHigh:recap.usdHigh,pricedRequests:recap.priced,rulesAsOf:recap.rulesAsOf,streak:recap.longestStreak,models:recap.models.filter(m=>m.family!=="other").slice(0,5).map(m=>({id:m.id,tokenCount:m.total}))},
+    workload:{calls:recap.records,spanDays:recap.days.length,activeDays:recap.days.filter(d=>d.records>0).length,knownTokens:recap.total,sessions:recap.sessions,tools:recap.tools.slice(0,8).map(t=>({id:shareableToolId(t.id),calls:t.records}))},
+    facts:[],versions:{catalog:"recap-v1"},
+  };
+  assertNoForbiddenFields(snapshot);return snapshot;
+}

@@ -15,7 +15,6 @@ export const catalogNavItems = [
 export const publicNavItems = [
   { label: "Recap", href: "/app/recap", description: "The story of your AI coding" },
   { label: "Models & plans", href: "/catalog", description: "Explore the AI catalog" },
-  { label: "Methodology", href: "/methodology", description: "How your recap is calculated" },
   { label: "Privacy", href: "/methodology#privacy", description: "Your logs stay in your browser" },
 ] as const satisfies readonly PublicNavItem[];
 export const personalNavItems = [

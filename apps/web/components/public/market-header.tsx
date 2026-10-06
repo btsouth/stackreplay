@@ -1,5 +1,5 @@
+import { LocalWorkloadAction } from "@/components/local-workload-action";
 import { buttonVariants, PageHeader } from "@stackreplay/ui";
-import Link from "next/link";
 import type { ReactNode } from "react";
 export function MarketHeader({
   eyebrow,
@@ -32,9 +32,7 @@ export function MarketFooter() {
           browser.
         </p>
       </div>
-      <Link href="/app/scan" className={buttonVariants({ variant: "primary" })}>
-        Make my recap <span aria-hidden="true">↗</span>
-      </Link>
+      <LocalWorkloadAction variant="header" className={buttonVariants()} />
     </aside>
   );
 }

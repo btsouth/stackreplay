@@ -1,6 +1,8 @@
 import { buttonVariants, CatalogSubNav, PageHeader, Panel, SectionHeader } from "@stackreplay/ui";
-import { ArrowUpRight, BookOpen, Layers3, ScanLine } from "lucide-react";
+import { ArrowUpRight, BookOpen, Layers3 } from "lucide-react";
 import Link from "next/link";
+import { FEATURED_MODEL_IDS } from "@/lib/home/featured-models";
+import { LocalWorkloadAction } from "@/components/local-workload-action";
 import { MarketFooter } from "@/components/public/market-header";
 import { marketEventViews } from "@/lib/market/events";
 import { loadPublicCatalog } from "@/lib/public-catalog";
@@ -36,7 +38,7 @@ export default function CatalogPage() {
   const catalog = loadPublicCatalog();
   const directory = loadPublicDirectory();
   const latest = marketEventViews(catalog).slice(0, 3);
-  const models = ["claude-sonnet-5-5", "gpt-5-4", "deepseek-v4-1-flash"].flatMap((id) => {
+  const models = FEATURED_MODEL_IDS.flatMap((id) => {
     const model = catalog.models.find((m) => m.id === id);
     return model ? [model] : [];
   });
@@ -51,16 +53,14 @@ export default function CatalogPage() {
         eyebrow="The field guide"
         title={
           <>
-            A wider view.
+            AI models.
             <br />
-            <span className="text-accent">Your next possibility.</span>
+            <span className="text-accent">Prices. Plans.</span>
           </>
         }
         description="Your recap tells your story. Explore the models and plans around it, with published facts and sources you can check."
         actions={
-          <Link href="/app/scan" className={buttonVariants({ variant: "outline" })}>
-            <ScanLine size={18} aria-hidden="true" /> Make my recap
-          </Link>
+          <LocalWorkloadAction variant="header" className={buttonVariants({variant:"outline"})} />
         }
       />
       <div className="catalog-leads">

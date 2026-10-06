@@ -301,7 +301,7 @@ export function HistoryDiscovery({
         .filter((finding) => finding.status !== "not-found")
         .map((finding) => `${finding.name}: ${describe(finding)}`);
       setAnnouncement(
-        `${folder} connected${named.length > 0 ? `. ${named.join(". ")}` : ""}. Review the list, then build the workload.`,
+        `${folder} connected${named.length > 0 ? `. ${named.join(". ")}` : ""}. Review the list, then make your recap.`,
       );
       setPhase("selecting");
     },
@@ -446,8 +446,7 @@ export function HistoryDiscovery({
         </h2>
         {intro ? (
           <p className="sr-find-rule" data-testid="discovery-promise">
-            Drop your user folder to find your AI histories, or choose a tool’s history folder
-            below.
+            Choose a folder to find your AI coding history.
           </p>
         ) : phase === "armed" ? (
           <p className="sr-find-lede" data-testid="permission-preview">
@@ -458,7 +457,7 @@ export function HistoryDiscovery({
         ) : settled ? (
           <p className="sr-find-lede">
             {found.length > 0
-              ? "Choose what to import. Nothing is read until you build the workload."
+              ? "Choose what to import. Nothing is read until you make your recap."
               : "Drop your user folder (the one that holds .claude or .codex), or connect a history folder yourself."}
           </p>
         ) : (

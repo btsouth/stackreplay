@@ -9,7 +9,7 @@ export const appNavItems = [
   { label: "Plans", href: "/app/plans" },
   { label: "Settings", href: "/app/settings" },
 ] as const satisfies readonly AppNavItem[];
-export const scanAction = { label: "Scan history", href: "/app/scan" } as const;
+export const scanAction = { label: "Scan my history", href: "/app/scan" } as const;
 /** Scan is an action; catalog is a quiet destination in the mobile app menu. */
 export const appUtilityNavItems = [
   { label: "Models & plans", href: "/catalog" },

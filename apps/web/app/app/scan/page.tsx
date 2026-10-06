@@ -21,7 +21,7 @@ export default async function ScanPage({
       <PageHeader
         eyebrow="Your next recap starts here"
         title="Scan your history"
-        description="Bring in the coding history on your computer. StackReplay reads it in your browser and turns it into your recap. Your logs are never uploaded."
+        description="Choose your history folder. Your logs stay on this device."
       />
       <ImportSurface initialImports={[]} initialTarget={target} />
     </div>

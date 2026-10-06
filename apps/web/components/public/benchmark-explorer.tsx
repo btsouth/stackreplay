@@ -293,6 +293,7 @@ export function BenchmarkExplorer({
           <span className="market-muted">Evidence edition</span>
           <Select
             label="Evidence edition"
+            placeholder="Select evidence edition"
             value={state.edition}
             options={Object.keys(editions).map((id) => ({ value: id, label: id }))}
             onValueChange={(edition) =>

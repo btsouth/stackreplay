@@ -11,7 +11,7 @@ import { useRecapData } from "@/lib/use-recap-data";
 import "@/components/recap/recap.css";
 import "@/components/plans/explorer.css";
 
-type Row = { id: string; name: string; developer?: string; total: number; usd?: string; sessions?: number; requests?: number; color?: string };
+type Row = { id: string; name: string; developer?: string; total: number; usd?: string; sessions?: number; requests?: number; color?: string | undefined };
 const tabs = ["Models", "Tools", "Providers", "Projects", "Days", "Hours"] as const;
 export function StatsSurface({ initialImportId }: { initialImportId?: string | undefined }) {
   const data = useRecapData(initialImportId);

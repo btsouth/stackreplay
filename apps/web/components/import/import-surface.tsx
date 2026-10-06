@@ -708,6 +708,7 @@ export function ImportSurface({
             event.target.value = "";
           }}
         />
+        <details className="order-2"><summary className="min-h-11 cursor-pointer content-center">Use files or an export instead</summary>
         {/* biome-ignore lint/a11y/noStaticElementInteractions: this is a drop
             target, not a control. The file input inside it is the keyboard and
             screen-reader path; dragging is an additional convenience. */}
@@ -732,8 +733,7 @@ export function ImportSurface({
             <div>
               <h2 className="text-base font-medium">Choose history files or an export</h2>
               <p className="mt-1 text-sm text-muted-foreground">
-                Your selected workload files are read locally in this browser. They are never sent
-                to StackReplay.
+                Files are read on this device.
               </p>
             </div>
             <div className="grid gap-3">
@@ -844,12 +844,14 @@ export function ImportSurface({
           </div>
         </div>
 
+        </details>
+        <details className="order-2"><summary className="min-h-11 cursor-pointer content-center">Try a sample recap</summary>
         <Card className="order-2 rounded-none border-x-0 border-b-0 bg-transparent px-0 shadow-none">
           <CardContent className="flex flex-col gap-4 p-5">
             <div>
               <h2 className="text-sm font-medium">Try a fictional history</h2>
               <p className="mt-1 text-xs text-muted-foreground">
-                Deterministic synthetic data. No personal history is ever used as a demo.
+                Fictional data, ready to explore.
               </p>
             </div>
             <div className="flex flex-wrap gap-2" data-testid="demo-presets">
@@ -872,7 +874,7 @@ export function ImportSurface({
               and a same-period API comparison.
             </p>
           </CardContent>
-        </Card>
+        </Card>        </details>
       </div>
 
       {!scanShown ? (
