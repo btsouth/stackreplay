@@ -24,11 +24,14 @@ export function isBlobPayload(value: unknown): value is BlobPayload {
   );
 }
 
-export function encodeLocalPayload(id: string, exported: StackReplayExportV1) {
+export function encodeLocalPayloadWithMetadata(id: string, exported: StackReplayExportV1) {
   const json = new Blob([JSON.stringify(exported)], { type: "application/json" });
-  return json.size > LARGE_LOCAL_PAYLOAD_BYTES
-    ? { id, format: "json-blob-v1" as const, revision: crypto.randomUUID(), json }
-    : { id, exported };
+  const revision = crypto.randomUUID();
+  const payload =
+    json.size > LARGE_LOCAL_PAYLOAD_BYTES
+      ? { id, format: "json-blob-v1" as const, revision, json }
+      : { id, exported };
+  return { payload, revision, bytes: json.size };
 }
 
 /** Decode after the read transaction commits, then apply the usual strict schema. */
@@ -39,4 +42,8 @@ export async function decodeLocalPayload(value: unknown): Promise<unknown> {
   } catch {
     return undefined;
   }
+}
+
+export function encodeLocalPayload(id: string, exported: StackReplayExportV1) {
+  return encodeLocalPayloadWithMetadata(id, exported).payload;
 }

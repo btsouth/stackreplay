@@ -109,10 +109,12 @@ import { sortTimedEvents, type TimedEvent, toTimedEvents, type WindowSlice } fro
  */
 
 /**
- * Reserved for later milestones: the M1 engine has no tunable behavior, so
- * there is nothing to configure yet.
+ * Explicit internal optimizations. External callers retain strict event validation.
  */
-export type ReplayOptions = Record<string, never>;
+export interface ReplayOptions {
+  /** Internal callers may reuse events validated at their intake boundary. Defaults to validation. */
+  eventsValidated?: boolean;
+}
 
 export interface ReplayInput {
   events: readonly TextUsageEventV1[];
@@ -268,7 +270,7 @@ function replayWith(
         target,
         catalog,
         context,
-        events: validateEvents(input.events),
+        events: input.options?.eventsValidated ? input.events : validateEvents(input.events),
       },
       extras,
     );
@@ -284,7 +286,7 @@ function replayWith(
     resolveTargetPlan(target, catalog, context.rulesAsOf),
     isSubscriptionTargetV1(target) ? target.quantity : 1,
   );
-  const events = validateEvents(input.events);
+  const events = input.options?.eventsValidated ? input.events : validateEvents(input.events);
   const timed = sortTimedEvents(toTimedEvents(events));
 
   // Cross-model translation is scenario input, validated against the catalog and

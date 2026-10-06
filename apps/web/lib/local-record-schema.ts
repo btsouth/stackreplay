@@ -127,6 +127,8 @@ const outcome = z.strictObject({
   events: count,
 });
 export const importRecordSchema = z.strictObject({
+  payloadRevision: z.string().uuid().optional(),
+  payloadBytes: count.optional(),
   id: z.string().regex(/^[0-9a-f]{32}$/u),
   label: safeName,
   createdAt: instant,

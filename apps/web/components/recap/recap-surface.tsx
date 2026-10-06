@@ -1,13 +1,11 @@
 "use client";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useRecapData } from "@/lib/use-recap-data";
 import { usePaidMultiplier } from "@/lib/use-paid-multiplier";
 import { Overview } from "@/components/terminal/overview";
 export function RecapSurface({ initialImportId }: { initialImportId?: string | undefined }) {
   const data = useRecapData(initialImportId),
-    paid = usePaidMultiplier(data.recap),
-    router = useRouter();
+    paid = usePaidMultiplier(data.recap);
   if (data.error)
     return (
       <div className="status" role="alert">
@@ -42,11 +40,7 @@ export function RecapSurface({ initialImportId }: { initialImportId?: string | u
           <select
             id="history"
             value={data.id}
-            onChange={(e) => {
-              const q = new URLSearchParams(window.location.search);
-              q.set("import", e.target.value);
-              router.push(`/app/recap?${q}`);
-            }}
+            onChange={(e) => data.selectHistory(e.target.value)}
           >
             {data.imports?.map((r) => (
               <option key={r.id} value={r.id}>
