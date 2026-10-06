@@ -51,7 +51,7 @@ describe("daily recap index equivalence", () => {
       events.push({
         ...base,
         id: "span",
-        source: { ...base.source, adapterId: "hermes" },
+        source: { ...base.source, adapterId: "hermes", nativeSessionHash: "span-session" },
         confidence: { ...base.confidence, usage: "estimated" },
         occurredAt: "2026-10-08T12:00:00Z",
         requestStartedAt: "2026-03-07T04:59:00Z",

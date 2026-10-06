@@ -3,7 +3,6 @@ import { loadBundledCatalog } from "@stackreplay/catalog/bundled";
 import { Decimal } from "@stackreplay/replay-engine";
 import type { StackReplayExportV1, TextUsageEventV1 } from "@stackreplay/schema";
 import {
-  nextDay,
   outputOf,
   priceRecapEvents,
   recapActivity,
@@ -11,10 +10,9 @@ import {
   totalTokensOf,
   type Recap,
   type RecapModel,
-  type RecapPeriod,
 } from "./recap";
 import { localCalendar } from "./recap-calendar";
-import { deepRecap, quantile, recapSpeedSample, recapRoutes, type RecapDeep } from "./recap-deep";
+import { deepRecap, recapSpeedSample, recapRoutes, type RecapDeep } from "./recap-deep";
 
 export const RECAP_INDEX_VERSION = 1;
 type Ordered<T> = T & { order: number };

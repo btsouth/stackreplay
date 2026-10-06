@@ -1,5 +1,6 @@
+"use client";
+
 import { historyChanged } from "./local-history";
-("use client");
 
 import type { DemoWorkloadPresetId } from "@stackreplay/test-fixtures";
 import { clearLocalPreferences, localSourceRootSalt } from "./local-data";
