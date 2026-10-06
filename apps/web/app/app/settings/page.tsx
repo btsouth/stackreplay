@@ -1,7 +1,5 @@
-import "@/components/app/premium-app.css";
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
-import { PageHeader } from "@/components/page-header";
 import { SavedWorkloads, ThemeChoiceControl } from "@/components/settings-panels";
 import { WhatYouPayEditor } from "@/components/what-you-pay-editor";
 
@@ -31,11 +29,14 @@ function Setting({
 
 export default function SettingsPage() {
   return (
-    <div className="premium-app">
-      <PageHeader
-        title="Settings"
-        description="Make this space yours. Choose how it looks, tell us what you pay, and keep your saved scans in order."
-      />
+    <div className="app-settings-page">
+      <div className="page-command">
+        <div className="path">
+          <b>›</b> LOCAL SETTINGS
+        </div>
+        <h1>Settings</h1>
+        <p>Choose your theme, add your plan price and manage saved scans.</p>
+      </div>
       <div className="app-settings">
         <Setting title="Appearance" description="Dark, or a warm paper theme for reading.">
           <ThemeChoiceControl />
@@ -43,7 +44,7 @@ export default function SettingsPage() {
         <Setting
           id="what-you-pay"
           title="What you pay"
-          description="Optional. Add the subscriptions you pay for and your recap and stats compare your usage, at API prices, with what you paid."
+          description="Optional. Add the subscriptions you pay for and your overview compares your usage, at API prices, with what you paid."
         >
           <WhatYouPayEditor />
         </Setting>

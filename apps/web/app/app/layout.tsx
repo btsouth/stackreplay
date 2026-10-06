@@ -1,20 +1,17 @@
-import { ApplicationShell } from "@stackreplay/ui";
 import type { ReactNode } from "react";
-import { AppHeaderAction } from "@/components/app-header-action";
-import { ThemeToggle } from "@/components/theme-toggle";
-import { brandAssets } from "@/lib/site";
-
+import { TerminalHeader } from "@/components/terminal/app-header";
+import "@/components/terminal/terminal.css";
 export default function AppLayout({ children }: { children: ReactNode }) {
   return (
-    <ApplicationShell
-      logoSrc={brandAssets.navbar}
-      logoWidth={brandAssets.navbar.width}
-      logoHeight={brandAssets.navbar.height}
-      right={<ThemeToggle />}
-      primaryAction={<AppHeaderAction />}
-      menuAction={<AppHeaderAction />}
-    >
-      {children}
-    </ApplicationShell>
+    <div className="terminal">
+      <TerminalHeader />
+      <main className="wrap">{children}</main>
+      <footer>
+        <div className="wrap">
+          <span>CALCULATED ON THIS DEVICE. YOUR LOGS STAY HERE.</span>
+          <a href="/privacy">PRIVACY</a>
+        </div>
+      </footer>
+    </div>
   );
 }

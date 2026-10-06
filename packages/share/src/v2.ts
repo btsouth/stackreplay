@@ -93,6 +93,32 @@ export const shareWorkloadV2Schema = z.strictObject({
       models: z.array(z.strictObject({ id: z.string().min(1).max(100), tokenCount: count })).max(5),
     })
     .optional(),
+  /** Explicitly chosen public card figures. No local labels or raw identifiers. */
+  card: z
+    .strictObject({
+      theme: z.enum(["dark", "light"]),
+      start: isoDateV1Schema,
+      end: isoDateV1Schema,
+      tokens: count.optional(),
+      usd: amount.optional(),
+      speed: z
+        .strictObject({
+          id: z.string().min(1).max(100),
+          median: z.number().finite().nonnegative(),
+          replies: count,
+        })
+        .optional(),
+      github: count.optional(),
+      streak: count.optional(),
+      models: z
+        .array(z.strictObject({ id: z.string().min(1).max(100), tokenCount: count }))
+        .max(5)
+        .optional(),
+      peakHour: z.number().int().min(0).max(23).optional(),
+      paidMultiplier: z.number().finite().nonnegative().optional(),
+      spark: z.array(z.number().int().min(0).max(1000)).max(120).optional(),
+    })
+    .optional(),
   /** Present only for a synthetic demo workload. */
   synthetic: z.literal(true).optional(),
   workload: z.strictObject({

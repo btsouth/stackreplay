@@ -1,3 +1,4 @@
+import { GeistSans } from "geist/font/sans";
 import { GeistMono } from "geist/font/mono";
 
 import type { Metadata, Viewport } from "next";
@@ -54,7 +55,11 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" className={GeistMono.variable} suppressHydrationWarning>
+    <html
+      lang="en"
+      className={`${GeistMono.variable} ${GeistSans.variable}`}
+      suppressHydrationWarning
+    >
       <head>
         <link
           rel="preload"

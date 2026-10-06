@@ -41,3 +41,21 @@ export function recapShareV2(recap: import("./recap").Recap, synthetic = false):
   assertNoForbiddenFields(snapshot);
   return snapshot;
 }
+
+/** Only selected card figures enter a terminal link; no local projects or labels. */
+export function terminalShareV2(
+  card: import("./terminal-card").PublicCard,
+  synthetic = false,
+): ShareWorkloadV2 {
+  const snapshot: ShareWorkloadV2 = {
+    version: 2,
+    kind: "workload",
+    ...(synthetic ? { synthetic: true as const } : {}),
+    card,
+    workload: { calls: 0, spanDays: 0, activeDays: 0, knownTokens: card.tokens ?? 0, tools: [] },
+    facts: [],
+    versions: { catalog: BUNDLED_CATALOG_VERSION },
+  };
+  assertNoForbiddenFields(snapshot);
+  return snapshot;
+}
