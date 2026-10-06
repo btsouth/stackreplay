@@ -168,8 +168,8 @@ export function cardLayout(card: PublicCard, format: CardFormat) {
   );
   const metrics = cardMetrics(card);
   const columns = story ? 2 : 3,
-    step = story ? 140 : square ? 78 : 80;
-  const metricY = story ? 1200 : square ? 700 : 430;
+    step = story ? 120 : square ? 78 : 80;
+  const metricY = story ? 1150 : square ? 700 : 430;
   metrics.forEach((m, i) => {
     const x = pad + ((i % columns) * width) / columns,
       y = metricY + Math.floor(i / columns) * step,
