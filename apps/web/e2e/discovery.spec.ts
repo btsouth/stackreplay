@@ -503,7 +503,7 @@ test("discovery states pass axe and selection works from the keyboard", async ({
     const find = page.getByTestId("find-histories");
     await find.focus();
     await page.keyboard.press("Enter");
-    await expect(page.getByRole("heading", { name: "Drag your home folder here" })).toBeFocused();
+    await expect(page.getByRole("heading", { name: "Find local AI history" })).toBeFocused();
     await expectNoSeriousViolations(page);
     await dropFolders(page, [home]);
     await expect(page.getByTestId("discovery-selection")).toBeVisible();

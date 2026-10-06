@@ -51,7 +51,7 @@ export function RecapSurface({
         {sample}
       </div>
     ) : (
-      <SavedSummaryStatus status={data.indexStatus === "updating" ? "updating" : "reading"} />
+      <RecapSkeleton status={data.indexStatus === "updating" ? "updating" : "reading"} />
     );
   return (
     <>
@@ -95,6 +95,85 @@ export function RecapSurface({
         </div>
       )}
     </>
+  );
+}
+
+/**
+ * Reserve the overview's geometry while a saved scan is read, so the footer
+ * and first viewport do not jump when the dashboard replaces the placeholder.
+ */
+function RecapSkeleton({ status }: { status: "reading" | "updating" }) {
+  return (
+    <div className="recap-skeleton" data-testid="recap-skeleton">
+      <p className="sr-only" role="status">
+        {status === "updating"
+          ? "Updating your saved summary (one time). Calculating your overview on this device…"
+          : "Reading your saved history. Calculating your overview on this device…"}
+      </p>
+      <div aria-hidden="true">
+        <div className="cmd">
+          <div>
+            <div className="path">
+              <b>›</b>{" "}
+              {status === "updating"
+                ? "UPDATING YOUR SAVED SUMMARY (ONE TIME)"
+                : "READING YOUR SAVED HISTORY"}
+            </div>
+            <h1>Your AI coding, all of it.</h1>
+          </div>
+          <div className="cmdr">
+            <div className="seg sk-seg">
+              <span className="sk-block" />
+            </div>
+            <span className="btn primary sk-pill" />
+          </div>
+        </div>
+        <div className="grid12 hero">
+          <div className="cell big">
+            <div className="label">Total tokens</div>
+            <div className="mega sk-mega">
+              <span className="sk-block" />
+            </div>
+            <p className="cache-share sk-line sk-caption" />
+            <div className="sub sk-line sk-sub" />
+          </div>
+          <div className="side">
+            {["tokens", "value", "paid", "streak", "sessions"].map((id) => (
+              <div className="cell kv" key={id}>
+                <div className="label sk-line sk-label" />
+                <div className="v sk-line sk-value" />
+                <div className="n sk-line sk-note" />
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="insight-strip">
+          {["one", "two", "three", "four"].map((id) => (
+            <article className="cell insight" key={id}>
+              <h2 className="sk-heading">
+                <span className="sk-line" />
+              </h2>
+              <div className="insight-figure sk-line sk-figure" />
+              <p className="sk-line" />
+            </article>
+          ))}
+        </div>
+        {["01", "02", "03", "04"].map((number) => (
+          <section className="sec" key={number}>
+            <div className="sh">
+              <span className="label">{number}</span>
+              <h2 className="sk-heading">
+                <span className="sk-line" />
+              </h2>
+              <p className="sk-line sk-note" />
+            </div>
+            <div className="grid12">
+              <div className="cell sk-panel" />
+            </div>
+          </section>
+        ))}
+      </div>
+    </div>
   );
 }
 

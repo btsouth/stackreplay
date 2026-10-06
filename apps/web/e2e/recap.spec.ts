@@ -34,10 +34,12 @@ for (const temporary of [false, true])
       await expect(page.getByRole("heading", { name: title, exact: true })).toBeVisible();
     await expect(page.getByRole("tab")).toHaveCount(0);
     await expect(page.locator("details")).toHaveCount(0);
+    // The fixture is a 30-day month, so 90D would duplicate ALL and is hidden.
+    await expect(page.getByRole("radio", { name: "90 days" })).toHaveCount(0);
     await page.getByRole("radio", { name: "30 days" }).focus();
     await page.keyboard.press("ArrowRight");
-    await expect(page.getByRole("radio", { name: "90 days" })).toBeChecked();
-    await expect(page.getByTestId("recap-ready")).toHaveAttribute("data-period", "90");
+    await expect(page.getByRole("radio", { name: "All time" })).toBeChecked();
+    await expect(page.getByTestId("recap-ready")).toHaveAttribute("data-period", "all");
     await page.getByRole("radio", { name: "All time" }).check();
     await expect(page.getByTestId("recap-ready")).toHaveAttribute("data-period", "all");
     const id = new URL(page.url()).searchParams.get("import");
@@ -97,7 +99,7 @@ test("Settings plan prices drive the opt-in paid comparison", async ({ page }) =
   await expect(page.getByTestId("recap-paid").locator(".v")).toHaveText(
     ratio >= 9.95 ? `${Math.round(ratio)}×` : `${ratio.toFixed(1)}×`,
   );
-  await expect(page.getByRole("button", { name: "WHAT YOU PAID", exact: true })).toHaveAttribute(
+  await expect(page.getByRole("button", { name: "VS. PLAN PRICE", exact: true })).toHaveAttribute(
     "aria-pressed",
     "false",
   );
@@ -255,8 +257,8 @@ test("insights follow the period and GitHub connection", async ({ page }) => {
   await page.getByRole("button", { name: "Connect", exact: true }).click();
   await expect(strip.locator('[data-insight^="github:"]')).toHaveCount(1);
   const thirty = await strip.innerText();
-  await page.getByRole("radio", { name: "90 days" }).check();
-  await expect(page.getByTestId("recap-ready")).toHaveAttribute("data-period", "90");
+  await page.getByRole("radio", { name: "All time" }).check();
+  await expect(page.getByTestId("recap-ready")).toHaveAttribute("data-period", "all");
   await expect.poll(() => strip.innerText()).not.toBe(thirty);
   await page.getByRole("button", { name: "Disconnect", exact: true }).click();
   await expect(strip.locator('[data-insight^="github:"]')).toHaveCount(0);

@@ -229,6 +229,10 @@
 .public-terminal :is(.market-model-card-rates, .market-plan-price) {
   text-align: right;
 }
+/* Equal label slots keep the three mobile price values on one baseline. */
+.public-terminal .market-model-card-rates > div > div > p:first-child {
+  min-height: 2lh;
+}
 .public-terminal
   :is(
     .market-glance,
@@ -264,6 +268,7 @@
 }
 .public-terminal .market-glance {
   margin-bottom: 24px;
+  grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr));
 }
 .public-terminal .market-glance dt {
   font: 11px / 1.5 var(--mono);
@@ -322,7 +327,7 @@
 }
 .public-terminal .market-promo-tag {
   border-radius: 3px;
-  font: 10px / 1.5 var(--mono);
+  font: 11px / 1.5 var(--mono);
 }
 .public-terminal .market-invitation {
   border: 1px solid var(--line);
@@ -499,7 +504,7 @@
   }
   .public-terminal .market-table-label {
     display: block;
-    font-size: 10px;
+    font-size: 11px;
     white-space: normal;
   }
   .public-terminal .market-table tbody th {
@@ -561,6 +566,7 @@
   }
   .public-terminal .market-glance {
     gap: 1px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
   .public-terminal .market-glance > div {
     padding: 20px;
@@ -683,10 +689,29 @@
 }
 .public-terminal .bench-table th small,
 .public-terminal .bench-score sup {
-  font-size: 10px;
+  font-size: 11px;
 }
 .public-terminal .bench-table th {
   letter-spacing: 0.04em;
+}
+/* Pin the benchmark labels while the model columns scroll sideways. */
+.public-terminal .bench-table thead th:first-child,
+.public-terminal .bench-table tbody th:first-child {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  background: var(--panel);
+}
+.public-terminal .bench-scroll-cue {
+  font: 11px / 1.6 var(--mono);
+  color: var(--dim);
+  letter-spacing: 0.04em;
+  margin: 0 0 8px;
+}
+@media (min-width: 801px) {
+  .public-terminal .bench-scroll-cue {
+    display: none;
+  }
 }
 /* Status ink must be readable on paper; chart fills keep their signal colors. */
 .public-terminal {

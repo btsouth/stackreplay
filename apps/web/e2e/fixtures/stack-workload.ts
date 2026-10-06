@@ -124,3 +124,32 @@ export function stackWorkloadFile(
     };
   return file;
 }
+
+/**
+ * A billing month plus two older copies, so the period control has more than
+ * 90 days of history to offer while the most recent 30 days stay populated.
+ */
+export function stackWorkloadLongHistoryFile(
+  options: Parameters<typeof stackWorkloadFile>[0] = {},
+): StackReplayExportV1 {
+  const base = stackWorkloadFile(options);
+  const older = [100, 200].flatMap((days) =>
+    base.events.map((event, index) => ({
+      ...event,
+      id: `${event.id}_older${days}_${index}`,
+      occurredAt: new Date(Date.parse(event.occurredAt) - days * 86_400_000).toISOString(),
+      source: {
+        ...event.source,
+        nativeEventHash: `${event.source.nativeEventHash ?? "ne"}_older${days}_${index}`,
+      },
+    })),
+  );
+  const events = [...base.events, ...older].sort((a, b) =>
+    a.occurredAt < b.occurredAt ? -1 : a.occurredAt > b.occurredAt ? 1 : 0,
+  );
+  return {
+    ...base,
+    events,
+    range: { from: events[0]?.occurredAt ?? "", to: events.at(-1)?.occurredAt ?? "" },
+  };
+}

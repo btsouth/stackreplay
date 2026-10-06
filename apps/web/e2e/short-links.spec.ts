@@ -63,6 +63,7 @@ test("a recap link can be stored as a short link that carries only its aggregate
   request,
 }) => {
   test.setTimeout(120_000);
+  await page.clock.install({ time: new Date("2026-10-01T12:00:00Z") });
   await page.addInitScript(() => {
     Object.defineProperty(navigator, "clipboard", {
       value: {
@@ -74,9 +75,9 @@ test("a recap link can be stored as a short link that carries only its aggregate
   });
   await scanMarkedHistory(page);
   const id = new URL(page.url()).searchParams.get("import");
-  await page.goto(`/app/recap?import=${id}&period=30`);
+  await page.goto(`/app/recap?import=${id}&period=all`);
   await expect(page.getByTestId("recap-ready")).toBeVisible({ timeout: 60_000 });
-  await expect(page.getByTestId("recap-ready")).toHaveAttribute("data-period", "30");
+  await expect(page.getByTestId("recap-ready")).toHaveAttribute("data-period", "all");
   await page.route("**/api/github/contributions?*", (route) =>
     route.fulfill({
       json: {
@@ -111,7 +112,7 @@ test("a recap link can be stored as a short link that carries only its aggregate
   const intent = new URL((await page.getByTestId("recap-share-x").getAttribute("href"))!);
   expect(intent.origin + intent.pathname).toBe("https://x.com/intent/post");
   expect(intent.searchParams.get("url")).toBe(path);
-  expect(intent.searchParams.get("text")).toMatch(/tokens of AI coding in 30 days/u);
+  expect(intent.searchParams.get("text")).toMatch(/tokens of AI coding in 13 days/u);
   expect(intent.searchParams.get("text")).not.toMatch(/[–—#]/u);
   await page.getByTestId("recap-share-copy").click();
   await expect(page.getByTestId("recap-share-copy")).toHaveText("Copied");
@@ -133,7 +134,7 @@ test("a recap link can be stored as a short link that carries only its aggregate
   const head = html.split("</head>")[0]!;
   expect(head).toContain('name="twitter:card" content="summary_large_image"');
   expect(head).not.toMatch(/noindex|nofollow/u);
-  expect(head).toMatch(/property="og:title" content="[^"]*tokens of AI coding in 30 days/u);
+  expect(head).toMatch(/property="og:title" content="[^"]*tokens of AI coding in 13 days/u);
   expect(head).toMatch(/name="twitter:description" content="[^"]*tokens of AI coding/u);
   const ogImage = /<meta property="og:image" content="([^"]+)"/u.exec(html)?.[1];
   expect(ogImage).toBe(`https://stackreplay.com/s/${shortId}/image?v=2`);

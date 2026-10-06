@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import { compact } from "@/lib/terminal-presentation";
 /** Keep the mono decimal glyph close to its neighbouring digits. */
 export function TightNumber({ value }: { value: string | number }) {
@@ -71,6 +71,18 @@ export function Readout({
     </div>
   );
 }
+export function HeatLegend({ max }: { max: number }) {
+  return (
+    <div className="heat-legend">
+      <span className="label">MODEL CALLS · 0 … {max.toLocaleString("en-US")}</span>
+      <span className="heat-swatches" aria-hidden="true">
+        {[0, 0.33, 0.67, 1].map((value) => (
+          <i key={value} style={{ "--v": value } as CSSProperties} />
+        ))}
+      </span>
+    </div>
+  );
+}
 export function BarList({
   label,
   rows,
@@ -80,7 +92,7 @@ export function BarList({
 }) {
   const total = rows.reduce((sum, r) => sum + r.total, 0);
   const shown = rows.filter((r) => r.total / Math.max(1, total) >= 0.0001).slice(0, 8);
-  const hidden = rows.length - shown.length;
+  const remaining = rows.filter((r) => !shown.includes(r));
   const max = Math.max(1, ...shown.map((r) => r.total));
   return (
     <div className="cell lcol">
@@ -98,7 +110,16 @@ export function BarList({
       ) : (
         <p className="dim">No recorded totals.</p>
       )}
-      {hidden > 0 && <p className="more">+{hidden} more</p>}
+      {remaining.length > 0 && (
+        <div className="tail bar-tail">
+          {remaining.map((r) => (
+            <span className="tl" key={r.id ?? r.name}>
+              {r.name}
+              <b>{compact(r.total)}</b>
+            </span>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

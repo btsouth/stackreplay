@@ -70,7 +70,8 @@ export function presentation(r: Recap) {
     .filter((m) => m.total > 0)
     .sort((a, b) => b.total - a.total || a.id.localeCompare(b.id));
   const resolved = models.filter((m) => m.family !== "other" && m.name !== "Other / Unresolved");
-  const top = resolved.slice(0, 12);
+  // Every named model keeps a full row; unresolved ids stay in the tail list.
+  const top = resolved;
   const ids = new Set(top.map((m) => m.id));
   const tail = models.filter((m) => !ids.has(m.id));
   const speeds = [...(r.deep?.speeds ?? [])].sort((a, b) => b.median - a.median);

@@ -1,12 +1,13 @@
 "use client";
 import Link from "next/link";
 import type { CSSProperties } from "react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { PartialScanNotice } from "@/components/import/evidence";
 import { combinedActivity } from "@/lib/github-activity";
 import { pricingCoverage, type Recap, type RecapPeriod, requestCountOf } from "@/lib/recap";
 import { recapInsights } from "@/lib/recap-insights";
 import { developerNames, harnessNames, providerNames } from "@/lib/recap-names";
+import { recapPeriodOptions } from "@/lib/recap-periods";
 import {
   activeDays,
   compact,
@@ -29,7 +30,7 @@ import type { ImportRecord } from "@/lib/worker-protocol";
 import { isSyntheticWorkload } from "@/lib/workload-kind";
 import { DailyChart } from "./daily-chart";
 import { InsightStrip } from "./insights";
-import { BarList, Readout, Section, TightNumber } from "./primitives";
+import { BarList, HeatLegend, Readout, Section, TightNumber } from "./primitives";
 import { TerminalShare } from "./share";
 
 const HOURS = Array.from({ length: 24 }, (_, hour) => hour);
@@ -56,6 +57,20 @@ export function Overview({
   const debuts = periodFirstSeen(r);
   const gh = useGitHubActivity();
   const [login, setLogin] = useState("");
+  // The all-history span decides which shorter periods add anything. The saved
+  // scan metadata is available before the all-time recap is recomputed.
+  const historySpanDays = useMemo(() => {
+    const first = record?.summary.firstEventAt;
+    if (!first) return r.period === "all" ? r.days.length : undefined;
+    const firstMs = Date.parse(`${first.slice(0, 10)}T12:00:00Z`);
+    const endMs = Date.parse(`${r.end}T12:00:00Z`);
+    if (!Number.isFinite(firstMs) || !Number.isFinite(endMs)) return undefined;
+    return Math.max(1, Math.round((endMs - firstMs) / 86_400_000) + 1);
+  }, [record, r.end, r.period, r.days.length]);
+  const periodOptions = useMemo(() => recapPeriodOptions(historySpanDays), [historySpanDays]);
+  useEffect(() => {
+    if (!periodOptions.some(([value]) => value === period)) onPeriod("all");
+  }, [periodOptions, period, onPeriod]);
   const activity = useMemo(
     () => (gh.calendar ? combinedActivity(gh.calendar, p.days) : undefined),
     [gh.calendar, p.days],
@@ -91,20 +106,14 @@ export function Overview({
         <div className="cmdr">
           <fieldset className="seg" aria-label="Recap period">
             <legend className="sr-only">Recap period</legend>
-            {(
-              [
-                ["30", "30D"],
-                ["90", "90D"],
-                ["all", "ALL"],
-              ] as const
-            ).map(([v, label]) => (
-              <label key={v}>
+            {periodOptions.map(([value, label]) => (
+              <label key={value}>
                 <input
                   type="radio"
                   name="recap-period"
-                  checked={period === v}
-                  aria-label={v === "all" ? "All time" : `${v} days`}
-                  onChange={() => onPeriod(v)}
+                  checked={period === value}
+                  aria-label={value === "all" ? "All time" : `${value} days`}
+                  onChange={() => onPeriod(value)}
                 />
                 <span>{label}</span>
               </label>
@@ -651,6 +660,7 @@ export function Overview({
                 <span key={h}>{h % 3 === 0 ? String(h).padStart(2, "0") : ""}</span>
               ))}
             </div>
+            <HeatLegend max={maxHeat} />
           </div>
           <div className="rside">
             <Readout label="Peak hour" value={`${String(p.peakHour).padStart(2, "0")}:00`} />

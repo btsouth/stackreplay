@@ -531,89 +531,97 @@ export function BenchmarkExplorer({
           </button>
         </section>
       ) : visible.length > 0 ? (
-        <section
-          className="bench-table-scroll"
-          tabIndex={0}
-          aria-label="Benchmark comparison table. Scroll horizontally to see all models."
-        >
-          <table className="bench-table">
-            <caption className="sr-only">
-              {source ? `${source.evaluator} ${source.title}` : "Selected model benchmark evidence"}
-              . Different evaluation setups are identified per row. Missing scores are not reported.
-            </caption>
-            <thead>
-              <tr>
-                <th scope="col">Benchmark</th>
-                {selectedModels.map((m) => (
-                  <th scope="col" key={m.id}>
-                    <Link prefetch={false} href={`/models/${m.id}`}>
-                      {m.name}
-                    </Link>
-                    <span>{m.developer}</span>
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {visible.map((row) => (
-                <tr key={row.definition.id} data-benchmark-id={row.definition.id}>
-                  <th scope="row">
-                    <button
-                      disabled={!ready}
-                      type="button"
-                      aria-haspopup="dialog"
-                      onClick={() => setDetail({ definition: row.definition })}
-                    >
-                      {benchmarkName(row.definition)}
-                    </button>
-                    <span>
-                      {benchmarkCategories.find((c) => c.id === row.definition.category)?.label}
-                    </span>
-                    <small>
-                      {row.setup === "matched"
-                        ? "Matched evaluation setup"
-                        : "Different or unreported setups"}
-                    </small>
-                  </th>
-                  {row.cells.map((cell) => {
-                    const displayValue = cell.observation
-                      ? benchmarkComparisonDisplayValue(row.definition, cell.observation)
-                      : null;
-                    return (
-                      <td
-                        key={cell.modelId}
-                        data-model-id={cell.modelId}
-                        data-highlighted={row.highestModelIds.includes(cell.modelId) || undefined}
-                      >
-                        {cell.observation ? (
-                          <button
-                            disabled={!ready}
-                            type="button"
-                            className="bench-score"
-                            aria-haspopup="dialog"
-                            aria-label={`${benchmarkName(row.definition)}, ${models.find((m) => m.id === cell.modelId)?.name}, ${displayValue}${row.highestModelIds.includes(cell.modelId) ? `, ${row.definition.higherIsBetter ? "highest" : "lowest"} reported score in this view` : ""}. View evidence.`}
-                            onClick={() =>
-                              setDetail({ definition: row.definition, modelId: cell.modelId })
-                            }
-                          >
-                            {displayValue}
-                            <sup aria-hidden="true">
-                              {data.sourceSets.findIndex(
-                                (s) => s.id === cell.observation?.sourceSetId,
-                              ) + 1}
-                            </sup>
-                          </button>
-                        ) : (
-                          <span className="bench-not-reported">Not reported</span>
-                        )}
-                      </td>
-                    );
-                  })}
+        <>
+          <p className="bench-scroll-cue">
+            Scroll sideways to compare all {selectedModels.length} models →
+          </p>
+          <section
+            className="bench-table-scroll"
+            tabIndex={0}
+            aria-label="Benchmark comparison table. Scroll horizontally to see all models."
+          >
+            <table className="bench-table">
+              <caption className="sr-only">
+                {source
+                  ? `${source.evaluator} ${source.title}`
+                  : "Selected model benchmark evidence"}
+                . Different evaluation setups are identified per row. Missing scores are not
+                reported.
+              </caption>
+              <thead>
+                <tr>
+                  <th scope="col">Benchmark</th>
+                  {selectedModels.map((m) => (
+                    <th scope="col" key={m.id}>
+                      <Link prefetch={false} href={`/models/${m.id}`}>
+                        {m.name}
+                      </Link>
+                      <span>{m.developer}</span>
+                    </th>
+                  ))}
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </section>
+              </thead>
+              <tbody>
+                {visible.map((row) => (
+                  <tr key={row.definition.id} data-benchmark-id={row.definition.id}>
+                    <th scope="row">
+                      <button
+                        disabled={!ready}
+                        type="button"
+                        aria-haspopup="dialog"
+                        onClick={() => setDetail({ definition: row.definition })}
+                      >
+                        {benchmarkName(row.definition)}
+                      </button>
+                      <span>
+                        {benchmarkCategories.find((c) => c.id === row.definition.category)?.label}
+                      </span>
+                      <small>
+                        {row.setup === "matched"
+                          ? "Matched evaluation setup"
+                          : "Different or unreported setups"}
+                      </small>
+                    </th>
+                    {row.cells.map((cell) => {
+                      const displayValue = cell.observation
+                        ? benchmarkComparisonDisplayValue(row.definition, cell.observation)
+                        : null;
+                      return (
+                        <td
+                          key={cell.modelId}
+                          data-model-id={cell.modelId}
+                          data-highlighted={row.highestModelIds.includes(cell.modelId) || undefined}
+                        >
+                          {cell.observation ? (
+                            <button
+                              disabled={!ready}
+                              type="button"
+                              className="bench-score"
+                              aria-haspopup="dialog"
+                              aria-label={`${benchmarkName(row.definition)}, ${models.find((m) => m.id === cell.modelId)?.name}, ${displayValue}${row.highestModelIds.includes(cell.modelId) ? `, ${row.definition.higherIsBetter ? "highest" : "lowest"} reported score in this view` : ""}. View evidence.`}
+                              onClick={() =>
+                                setDetail({ definition: row.definition, modelId: cell.modelId })
+                              }
+                            >
+                              {displayValue}
+                              <sup aria-hidden="true">
+                                {data.sourceSets.findIndex(
+                                  (s) => s.id === cell.observation?.sourceSetId,
+                                ) + 1}
+                              </sup>
+                            </button>
+                          ) : (
+                            <span className="bench-not-reported">Not reported</span>
+                          )}
+                        </td>
+                      );
+                    })}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </section>
+        </>
       ) : (
         <div className="bench-empty">
           <h2>

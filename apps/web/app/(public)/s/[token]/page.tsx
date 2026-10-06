@@ -7,6 +7,7 @@ import { resolveShareParam } from "@/lib/share-link-store";
 import { shareCopy, shareImagePath } from "@/lib/share-presentation";
 import { sharedRecap } from "@/lib/shared-recap";
 import { absoluteUrl } from "@/lib/site";
+import { cardMetrics } from "@/lib/terminal-card";
 import { compact, dollars } from "@/lib/terminal-presentation";
 import "@/components/terminal/terminal.css";
 
@@ -80,6 +81,22 @@ export default async function SharePage({ params }: Props) {
         height={630}
         alt={`StackReplay card${tokens !== undefined ? `: ${compact(tokens)} tokens` : ""}${usd !== undefined ? `, ${dollars(usd)} API value` : ""}`}
       />
+      {card && (
+        <dl className="share-figures" aria-label="Card figures">
+          {card.totalTokens !== undefined && (
+            <div>
+              <dt>Total tokens</dt>
+              <dd>{compact(card.totalTokens)}</dd>
+            </div>
+          )}
+          {cardMetrics(card).map((metric) => (
+            <div key={metric.label}>
+              <dt>{metric.label}</dt>
+              <dd>{metric.value}</dd>
+            </div>
+          ))}
+        </dl>
+      )}
       {decoded.snapshot.version === 2 && decoded.snapshot.synthetic && (
         <p className="shared-recap-honesty">Fictional sample data.</p>
       )}

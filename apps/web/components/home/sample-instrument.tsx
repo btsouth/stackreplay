@@ -2,7 +2,7 @@
 import type { CSSProperties } from "react";
 import { DailyChart } from "@/components/terminal/daily-chart";
 import { InsightStrip } from "@/components/terminal/insights";
-import { Readout, Section, TightNumber } from "@/components/terminal/primitives";
+import { HeatLegend, Readout, Section, TightNumber } from "@/components/terminal/primitives";
 import { TerminalShare } from "@/components/terminal/share";
 import { sampleGithub, sampleInsights } from "@/lib/home/recap-sample";
 import type { Recap } from "@/lib/recap";
@@ -300,6 +300,7 @@ export function SampleInstrument({ recap: r }: { recap: Recap }) {
                 <span key={h}>{h % 3 === 0 ? String(h).padStart(2, "0") : ""}</span>
               ))}
             </div>
+            <HeatLegend max={maxHeat} />
           </div>
           <div className="rside">
             <Readout

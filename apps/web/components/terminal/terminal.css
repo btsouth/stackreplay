@@ -331,6 +331,7 @@
 .terminal .al span {
   color: var(--dim);
   letter-spacing: 0.1em;
+  text-transform: uppercase;
 }
 .terminal .al b {
   grid-column: 2;
@@ -366,7 +367,7 @@
   margin-top: 8px;
 }
 .terminal .chart text.axis {
-  font-size: 10px;
+  font-size: 11px;
   fill: var(--faint);
   letter-spacing: 0.06em;
 }
@@ -429,7 +430,7 @@
   position: relative;
   height: 16px;
   font-family: var(--mono);
-  font-size: 10px;
+  font-size: 11px;
   color: var(--faint);
   letter-spacing: 0.06em;
 }
@@ -457,7 +458,7 @@
 }
 .terminal .shead {
   font-family: var(--mono);
-  font-size: 10px;
+  font-size: 11px;
   letter-spacing: 0.12em;
   color: var(--faint);
   padding: 14px 0 10px;
@@ -524,7 +525,7 @@
   letter-spacing: -0.02em;
 }
 .terminal .sval small {
-  font-size: 10px;
+  font-size: 11px;
   color: var(--dim);
   margin-left: 4px;
 }
@@ -563,7 +564,7 @@
 }
 .terminal .tablecell th {
   font-family: var(--mono);
-  font-size: 10px;
+  font-size: 11px;
   letter-spacing: 0.12em;
   color: var(--faint);
   font-weight: 400;
@@ -683,7 +684,7 @@
 }
 .terminal .hd {
   font-family: var(--mono);
-  font-size: 10px;
+  font-size: 11px;
   color: var(--faint);
   letter-spacing: 0.08em;
   display: flex;
@@ -699,7 +700,7 @@
   grid-template-columns: 40px repeat(24, 1fr);
   gap: 3px;
   font-family: var(--mono);
-  font-size: 10px;
+  font-size: 11px;
   color: var(--faint);
   margin-top: 8px;
 }
@@ -1041,7 +1042,7 @@
 .terminal .date-ticks {
   display: flex;
   justify-content: space-between;
-  font: 10px var(--mono);
+  font: 11px var(--mono);
   color: var(--dim);
   margin-top: 8px;
 }
@@ -1147,6 +1148,71 @@
   margin: 0 0 20px;
   padding: 16px 20px;
 }
+/* Loading geometry mirrors the ready overview so the first viewport does not jump. */
+.terminal .recap-skeleton {
+  min-height: calc(100vh - 120px);
+  padding-bottom: 48px;
+}
+.terminal .recap-skeleton .sk-line,
+.terminal .recap-skeleton .sk-block {
+  display: block;
+  background: color-mix(in srgb, var(--line2) 70%, var(--panel));
+  border-radius: 2px;
+}
+.terminal .recap-skeleton .sk-block {
+  width: 100%;
+  height: 100%;
+}
+.terminal .recap-skeleton .sk-seg {
+  height: 34px;
+}
+.terminal .recap-skeleton .sk-seg .sk-block {
+  width: 200px;
+}
+.terminal .recap-skeleton .sk-pill {
+  width: 104px;
+}
+.terminal .recap-skeleton .sk-mega {
+  min-height: clamp(69px, 10vw, 145px);
+}
+.terminal .recap-skeleton .sk-caption {
+  width: 45%;
+  height: 11px;
+  margin: 8px 0 0;
+}
+.terminal .recap-skeleton .sk-sub {
+  width: 60%;
+  height: 13px;
+  margin-top: 6px;
+}
+.terminal .recap-skeleton .sk-label {
+  width: 50%;
+  height: 11px;
+}
+.terminal .recap-skeleton .sk-value {
+  width: 70%;
+  height: 28px;
+}
+.terminal .recap-skeleton .sk-note {
+  width: 55%;
+  height: 10px;
+}
+.terminal .recap-skeleton .sk-heading {
+  width: 80%;
+  height: 20px;
+  margin-bottom: 20px;
+}
+.terminal .recap-skeleton .sk-heading .sk-line {
+  width: 100%;
+  height: 100%;
+}
+.terminal .recap-skeleton .insight .sk-figure {
+  width: 45%;
+  height: 30px;
+}
+.terminal .recap-skeleton .sk-panel {
+  height: 280px;
+}
 .terminal .seg label {
   cursor: pointer;
 }
@@ -1202,6 +1268,55 @@
   display: block;
   border: 1px solid var(--line2);
   border-radius: 3px;
+}
+.terminal .card-preview-button {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: zoom-in;
+}
+.terminal .card-preview-dialog {
+  width: min(94vw, 1260px);
+  max-width: 94vw;
+  max-height: 90vh;
+  border: 1px solid var(--line2);
+  border-radius: 3px;
+  background: var(--panel);
+  color: var(--fg);
+  padding: 12px;
+}
+.terminal .card-preview-dialog::backdrop {
+  background: rgb(8 9 10 / 72%);
+}
+.terminal .card-preview-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font: 11px / 1.6 var(--mono);
+  letter-spacing: 0.08em;
+  margin-bottom: 8px;
+}
+.terminal .card-preview-hint {
+  font: 11px / 1.6 var(--mono);
+  color: var(--dim);
+  margin: 0 0 8px;
+}
+.terminal .card-preview-scroll {
+  overflow: auto;
+  max-height: calc(90vh - 90px);
+  border: 1px solid var(--line);
+  background: var(--bg);
+}
+.terminal .card-preview-canvas {
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: none;
+  border: 0;
+  border-radius: 0;
 }
 .terminal .sharegrid {
   gap: 20px;
@@ -2121,10 +2236,48 @@
 }
 
 .public-shell {
+  /* Terminal theme tokens on the shell, so chrome outside .terminal is themed too. */
+  --bg: #f3f2ed;
+  --panel: #f8f7f3;
+  --raise: #ffffff;
+  --line: #dedcd3;
+  --line2: #cbc8bd;
+  --fg: #121413;
+  --dim: #5c625e;
+  --faint: #5c625e;
+  --signal: #e24e00;
+  --signal-text: #b83d00;
+  --sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --mono: var(--font-geist-mono), ui-monospace, "SF Mono", Menlo, monospace;
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  background: var(--background);
+  background: var(--bg);
+  color: var(--fg);
+}
+.dark .public-shell {
+  --bg: #08090a;
+  --panel: #0c0e0f;
+  --raise: #121517;
+  --line: #1c2022;
+  --line2: #2a3034;
+  --fg: #eceee9;
+  --dim: #8d9691;
+  --faint: #8d9691;
+  --signal: #ff6a1f;
+  --signal-text: #ff6a1f;
+}
+/* Public body content shares the header and footer rail (1376px, 32px gutters). */
+.public-shell .sr-public-main {
+  width: 100%;
+  max-width: 1376px;
+  margin-inline: auto;
+  padding-inline: 32px;
+}
+@media (max-width: 800px) {
+  .public-shell .sr-public-main {
+    padding-inline: 20px;
+  }
 }
 .public-shell > main {
   flex: 1;
@@ -2306,11 +2459,8 @@
     margin: 0;
   }
   .terminal .sharegrid {
-    grid-template-columns: 1fr 1fr;
-    gap: 18px 10px;
-  }
-  .terminal .sharegrid > div:first-child {
-    grid-column: 1 / -1;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 24px;
   }
   .terminal .sharegrid > div:last-child {
     width: 100%;
@@ -2526,6 +2676,8 @@
 .terminal .insight-strip {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
+  /* Headline, figure and caption occupy shared rows so the figures align. */
+  grid-template-rows: repeat(3, auto);
   gap: 1px;
   background: var(--line);
   border: 1px solid var(--line);
@@ -2533,11 +2685,13 @@
 }
 .terminal .insight {
   min-width: 0;
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-rows: subgrid;
+  grid-row: span 3;
   border: 0;
 }
 .terminal .insight h2 {
+  grid-row: 1;
   font-family: var(--sans);
   font-size: 17px;
   font-weight: 500;
@@ -2546,27 +2700,147 @@
   overflow-wrap: anywhere;
 }
 .terminal .insight-figure {
+  grid-row: 2;
   font-family: var(--mono);
   color: var(--signal-text);
   font-size: 30px;
   line-height: 1.2;
-  margin-top: auto;
 }
 .terminal .insight p {
+  grid-row: 3;
   color: var(--dim);
   font-family: var(--mono);
-  font-size: 10px;
+  font-size: 11px;
   line-height: 1.6;
   margin: 8px 0 0;
   overflow-wrap: anywhere;
+  /* Reserve the caption slot so figures share a baseline across the strip. */
+  min-height: 2lh;
 }
 @media (max-width: 900px) {
   .terminal .insight-strip {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: repeat(6, auto);
   }
 }
 @media (max-width: 360px) {
   .terminal .insight-strip {
     grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: repeat(12, auto);
   }
+}
+
+/* The listbox portals into the trigger's terminal scope; theme it there. */
+.terminal .sr-select-popup {
+  border-radius: 3px;
+  box-shadow: none;
+  font: 12px / 1.5 var(--mono);
+  background: var(--panel);
+  color: var(--fg);
+}
+.terminal .sr-select-option {
+  border-radius: 3px;
+  font: 12px / 1.5 var(--mono);
+  color: var(--fg);
+}
+.terminal .sr-select-option[data-highlighted] {
+  background: var(--raise);
+}
+.terminal .sr-select-option[data-selected] {
+  color: var(--signal-text);
+}
+
+/* Appearance is one compact three-cell selector, not a wrapped 2+1 stack. */
+.terminal [data-testid="settings-theme"] {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1px;
+}
+.terminal [data-testid="settings-theme"] > label {
+  width: 100%;
+  min-height: 44px;
+  padding: 8px 6px;
+  font-size: 11px;
+  justify-content: center;
+}
+
+/* Give paired hero and rhythm cells a little more label room at medium widths. */
+@media (min-width: 801px) and (max-width: 1150px) {
+  .terminal .hero .cell.big,
+  .terminal .rhythm {
+    grid-column: span 7;
+  }
+  .terminal .hero .side,
+  .terminal .rside {
+    grid-column: span 5;
+  }
+}
+
+/* Catalog sub-navigation uses the same square mono chrome as the header. */
+.public-shell .sr-catalog-nav a {
+  border-radius: 3px;
+  font-family: var(--mono);
+  font-size: 12px;
+  line-height: 1.5;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  min-height: 36px;
+  padding: 8px 12px;
+  color: var(--dim);
+}
+.public-shell .sr-catalog-nav [aria-current] {
+  background: var(--raise);
+  color: var(--fg);
+  box-shadow: inset 0 0 0 1px var(--line2);
+  font-weight: 400;
+}
+
+.terminal .heat-legend {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+  font: 11px / 1.5 var(--mono);
+}
+.terminal .heat-swatches {
+  display: inline-flex;
+  gap: 2px;
+}
+.terminal .heat-swatches i {
+  width: 14px;
+  height: 10px;
+  border-radius: 1px;
+  background: color-mix(in srgb, var(--signal) calc(var(--v) * 100%), var(--heat0));
+}
+
+/* Compact rows keep every named model in the table without a wall of height. */
+.terminal .tablecell table.desktop-models td {
+  height: 30px;
+  padding-top: 5px;
+  padding-bottom: 5px;
+}
+
+/* Readable HTML figures under a shared card image. */
+.terminal .share-figures {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: 1px;
+  background: var(--line);
+  border: 1px solid var(--line);
+  margin-top: 24px;
+}
+.terminal .share-figures > div {
+  background: var(--panel);
+  padding: 16px 20px;
+}
+.terminal .share-figures dt {
+  font: 11px / 1.5 var(--mono);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--dim);
+}
+.terminal .share-figures dd {
+  margin-top: 6px;
+  font: 500 24px / 1.2 var(--mono);
+  color: var(--fg);
 }

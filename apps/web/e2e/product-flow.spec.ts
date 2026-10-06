@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
-import { importDemo } from "./premium-app-helpers";
+import { stackWorkloadLongHistoryFile } from "./fixtures/stack-workload";
+import { gotoImport, importDemo, waitForWorkload } from "./premium-app-helpers";
 
 /**
  * Moving around the product keeps its context: the address holds the period a
@@ -8,7 +9,13 @@ import { importDemo } from "./premium-app-helpers";
  */
 
 test("Back and Forward return to the same period on Stats", async ({ page }) => {
-  await importDemo(page, "multistack");
+  await gotoImport(page);
+  await page.getByTestId("import-file-input").setInputFiles({
+    name: "synthetic-long-history.stackreplay.json",
+    mimeType: "application/json",
+    buffer: Buffer.from(JSON.stringify(stackWorkloadLongHistoryFile({ scale: 100 }))),
+  });
+  await waitForWorkload(page);
   await page.getByRole("radio", { name: "90 days", exact: true }).check();
   await expect(page).toHaveURL(/period=90/u);
   await expect(page.getByTestId("recap-ready")).toHaveAttribute("data-period", "90");
