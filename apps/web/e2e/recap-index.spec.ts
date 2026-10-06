@@ -174,3 +174,21 @@ test("a new import replaces the cached selection and persists its own index", as
   await page.goto(`/app/recap?import=${id}&period=all`);
   await expect(page.getByTestId("recap-ready")).toBeVisible();
 });
+
+test("cold scan routes load metadata validation without module errors", async ({ browser }) => {
+  for (let visit = 0; visit < 5; visit++) {
+    const context = await browser.newContext();
+    const page = await context.newPage();
+    const errors: string[] = [];
+    page.on("pageerror", (error) => errors.push(error.message));
+    page.on("console", (message) => {
+      if (message.type() === "error") errors.push(message.text());
+    });
+    await page.goto("/app/scan");
+    await expect(page.getByTestId("intake-surface")).toHaveAttribute("data-ready", "true");
+    await page.getByText("Use files or an export instead", { exact: true }).click();
+    await expect(page.getByTestId("source-file-input")).toBeEnabled();
+    expect(errors).toEqual([]);
+    await context.close();
+  }
+});
