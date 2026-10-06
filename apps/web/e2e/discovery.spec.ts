@@ -27,6 +27,10 @@ test.beforeEach(async ({ page }, testInfo) => {
   if (testInfo.title.startsWith("touch devices")) return;
   test.skip(testInfo.project.name !== "desktop", "folder drag discovery is a desktop path");
   await page.emulateMedia({ reducedMotion: "reduce" });
+  // Existing chooser cases exercise the fallback used by Firefox and Safari.
+  await page.addInitScript(() =>
+    Object.defineProperty(window, "showDirectoryPicker", { configurable: true, value: undefined }),
+  );
 });
 
 async function discover(page: Page, home: string): Promise<void> {
@@ -497,7 +501,7 @@ test("discovery states pass axe and selection works from the keyboard", async ({
     const find = page.getByTestId("find-histories");
     await find.focus();
     await page.keyboard.press("Enter");
-    await expect(page.getByRole("heading", { name: "Choose your user folder" })).toBeFocused();
+    await expect(page.getByRole("heading", { name: "Drag your home folder here" })).toBeFocused();
     await expectNoSeriousViolations(page);
     await dropFolders(page, [home]);
     await expect(page.getByTestId("discovery-selection")).toBeVisible();

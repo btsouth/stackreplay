@@ -1,11 +1,151 @@
 "use client";
 
 import {
+  DISCOVERY_MAX_FILES,
+  DISCOVERY_REGISTRY,
   type DiscoveryDirectory,
   type DiscoveryFile,
   type DiscoveryPlatform,
+  discoverHistories,
   discoveryPlatformFromHint,
 } from "@stackreplay/adapters/discovery";
+
+export const FOLDER_PICKER_NOTE =
+  "That folder could not be opened. Drag Home onto the drop zone, or choose a tool folder such as .claude or .codex. For a linked folder, choose its actual location.";
+export const FOLDER_TOO_LARGE_NOTE =
+  "That folder has too many files. Choose a tool folder such as .claude or .codex, or a smaller history folder.";
+
+type PickerWindow = Window & {
+  showDirectoryPicker?: (options: {
+    id: string;
+    startIn: "documents";
+    mode: "read";
+  }) => Promise<FileSystemDirectoryHandle>;
+};
+
+export function supportsDirectoryPicker(): boolean {
+  return (
+    typeof window !== "undefined" &&
+    typeof (window as PickerWindow).showDirectoryPicker === "function"
+  );
+}
+
+/** Called directly from the click so the browser still has user activation. */
+export function pickHistoryDirectory(): Promise<FileSystemDirectoryHandle> {
+  const picker = (window as PickerWindow).showDirectoryPicker;
+  if (picker === undefined) throw new Error("Folder picker unavailable");
+  return picker.call(window, {
+    id: "stackreplay-history",
+    startIn: "documents",
+    mode: "read",
+  });
+}
+
+export function pickerCancelled(error: unknown): boolean {
+  return error instanceof DOMException && error.name === "AbortError";
+}
+
+export function tooManyChosenFiles(count: number): boolean {
+  return count > DISCOVERY_MAX_FILES;
+}
+
+/** File handles resolve to the same File objects the entry/worker path uses. */
+export class HandleFile implements DiscoveryFile {
+  private resolved: Promise<File> | undefined;
+
+  constructor(private readonly handle: FileSystemFileHandle) {}
+
+  get name(): string {
+    return this.handle.name;
+  }
+
+  file(): Promise<File> {
+    this.resolved ??= this.handle.getFile();
+    return this.resolved;
+  }
+
+  async size(): Promise<number | undefined> {
+    try {
+      return (await this.file()).size;
+    } catch {
+      return undefined;
+    }
+  }
+}
+
+/** Named probes never enumerate the selected folder or its unrelated siblings. */
+export function handleDirectory(handle: FileSystemDirectoryHandle): DiscoveryDirectory<HandleFile> {
+  return {
+    name: handle.name,
+    async directory(name) {
+      if (!singleComponent(name)) return null;
+      try {
+        return handleDirectory(await handle.getDirectoryHandle(name));
+      } catch (error) {
+        if (
+          error instanceof DOMException &&
+          ["NotFoundError", "TypeMismatchError"].includes(error.name)
+        )
+          return null;
+        throw error;
+      }
+    },
+    async file(name) {
+      if (!singleComponent(name)) return null;
+      try {
+        return new HandleFile(await handle.getFileHandle(name));
+      } catch (error) {
+        if (
+          error instanceof DOMException &&
+          ["NotFoundError", "TypeMismatchError"].includes(error.name)
+        )
+          return null;
+        throw error;
+      }
+    },
+    async list() {
+      const directories: DiscoveryDirectory<HandleFile>[] = [];
+      const files: HandleFile[] = [];
+      // DOM typings do not yet include the File System Access async iterator.
+      const iterable = handle as FileSystemDirectoryHandle & {
+        values(): AsyncIterable<FileSystemDirectoryHandle | FileSystemFileHandle>;
+      };
+      for await (const child of iterable.values()) {
+        if (child.kind === "directory") directories.push(handleDirectory(child));
+        else files.push(new HandleFile(child));
+      }
+      return { directories, files };
+    },
+  };
+}
+
+/** A tool's Connect control can confirm a bare projects/sessions folder by name. */
+export async function discoverPickedDirectory(
+  handle: FileSystemDirectoryHandle,
+  platform: DiscoveryPlatform | undefined,
+  adapterId?: string,
+) {
+  const directory = handleDirectory(handle);
+  const run = await discoverHistories(directory, { platform });
+  const source = DISCOVERY_REGISTRY.find((entry) => entry.adapterId === adapterId);
+  if (
+    source?.inventory !== undefined &&
+    run.findings.some((finding) => finding.adapterId === adapterId && finding.unconfirmed) &&
+    source.history.some((location) => location.path.at(-1) === handle.name)
+  ) {
+    const confirmed = await discoverHistories(directory, {
+      platform,
+      registry: [{ ...source, history: [{ path: [], kind: "directory", platforms: [] }] }],
+    });
+    run.findings = run.findings.map((finding) =>
+      finding.adapterId === adapterId ? (confirmed.findings[0] ?? finding) : finding,
+    );
+    run.probes += confirmed.probes;
+    run.listings += confirmed.listings;
+    run.durationMs += confirmed.durationMs;
+  }
+  return run;
+}
 
 /**
  * Browser side of history discovery.

@@ -19,8 +19,24 @@ import { formatTokens, plainRange } from "@/components/import/format";
 import { HistoryDiscovery } from "@/components/import/history-discovery";
 import { LARGE_HISTORY_BYTES } from "@/components/import/large-history-note";
 import { ScanInstrument, type ScanStage } from "@/components/import/scan-instrument";
-import type { HistorySelection } from "@/lib/discovery-list";
-import { forgetConnections, rememberConnections } from "@/lib/history-discovery";
+import {
+  collectSelection,
+  type HistorySelection,
+  mergeFinding,
+  waitingRows,
+} from "@/lib/discovery-list";
+import {
+  discoverPickedDirectory,
+  FOLDER_PICKER_NOTE,
+  FOLDER_TOO_LARGE_NOTE,
+  forgetConnections,
+  pickerCancelled,
+  pickHistoryDirectory,
+  platformHint,
+  rememberConnections,
+  supportsDirectoryPicker,
+  tooManyChosenFiles,
+} from "@/lib/history-discovery";
 import { createLocalImportId } from "@/lib/idb";
 import { importSizeAdvice } from "@/lib/import-validation";
 import { forgetSources } from "@/lib/remembered-sources";
@@ -45,14 +61,7 @@ import type { ImportRecord, SafeError, ScanProgress } from "@/lib/worker-protoco
 
 type Phase = "idle" | "reading" | "validating" | "preparing" | "finishing" | "ready";
 
-/**
- * Every source card opens the same `webkitdirectory` chooser. Chromium's
- * directory-access picker treats a symlink as nonexistent even after the user
- * selects it, so a linked `~/.claude/projects` failed with NotFoundError; the
- * chooser follows links and works in every browser. The cards are the manual
- * path beside discovery, and the primary path on devices that cannot drag a
- * folder.
- */
+/** Each source card uses lazy discovery, with an explicit file-list fallback for older browsers. */
 const SOURCE_CHOICES: { kind: string; name: string; action: string; path: string }[] = [
   {
     kind: "claude-code",
@@ -103,6 +112,10 @@ export function ImportSurface({
   const sourceInputRef = useRef<HTMLInputElement>(null);
   /** The source card that opened the folder chooser, so the scan names the tool. */
   const folderSourceRef = useRef<string | undefined>(undefined);
+  const folderPickingRef = useRef(false);
+  const [folderPicking, setFolderPicking] = useState(false);
+  const [pickerCapable, setPickerCapable] = useState(false);
+  const [pickerNote, setPickerNote] = useState<string | undefined>(undefined);
   const [folderSupported, setFolderSupported] = useState(true);
   /**
    * Saving is the default: a scan can take a minute, and losing it to a reload
@@ -159,6 +172,7 @@ export function ImportSurface({
 
   useEffect(() => {
     setReady(true);
+    setPickerCapable(supportsDirectoryPicker());
   }, []);
 
   const refreshImports = useCallback(async () => {
@@ -392,11 +406,44 @@ export function ImportSurface({
     setCanceled(true);
   }, [client]);
 
-  /** Opens the folder chooser; a source card passes the tool name the scan shows. */
-  const chooseFolder = useCallback((sourceName?: string) => {
-    folderSourceRef.current = sourceName;
-    folderInputRef.current?.click();
-  }, []);
+  /** Per-tool choices discover the same known paths as the drop path. */
+  const chooseFolder = useCallback(
+    async (sourceName?: string) => {
+      if (busy || !ready || folderPickingRef.current) return;
+      folderSourceRef.current = sourceName;
+      setPickerNote(undefined);
+      if (!supportsDirectoryPicker()) {
+        folderInputRef.current?.click();
+        return;
+      }
+      folderPickingRef.current = true;
+      setFolderPicking(true);
+      try {
+        const folder = await pickHistoryDirectory();
+        const choice = SOURCE_CHOICES.find((entry) => entry.name === sourceName);
+        const run = await discoverPickedDirectory(folder, platformHint(), choice?.kind);
+        let rows = waitingRows();
+        for (const finding of run.findings)
+          rows = mergeFinding(rows, finding, folder.name, true, "chooser");
+        const selected = rows.filter(
+          (row) => row.selected && (choice === undefined || row.adapterId === choice.kind),
+        );
+        if (selected.length === 0) {
+          setPickerNote(
+            "No readable history found. Choose the tool folder, such as .claude or .codex. For a custom or linked location, use files or an export below.",
+          );
+          return;
+        }
+        await importHistories(await collectSelection(selected));
+      } catch (failure) {
+        if (!pickerCancelled(failure)) setPickerNote(FOLDER_PICKER_NOTE);
+      } finally {
+        folderPickingRef.current = false;
+        setFolderPicking(false);
+      }
+    },
+    [busy, ready, importHistories],
+  );
 
   const exportWorkload = useCallback(
     async (importId: string) => {
@@ -573,7 +620,7 @@ export function ImportSurface({
                     type="button"
                     variant="secondary"
                     size="sm"
-                    onClick={() => folderInputRef.current?.click()}
+                    onClick={() => void chooseFolder()}
                   >
                     Choose a local folder
                   </Button>
@@ -596,7 +643,7 @@ export function ImportSurface({
       </div>
       <div className="flex min-w-0 flex-col gap-5" hidden={scanShown}>
         <HistoryDiscovery
-          busy={busy}
+          busy={busy || folderPicking}
           ready={ready}
           saveLocal={saveLocal}
           onBuild={(selection) => void importHistories(selection)}
@@ -610,7 +657,7 @@ export function ImportSurface({
                   <button
                     key={choice.kind}
                     type="button"
-                    disabled={busy || !ready}
+                    disabled={busy || !ready || folderPicking}
                     onClick={() => chooseFolder(choice.kind === "folder" ? undefined : choice.name)}
                     data-testid={`connect-${choice.kind}`}
                     className="group flex min-h-28 min-w-0 flex-col items-start justify-between bg-background p-4 text-left transition-colors hover:bg-surface-2 focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-ring disabled:opacity-50 sm:min-h-36"
@@ -637,10 +684,21 @@ export function ImportSurface({
                 className="mt-3 text-xs leading-relaxed text-muted-foreground"
                 data-testid="picker-note"
               >
-                {folderSupported
-                  ? "Choose the tool's history folder itself: the browser gives this page the list of files in the folder you pick. Its confirmation may describe sending files to this site. They stay on this device: StackReplay reads them locally and sends none of them to a server."
-                  : "Folder selection is unavailable in this browser. Choose the folder's files below instead."}
+                {pickerCapable
+                  ? "Choose a tool folder such as .claude or .codex. Only known history locations are read. Browsers may block Home or linked folders; drag Home above, or choose the actual tool folder. Raw history stays on this device."
+                  : folderSupported
+                    ? "Choose a tool folder such as .claude or .codex, or its history folder. Avoid choosing Home: this browser lists every file first. Raw history stays on this device."
+                    : "Folder selection is unavailable in this browser. Choose the folder's files below instead."}
               </p>
+              {pickerNote === undefined ? null : (
+                <p
+                  role="alert"
+                  className="mt-2 text-sm text-muted-foreground"
+                  data-testid="source-picker-note"
+                >
+                  {pickerNote}
+                </p>
+              )}
               <details className="mt-2 text-xs text-muted-foreground">
                 <summary className="w-fit cursor-pointer underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-ring">
                   Folder locations and browser access
@@ -650,8 +708,9 @@ export function ImportSurface({
                     Claude Code uses <code>~/.claude/projects</code>; Codex uses{" "}
                     <code>~/.codex/sessions</code>. On Windows, look under your user profile. If you
                     set <code>CLAUDE_CONFIG_DIR</code> or <code>CODEX_HOME</code>, choose that
-                    location. A folder that is a link (symlink) works the same way. For WSL, choose
-                    the folder under <code>\\wsl.localhost\&lt;distro&gt;\home</code>.
+                    location. For a link (symlink), choose its actual location or use files below.
+                    For WSL, choose the folder under{" "}
+                    <code>\\wsl.localhost\&lt;distro&gt;\home</code>.
                   </p>
                   <p>
                     The browser cannot keep access to the folder, so choose it again to scan newer
@@ -675,7 +734,7 @@ export function ImportSurface({
         <input
           ref={folderInputRef}
           type="file"
-          disabled={busy || !ready}
+          disabled={busy || !ready || folderPicking}
           multiple
           {...({ webkitdirectory: "" } as React.InputHTMLAttributes<HTMLInputElement>)}
           aria-hidden="true"
@@ -684,6 +743,12 @@ export function ImportSurface({
           data-testid="source-folder-input"
           onChange={(event) => {
             const files = Array.from(event.target.files ?? []);
+            event.target.value = "";
+            if (files.length === 0) return;
+            if (tooManyChosenFiles(files.length)) {
+              setPickerNote(FOLDER_TOO_LARGE_NOTE);
+              return;
+            }
             setScanSource(
               folderSourceRef.current ??
                 (files[0]?.webkitRelativePath.split("/")[0] || "the selected folder"),
@@ -740,7 +805,7 @@ export function ImportSurface({
                       id={sourceInputId}
                       ref={sourceInputRef}
                       type="file"
-                      disabled={busy || !ready}
+                      disabled={busy || !ready || folderPicking}
                       multiple
                       accept=".json,.jsonl,.db,.db-wal,.zip,application/json,application/zip"
                       aria-describedby={`${sourceInputId}-selection`}
@@ -783,7 +848,7 @@ export function ImportSurface({
                     <input
                       id={inputId}
                       type="file"
-                      disabled={busy || !ready}
+                      disabled={busy || !ready || folderPicking}
                       accept=".stackreplay.json,.json,application/json"
                       aria-describedby={`${inputId}-selection`}
                       className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
@@ -807,7 +872,7 @@ export function ImportSurface({
               <label className="flex items-center gap-2 text-xs text-muted-foreground">
                 <input
                   type="checkbox"
-                  disabled={busy || !ready}
+                  disabled={busy || !ready || folderPicking}
                   checked={saveLocal}
                   onChange={(event) => setSaveLocal(event.target.checked)}
                 />
@@ -848,7 +913,7 @@ export function ImportSurface({
                     type="button"
                     variant="secondary"
                     size="sm"
-                    disabled={busy || !ready}
+                    disabled={busy || !ready || folderPicking}
                     data-testid={`demo-${presetId}`}
                     onClick={() => void importDemo(presetId)}
                   >
