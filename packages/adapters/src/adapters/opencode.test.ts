@@ -277,6 +277,7 @@ describe("OpenCode native response timing", () => {
         `insert into message (id, session_id, time_created, time_updated, data) values
        ('timed-response', 'ses_alpha', 1789601800000, 1789601900000, '${JSON.stringify({
          role: "assistant",
+         finish: "stop",
          parentID: "original-user",
          modelID: "gpt-5",
          tokens: { input: 10, output: 100 },
@@ -296,6 +297,28 @@ describe("OpenCode native response timing", () => {
         expect(event?.requestStartedAt).toBeUndefined();
         expect(event?.requestEndedAt).toBeUndefined();
       }
+    },
+  );
+  it.each(["tool-calls", "unknown", undefined])(
+    "does not call a %s processing interval model speed",
+    async (finish) => {
+      const result = await collectFrom([
+        ...OPENCODE_FIXTURE_SQL,
+        `insert into message (id, session_id, time_created, time_updated, data) values
+       ('tools-response', 'ses_alpha', 1789601800000, 1789601900000, '${JSON.stringify({
+         role: "assistant",
+         finish,
+         modelID: "gpt-5",
+         tokens: { input: 10, output: 100 },
+         time: { created: 1789601800000, completed: 1789601810000 },
+       })}')`,
+      ]);
+      const event = result.events.find(
+        (e) => e.occurredAt === new Date(1789601800000).toISOString(),
+      );
+      expect(event).toBeDefined();
+      expect(event?.requestStartedAt).toBeUndefined();
+      expect(event?.requestEndedAt).toBeUndefined();
     },
   );
 });
