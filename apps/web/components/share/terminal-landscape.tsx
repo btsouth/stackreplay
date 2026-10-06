@@ -76,7 +76,7 @@ export function TerminalLandscape({
       {cardMetrics(card).map((m, i) => (
         <div
           key={m.label}
-          style={absolute(56 + (i % 3) * 362.67, 438 + Math.floor(i / 3) * 70, {
+          style={absolute(56 + (i % 3) * 362.67, 425 + Math.floor(i / 3) * 70, {
             flexDirection: "column",
             borderTop: `1px solid ${line}`,
             width: 338,
