@@ -1,5 +1,6 @@
 "use client";
-import { buttonVariants, PageHeader } from "@stackreplay/ui";
+import { buttonVariants } from "@stackreplay/ui/components/button";
+import { PageHeader } from "@stackreplay/ui/components/page-header";
 import Link from "next/link";
 import { useLocalWorkload } from "@/lib/local-workload";
 import "./public-premium.css";

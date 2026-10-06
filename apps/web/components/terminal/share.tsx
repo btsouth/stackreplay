@@ -1,9 +1,7 @@
 "use client";
-import { encodeShareTokenV2 } from "@stackreplay/share";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { Recap } from "@/lib/recap";
-import { terminalShareV2 } from "@/lib/share-v2";
 import {
   DEFAULT_SELECTIONS,
   CARD_SIZES,
@@ -112,6 +110,10 @@ export function TerminalShare({
     setBusy(true);
     setError(undefined);
     try {
+      const [{ encodeShareTokenV2 }, { terminalShareV2 }] = await Promise.all([
+        import("@stackreplay/share"),
+        import("@/lib/share-v2"),
+      ]);
       const token = await encodeShareTokenV2(terminalShareV2(card, synthetic));
       const response = await fetch("/api/share", {
         method: "POST",

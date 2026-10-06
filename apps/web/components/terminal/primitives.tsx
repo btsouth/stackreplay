@@ -1,5 +1,19 @@
 import type { ReactNode } from "react";
 import { compact } from "@/lib/terminal-presentation";
+/** Keep the mono decimal glyph close to its neighbouring digits. */
+export function TightNumber({ value }: { value: string | number }) {
+  const parts = String(value).split(".");
+  return (
+    <>
+      {parts.map((part, i) => (
+        <span key={i}>
+          {i > 0 && <span className="pt">.</span>}
+          {part}
+        </span>
+      ))}
+    </>
+  );
+}
 export function Section({
   number,
   title,
@@ -43,7 +57,11 @@ export function Readout({
     <div className="cell kv" data-testid={testId}>
       <div className="label">{label}</div>
       <div className={`v${signal ? " sig" : ""}`}>
-        {value}
+        {typeof value === "string" || typeof value === "number" ? (
+          <TightNumber value={value} />
+        ) : (
+          value
+        )}
         {unit && <small>{unit}</small>}
       </div>
       {note && <div className="n">{note}</div>}
@@ -57,12 +75,15 @@ export function BarList({
   label: string;
   rows: { name: string; total: number }[];
 }) {
-  const max = Math.max(1, ...rows.map((r) => r.total));
+  const total = rows.reduce((sum, r) => sum + r.total, 0);
+  const shown = rows.filter((r) => r.total / Math.max(1, total) >= 0.0001).slice(0, 8);
+  const hidden = rows.length - shown.length;
+  const max = Math.max(1, ...shown.map((r) => r.total));
   return (
     <div className="cell lcol">
       <span className="label">{label}</span>
       {rows.length ? (
-        rows.map((r, i) => (
+        shown.map((r, i) => (
           <div className="li" key={`${r.name}-${i}`}>
             <span className="ln">{r.name}</span>
             <span className="lv">{compact(r.total)}</span>
@@ -74,6 +95,7 @@ export function BarList({
       ) : (
         <p className="dim">No recorded totals.</p>
       )}
+      {hidden > 0 && <p className="more">+{hidden} more</p>}
     </div>
   );
 }

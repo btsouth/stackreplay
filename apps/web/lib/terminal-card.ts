@@ -1,4 +1,4 @@
-import { loadBundledCatalog } from "@stackreplay/catalog/bundled";
+import { MODEL_NAMES } from "@stackreplay/catalog/metadata";
 import type { ShareWorkloadV2 } from "@stackreplay/share";
 import type { Recap } from "./recap";
 import { compact, dateLabel, dollars, modelName, presentation } from "./terminal-presentation";
@@ -70,7 +70,7 @@ export function makeCard(
   };
 }
 export function cardName(id: string): string {
-  return modelName(loadBundledCatalog().models[id]?.name ?? "Unreported model");
+  return modelName(MODEL_NAMES[id] ?? "Unreported model");
 }
 export function cardMetrics(card: PublicCard) {
   return [
@@ -109,30 +109,168 @@ export function cardTitle(card: PublicCard) {
 export function cardPeriod(card: PublicCard) {
   return `${dateLabel(card.start).toUpperCase()} to ${dateLabel(card.end, true).toUpperCase()}`;
 }
-export function drawCard(
-  canvas: HTMLCanvasElement,
+export interface CardText {
+  id: string;
+  text: string;
+  x: number;
+  y: number;
+  size: number;
+  width: number;
+  align?: "left" | "right";
+  font?: "sans" | "mono";
+  dim?: boolean;
+  signal?: boolean;
+  tight?: boolean;
+}
+export interface CardTextBox {
+  id: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+/** Explicit, bounded regions are shared by canvas and the public image renderer. */
+export function cardLayout(
   card: PublicCard,
   format: CardFormat,
   speeds?: { name: string; median: number }[],
 ) {
   const [w, h] = CARD_SIZES[format];
+  const story = format === "story",
+    square = format === "square",
+    pad = 56,
+    width = w - pad * 2;
+  const texts: CardText[] = [];
+  const add = (
+    id: string,
+    text: string,
+    x: number,
+    y: number,
+    size: number,
+    boxWidth: number,
+    extra: Partial<CardText> = {},
+  ) => texts.push({ id, text, x, y, size, width: boxWidth, ...extra });
+  add("brand", "STACKREPLAY", pad + 32, story ? 64 : 36, story ? 28 : 20, 300, { dim: true });
+  add(
+    "period",
+    cardPeriod(card),
+    story ? pad : w - pad,
+    story ? 112 : 38,
+    story ? 24 : 18,
+    story ? width : 660,
+    { dim: true, align: story ? "left" : "right" },
+  );
+  const board = square && card.speed && speeds?.length;
+  const title = square && card.speed ? card.speed.median.toFixed(1) : cardTitle(card);
+  add("hero", title, pad, story ? 230 : square ? 140 : 104, story ? 260 : 156, width, {
+    tight: true,
+  });
+  add(
+    "caption",
+    square && card.speed
+      ? `TOK/S · ${cardName(card.speed.id).toUpperCase()}`
+      : card.totalTokens !== undefined
+        ? "TOKENS OF AI CODING"
+        : "YOUR AI CODING",
+    pad,
+    story ? 520 : square ? 316 : 278,
+    story ? 30 : 22,
+    width,
+    { dim: true },
+  );
+  const metrics = board
+    ? [
+        ...(card.totalTokens !== undefined
+          ? [{ label: "TOTAL TOKENS", value: compact(card.totalTokens) }]
+          : []),
+        ...cardMetrics(card).filter((m) => !m.label.endsWith(" SPEED")),
+      ]
+    : cardMetrics(card);
+  const columns = story ? 2 : 3,
+    step = story ? 188 : square ? 92 : 80;
+  const metricY = story ? 650 : square ? (board ? 680 : 460) : 430;
+  metrics.slice(0, 6).forEach((m, i) => {
+    const x = pad + ((i % columns) * width) / columns,
+      y = metricY + Math.floor(i / columns) * step,
+      cellWidth = width / columns - 28;
+    add(`stat-${i}`, m.value, x, y, story ? 72 : 32, cellWidth, { tight: true });
+    add(`label-${i}`, m.label, x, y + (story ? 88 : 42), story ? 24 : 14, cellWidth, { dim: true });
+  });
+  if (board)
+    speeds!.slice(0, 5).forEach((s, i) => {
+      add(`speed-name-${i}`, s.name, pad, 405 + i * 48, 24, width - 150, { font: "sans" });
+      add(`speed-value-${i}`, s.median.toFixed(1), w - pad, 405 + i * 48, 28, 130, {
+        align: "right",
+        signal: true,
+        tight: true,
+      });
+    });
+  const models = card.models?.slice(0, story ? 5 : 3) ?? [];
+  if (models.length)
+    models.forEach((m, i) => {
+      // Landscape models take the sparkline's region, above the stats.
+      const x = format === "landscape" ? pad + (i * width) / 3 : pad;
+      const y = story ? 1470 + i * 64 : square ? 884 + i * 36 : 332;
+      const cellWidth = format === "landscape" ? width / 3 - 24 : width;
+      add(
+        `model-name-${i}`,
+        cardName(m.id),
+        x,
+        y,
+        story ? 36 : square ? 22 : 20,
+        format === "landscape" ? cellWidth : cellWidth - 210,
+        { font: "sans", dim: true },
+      );
+      add(
+        `model-value-${i}`,
+        compact(m.tokenCount),
+        format === "landscape" ? x : w - pad,
+        format === "landscape" ? y + 32 : y,
+        story ? 36 : square ? 22 : 22,
+        format === "landscape" ? cellWidth : 190,
+        { align: format === "landscape" ? "left" : "right", dim: true, tight: true },
+      );
+    });
+  add("footer-brand", "STACKREPLAY.COM", pad, h - (story ? 68 : 44), story ? 24 : 16, width / 2, {
+    dim: true,
+  });
+  add(
+    "footer-note",
+    "REPORTED USAGE · NOT A BILL",
+    w - pad,
+    h - (story ? 68 : 44),
+    story ? 21 : 14,
+    width / 2,
+    { dim: true, align: "right" },
+  );
+  const spark =
+    !board && card.spark?.length && !(format === "landscape" && models.length)
+      ? { x: pad, y: story ? 1280 : square ? 370 : 390, width, height: story ? 140 : 72 }
+      : undefined;
+  return { texts, spark, models };
+}
+
+/** Draw and return the actual measured text boxes for the export overlap check. */
+export function drawCard(
+  canvas: HTMLCanvasElement,
+  card: PublicCard,
+  format: CardFormat,
+  speeds?: { name: string; median: number }[],
+): CardTextBox[] {
+  const [w, h] = CARD_SIZES[format];
   canvas.width = w;
   canvas.height = h;
-  const context = canvas.getContext("2d");
-  if (!context) throw Error("Canvas unavailable");
-  const ctx: CanvasRenderingContext2D = context;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw Error("Canvas unavailable");
   const dark = card.theme === "dark",
     bg = dark ? "#08090a" : "#f3f2ed",
     fg = dark ? "#eceee9" : "#121413",
     dim = dark ? "#8d9691" : "#5c625e",
     line = dark ? "#1c2022" : "#dedcd3",
     signal = dark ? "#ff6a1f" : "#e24e00";
-  const mono =
-    getComputedStyle(document.documentElement).getPropertyValue("--font-geist-mono").trim() ||
-    "monospace";
-  const sans =
-    getComputedStyle(document.documentElement).getPropertyValue("--font-geist-sans").trim() ||
-    "sans-serif";
+  const style = getComputedStyle(document.documentElement);
+  const mono = style.getPropertyValue("--font-geist-mono").trim() || "monospace",
+    sans = style.getPropertyValue("--font-geist-sans").trim() || "sans-serif";
   ctx.fillStyle = bg;
   ctx.fillRect(0, 0, w, h);
   ctx.strokeStyle = line;
@@ -149,99 +287,57 @@ export function drawCard(
     ctx.lineTo(w, y);
     ctx.stroke();
   }
-  function text(
-    value: string,
-    x: number,
-    y: number,
-    size: number,
-    color = fg,
-    align: CanvasTextAlign = "left",
-    font = mono,
-  ) {
-    ctx.font = `500 ${size}px ${font}`;
-    ctx.fillStyle = color;
-    ctx.textAlign = align;
-    ctx.fillText(value, x, y);
-  }
-  const pad = 56;
   ctx.fillStyle = signal;
-  ctx.fillRect(pad, pad - 19, 18, 18);
-  text("STACKREPLAY", pad + 32, pad, 20, dim);
-  text(
-    format === "square" && card.speed ? "SPEED" : cardPeriod(card),
-    w - pad,
-    pad,
-    18,
-    dim,
-    "right",
-  );
-  const square = format === "square",
-    story = format === "story";
-  const title = square && card.speed ? card.speed.median.toFixed(1) : cardTitle(card);
-  const heroY = story ? 560 : square ? 280 : 252;
-  text(title, pad, heroY, square ? 158 : story ? 190 : 156);
-  text(
-    square && card.speed
-      ? `TOK/S · ${cardName(card.speed.id).toUpperCase()}`
-      : card.totalTokens !== undefined
-        ? "TOKENS OF AI CODING"
-        : "YOUR AI CODING",
-    pad,
-    heroY + 48,
-    22,
-    dim,
-  );
-  if (square && card.speed)
-    text(`${card.speed.replies.toLocaleString("en-US")} REPLIES`, pad, heroY + 82, 20, dim);
-  if (!square && card.spark?.length) {
-    const sparkY = story ? 840 : 395,
-      sw = w - pad * 2,
-      slot = sw / card.spark.length;
+  ctx.fillRect(56, format === "story" ? 69 : 39, 18, 18);
+  const layout = cardLayout(card, format, speeds);
+  if (layout.spark && card.spark) {
+    const s = layout.spark,
+      slot = s.width / card.spark.length;
     card.spark.forEach((v, i) => {
       ctx.fillStyle = signal;
-      ctx.fillRect(
-        pad + i * slot,
-        sparkY - Math.max(2, (v / 1000) * 72),
-        slot * 0.7,
-        Math.max(2, (v / 1000) * 72),
-      );
+      const bh = Math.max(2, (v / 1000) * s.height);
+      ctx.fillRect(s.x + i * slot, s.y - bh, slot * 0.7, bh);
     });
   }
-  const board = square && card.speed && speeds?.length;
-  const metrics = board
-    ? [
-        ...(card.totalTokens !== undefined
-          ? [{ label: "TOTAL TOKENS", value: compact(card.totalTokens) }]
-          : []),
-        ...cardMetrics(card).filter((m) => !m.label.endsWith(" SPEED")),
-      ]
-    : cardMetrics(card);
-  const metricY = story ? 1010 : square ? (board ? 740 : 480) : 438;
-  if (board) {
-    speeds.slice(0, 5).forEach((s, i) => {
-      const y = 450 + i * 58;
-      text(s.name, pad, y, 24, fg, "left", sans);
-      text(s.median.toFixed(1), w - pad, y, 28, signal, "right");
+  const boxes: CardTextBox[] = [];
+  ctx.textBaseline = "top";
+  for (const t of layout.texts) {
+    const font = t.font === "sans" ? sans : mono;
+    let size = t.size;
+    const measure = () => {
+      ctx.font = `500 ${size}px ${font}`;
+      return ctx.measureText(t.text).width - (t.tight && t.text.includes(".") ? size * 0.24 : 0);
+    };
+    let width = measure();
+    if (width > t.width) {
+      size *= t.width / width;
+      width = measure();
+    }
+    ctx.fillStyle = t.signal ? signal : t.dim ? dim : fg;
+    ctx.textAlign = "left";
+    let x = t.align === "right" ? t.x - width : t.x;
+    const left = x;
+    if (t.tight && t.text.includes(".")) {
+      const dot = t.text.indexOf("."),
+        a = t.text.slice(0, dot),
+        b = t.text.slice(dot + 1);
+      ctx.fillText(a, x, t.y);
+      x += ctx.measureText(a).width - size * 0.12;
+      ctx.fillText(".", x, t.y);
+      x += ctx.measureText(".").width - size * 0.12;
+      ctx.fillText(b, x, t.y);
+    } else ctx.fillText(t.text, x, t.y);
+    const measured = ctx.measureText(t.text);
+    boxes.push({
+      id: t.id,
+      x: left,
+      y: t.y - measured.actualBoundingBoxAscent,
+      width,
+      height: measured.actualBoundingBoxAscent + measured.actualBoundingBoxDescent,
     });
   }
-  metrics.forEach((m, i) => {
-    const columns = story ? 1 : 3,
-      x = pad + ((i % columns) * (w - pad * 2)) / columns,
-      y = metricY + Math.floor(i / columns) * (story ? 92 : square ? 80 : 70);
-    text(m.value, x, y + 22, story ? 42 : 32);
-    text(m.label, x, y + 49, story ? 19 : 14, dim);
-  });
-  if (card.models?.length) {
-    card.models.slice(0, story ? 5 : 3).forEach((m, i) => {
-      const x = story || square ? pad : pad + i * ((w - pad * 2) / 3);
-      const y = story ? 1600 + i * 44 : square ? 922 + i * 34 : 580;
-      const edge = story || square ? w - pad : x + (w - pad * 2) / 3 - 24;
-      text(cardName(m.id), x, y, story ? 22 : square ? 20 : 14, dim, "left", sans);
-      text(compact(m.tokenCount), edge, y, story ? 22 : square ? 20 : 14, dim, "right");
-    });
-  }
-  text("STACKREPLAY.COM", pad, h - 34, 16, dim);
-  text("REPORTED USAGE · NOT A BILL", w - pad, h - 34, 14, dim, "right");
+  canvas.dataset.textBoxes = JSON.stringify(boxes);
+  return boxes;
 }
 export async function renderTerminalCard(
   card: PublicCard,

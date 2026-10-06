@@ -1,8 +1,5 @@
-import type { CSSProperties } from "react";
-import type { PublicCard } from "@/lib/terminal-card";
-import { cardMetrics, cardName, cardPeriod, cardTitle } from "@/lib/terminal-card";
-import { compact } from "@/lib/terminal-presentation";
-/** Fixed landscape geometry shared by the public page and its OG image. */
+import { cardLayout, type PublicCard } from "@/lib/terminal-card";
+/** Uses the same non-overlapping regions as the browser's landscape export. */
 export function TerminalLandscape({
   card,
   legacy = false,
@@ -15,15 +12,8 @@ export function TerminalLandscape({
   const dark = card.theme === "dark",
     fg = dark ? "#eceee9" : "#121413",
     dim = dark ? "#8d9691" : "#5c625e",
-    signal = dark ? "#ff6a1f" : "#e24e00",
-    line = dark ? "#1c2022" : "#dedcd3";
-  const absolute = (x: number, y: number, extra: CSSProperties = {}): CSSProperties => ({
-    position: "absolute",
-    left: x,
-    top: y,
-    display: "flex",
-    ...extra,
-  });
+    signal = dark ? "#ff6a1f" : "#e24e00";
+  const layout = cardLayout(card, "landscape");
   return (
     <div
       style={{
@@ -37,82 +27,69 @@ export function TerminalLandscape({
         fontWeight: 500,
       }}
     >
-      <div style={absolute(56, 35, { fontSize: 20, color: dim, gap: 14 })}>
-        <span style={{ width: 18, height: 18, marginTop: 4, background: signal }} />
-        <span>STACKREPLAY</span>
-      </div>
       <div
         style={{
-          position: "absolute",
-          right: 56,
-          top: 38,
           display: "flex",
-          fontSize: 18,
-          color: dim,
+          position: "absolute",
+          left: 56,
+          top: 39,
+          width: 18,
+          height: 18,
+          background: signal,
         }}
-      >
-        {legacy ? "SHARED RECAP" : cardPeriod(card)}
-      </div>
-      <div style={absolute(56, 95, { fontSize: 156, letterSpacing: "-.055em" })}>
-        {cardTitle(card)}
-      </div>
-      <div style={absolute(56, 278, { fontSize: 22, color: dim })}>
-        {card.totalTokens !== undefined ? "TOKENS OF AI CODING" : "YOUR AI CODING"}
-      </div>
-      {card.spark?.map((v, i) => (
-        <div
-          key={i}
-          style={absolute(
-            56 + i * (1088 / card.spark!.length),
-            395 - Math.max(2, (v / 1000) * 72),
-            {
+      />
+      {layout.spark &&
+        card.spark?.map((v, i) => (
+          <div
+            key={i}
+            style={{
+              display: "flex",
+              position: "absolute",
+              left: 56 + i * (1088 / card.spark!.length),
+              top: 390 - Math.max(2, (v / 1000) * 72),
               width: (1088 / card.spark!.length) * 0.7,
               height: Math.max(2, (v / 1000) * 72),
               background: signal,
-            },
-          )}
-        />
-      ))}
-      {cardMetrics(card).map((m, i) => (
-        <div
-          key={m.label}
-          style={absolute(56 + (i % 3) * 362.67, 425 + Math.floor(i / 3) * 70, {
-            flexDirection: "column",
-            borderTop: `1px solid ${line}`,
-            width: 338,
-            paddingTop: 4,
-          })}
-        >
-          <span style={{ fontSize: 32 }}>{m.value}</span>
-          <span style={{ fontSize: 14, color: dim, marginTop: 6 }}>{m.label}</span>
-        </div>
-      ))}
-      {card.models && (
-        <div style={absolute(56, 565, { fontSize: 14, color: dim, gap: 24 })}>
-          {card.models.slice(0, 3).map((m) => (
-            <div
-              key={m.id}
-              style={{ display: "flex", width: 338, justifyContent: "space-between" }}
-            >
-              <span style={{ fontFamily: "Geist Sans" }}>{cardName(m.id)}</span>
-              <span>{compact(m.tokenCount)}</span>
-            </div>
-          ))}
-        </div>
-      )}
-      <div style={absolute(56, 585, { fontSize: 16, color: dim })}>STACKREPLAY.COM</div>
-      <div
-        style={{
-          position: "absolute",
-          right: 56,
-          top: 585,
-          display: "flex",
-          fontSize: 14,
-          color: dim,
-        }}
-      >
-        {synthetic ? "FICTIONAL SAMPLE · NOT A BILL" : "REPORTED USAGE · NOT A BILL"}
-      </div>
+            }}
+          />
+        ))}
+      {layout.texts.map((t) => {
+        const text =
+          t.id === "period" && legacy
+            ? "SHARED RECAP"
+            : t.id === "footer-note" && synthetic
+              ? "FICTIONAL SAMPLE · NOT A BILL"
+              : t.text;
+        const size = Math.min(
+          t.size,
+          t.width / Math.max(1, text.length * (t.font === "sans" ? 0.56 : 0.6)),
+        );
+        const parts = t.tight ? text.split(".") : [text];
+        return (
+          <div
+            key={t.id}
+            style={{
+              display: "flex",
+              position: "absolute",
+              left: t.align === "right" ? t.x - t.width : t.x,
+              top: t.y,
+              width: t.width,
+              justifyContent: t.align === "right" ? "flex-end" : "flex-start",
+              fontFamily: t.font === "sans" ? "Geist Sans" : "Geist Mono",
+              fontSize: size,
+              lineHeight: 1,
+              color: t.signal ? signal : t.dim ? dim : fg,
+            }}
+          >
+            {parts.map((part, i) => (
+              <span key={i} style={{ display: "flex" }}>
+                {i > 0 && <span style={{ marginLeft: "-0.12em", marginRight: "-0.12em" }}>.</span>}
+                {part}
+              </span>
+            ))}
+          </div>
+        );
+      })}
     </div>
   );
 }

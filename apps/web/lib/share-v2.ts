@@ -1,4 +1,4 @@
-import { BUNDLED_CATALOG_VERSION } from "@stackreplay/catalog/bundled";
+import { BUNDLED_CATALOG_VERSION } from "@stackreplay/catalog/metadata";
 import { assertNoForbiddenFields, type ShareWorkloadV2, shareableToolId } from "@stackreplay/share";
 
 /**

@@ -6,7 +6,7 @@ import {
   subscribeCurrentStack,
 } from "./current-stack";
 import type { Recap } from "./recap";
-import { paidMultiplier, payablePlans, whatYouPay } from "./what-you-pay";
+import type { PlanChoice } from "./what-you-pay";
 
 /** "Nx what you paid" for one recap, with what it was worked out from. */
 export interface PaidFigure {
@@ -29,15 +29,33 @@ export function usePaidMultiplier(recap: Recap | undefined): PaidFigure | undefi
     refresh();
     return subscribeCurrentStack(refresh);
   }, []);
-  const choices = useMemo(() => payablePlans(new Date().toISOString().slice(0, 10)), []);
+  const [calculator, setCalculator] = useState<{
+    choices: PlanChoice[];
+    module: typeof import("./what-you-pay");
+  }>();
+  const needed = subscriptions.length > 0;
+  useEffect(() => {
+    if (!needed) return;
+    let active = true;
+    void import("./what-you-pay").then((module) => {
+      if (active)
+        setCalculator({
+          choices: module.payablePlans(new Date().toISOString().slice(0, 10)),
+          module,
+        });
+    });
+    return () => {
+      active = false;
+    };
+  }, [needed]);
   return useMemo(() => {
-    if (!recap?.priced) return undefined;
-    const pay = whatYouPay(subscriptions, choices);
+    if (!recap?.priced || !calculator) return undefined;
+    const pay = calculator.module.whatYouPay(subscriptions, calculator.choices);
     if (!pay?.monthlyUsd) return undefined;
     const days = recap.days.length;
-    const multiplier = paidMultiplier(recap.usd, pay.monthlyUsd, days);
+    const multiplier = calculator.module.paidMultiplier(recap.usd, pay.monthlyUsd, days);
     return multiplier
       ? { text: multiplier.text, monthlyUsd: pay.monthlyUsd, accounts: pay.accounts, days }
       : undefined;
-  }, [recap, subscriptions, choices]);
+  }, [recap, subscriptions, calculator]);
 }

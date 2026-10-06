@@ -4,11 +4,12 @@ import { useMemo, useState } from "react";
 import type { CSSProperties } from "react";
 import { PartialScanNotice } from "@/components/import/evidence";
 import type { Recap, RecapPeriod } from "@/lib/recap";
-import { developerNames, harnessNames, providerNames } from "@/lib/recap-deep";
+import { developerNames, harnessNames, providerNames } from "@/lib/recap-names";
 import {
   compact,
   dateLabel,
   dollars,
+  dollarRate,
   integer,
   modelName,
   presentation,
@@ -19,7 +20,7 @@ import type { PaidFigure } from "@/lib/use-paid-multiplier";
 import { isSyntheticWorkload } from "@/lib/workload-kind";
 import type { ImportRecord } from "@/lib/worker-protocol";
 import { DailyChart } from "./daily-chart";
-import { BarList, Readout, Section } from "./primitives";
+import { BarList, Readout, Section, TightNumber } from "./primitives";
 import { TerminalShare } from "./share";
 
 export function Overview({
@@ -99,7 +100,9 @@ export function Overview({
       <div className="grid12 hero">
         <div className="cell big">
           <div className="label">Total tokens</div>
-          <div className="mega">{compact(r.total)}</div>
+          <div className="mega">
+            <TightNumber value={compact(r.total)} />
+          </div>
           <div className="sub">
             <b>{integer(r.total)}</b> tokens through {p.models.length} models
           </div>
@@ -156,7 +159,7 @@ export function Overview({
               label="vs. what you paid"
               value={
                 <Link className="paid-link" href="/app/settings#what-you-pay">
-                  Set your plan price ↗
+                  Add plan price ↗
                 </Link>
               }
               note="OPTIONAL · SAVED HERE"
@@ -195,17 +198,18 @@ export function Overview({
               )}
               {gh.login && (
                 <span className="ghuser">
-                  @{gh.login}{" "}
+                  @{gh.login.toUpperCase()} ·
                   <button
-                    className="btn"
+                    className="text-button"
                     type="button"
                     onClick={() => void gh.refresh()}
                     aria-label="Refresh GitHub"
                   >
-                    ↻
+                    REFRESH
                   </button>
-                  <button className="btn" type="button" onClick={gh.disconnect}>
-                    Disconnect
+                  ·{" "}
+                  <button className="text-button" type="button" onClick={gh.disconnect}>
+                    DISCONNECT
                   </button>
                 </span>
               )}
@@ -254,7 +258,7 @@ export function Overview({
             <Readout
               label="Days shipping with AI"
               value={activity ? activity.longestJointStreak : "Connect to compare"}
-              unit={activity ? "in a row" : undefined}
+              unit={activity ? "days" : undefined}
             />
             <Readout
               label="Biggest shipping day"
@@ -312,8 +316,14 @@ export function Overview({
                   <b>{s.median.toFixed(1)}</b>
                   <small>tok/s</small>
                 </div>
-                <div className="snum">{s.wait.toFixed(1)}s</div>
-                <div className="snum">{integer(s.n)}</div>
+                <div className="snum swait">
+                  <span className="mobile-only">WAIT </span>
+                  {s.wait.toFixed(1)}s
+                </div>
+                <div className="snum sreplies">
+                  {integer(s.n)}
+                  <span className="mobile-only"> REPLIES</span>
+                </div>
               </div>
             ))}
             {!p.speeds.length && (
@@ -368,7 +378,7 @@ export function Overview({
       >
         <div className="grid12">
           <div className="cell tablecell">
-            <table aria-label="Models in this period">
+            <table className="desktop-models" aria-label="Models in this period">
               <thead>
                 <tr>
                   {[
@@ -407,16 +417,18 @@ export function Overview({
                       <td className="num" data-label="TOKENS">
                         {compact(m.total)}
                       </td>
-                      <td className="sharecell" data-label="SHARE">
-                        <div className="sharebar">
-                          <div
-                            style={{
-                              width: `${(m.total / Math.max(1, p.top[0]?.total ?? 0)) * 100}%`,
-                              background: p.colors.get(m.id),
-                            }}
-                          />
+                      <td data-label="SHARE">
+                        <div className="sharecell">
+                          <div className="sharebar">
+                            <div
+                              style={{
+                                width: `${(m.total / Math.max(1, p.top[0]?.total ?? 0)) * 100}%`,
+                                background: p.colors.get(m.id),
+                              }}
+                            />
+                          </div>
+                          <span>{((m.total / Math.max(1, r.total)) * 100).toFixed(1)}%</span>
                         </div>
-                        <span>{((m.total / Math.max(1, r.total)) * 100).toFixed(1)}%</span>
                       </td>
                       <td className="num" data-label="API VALUE">
                         {m.priced ? dollars(m.usd) : <span className="faint">unpriced</span>}
@@ -435,6 +447,40 @@ export function Overview({
                 })}
               </tbody>
             </table>
+            <div className="mobile-models" aria-label="Models in this period">
+              {p.top.map((m) => {
+                const speed = p.speeds.find((s) => s.id === m.id);
+                const first = r.deep?.firstSeen.find((f) => f.id === m.id);
+                return (
+                  <div className="mobile-model" key={m.id}>
+                    <div className="mobile-model-main">
+                      <span className="mn">
+                        <i style={{ background: p.colors.get(m.id) }} />
+                        {modelName(m.name)}
+                      </span>
+                      <span className="num">{compact(m.total)}</span>
+                      <div className="sharecell">
+                        <div className="sharebar">
+                          <div
+                            style={{
+                              width: `${(m.total / Math.max(1, r.total)) * 100}%`,
+                              background: p.colors.get(m.id),
+                            }}
+                          />
+                        </div>
+                        <span>{((m.total / Math.max(1, r.total)) * 100).toFixed(1)}%</span>
+                      </div>
+                    </div>
+                    <p className="mobile-model-meta">
+                      {m.priced ? dollars(m.usd) : "unpriced"} ·{" "}
+                      {integer(r.explorer?.modelSessions[m.id] ?? 0)} sessions ·{" "}
+                      {speed ? `${speed.median.toFixed(1)} tok/s` : "timing unreported"} ·{" "}
+                      {first ? dateLabel(first.date).toUpperCase() : "first use unreported"}
+                    </p>
+                  </div>
+                );
+              })}
+            </div>
             {p.tail.length > 0 && (
               <div className="tail">
                 <span className="label">+ {p.tail.length} more</span>
@@ -472,7 +518,9 @@ export function Overview({
             />
             <Readout
               label="Per 1M tokens"
-              value={r.priced ? dollars((Number(r.usd) / Math.max(1, r.total)) * 1e6) : "unpriced"}
+              value={
+                r.priced ? dollarRate((Number(r.usd) / Math.max(1, r.total)) * 1e6) : "unpriced"
+              }
             />
             <Readout
               label="Priciest day"
@@ -560,7 +608,7 @@ export function Overview({
           />
           <BarList
             label="Projects · private"
-            rows={(r.deep?.projects ?? []).slice(0, 8).map((t, i) => ({
+            rows={(r.deep?.projects ?? []).map((t, i) => ({
               name: labels.get(t.hash) ?? `Local project ${i + 1}`,
               total: t.total,
             }))}

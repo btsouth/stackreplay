@@ -55,14 +55,6 @@ export default async function SharePage({ params }: Props) {
         height={630}
         alt={`StackReplay card${tokens !== undefined ? `: ${compact(tokens)} tokens` : ""}${usd !== undefined ? `, ${dollars(usd)} API value` : ""}`}
       />
-      <div className="share-summary">
-        <span data-testid="share-tokens">
-          {tokens === undefined ? "Tokens not shared" : `${compact(tokens)} tokens`}
-        </span>
-        <span data-testid="share-figure">
-          {usd === undefined ? "Value not shared" : `${dollars(usd)} API value`}
-        </span>
-      </div>
       <p className="shared-recap-honesty">
         {decoded.snapshot.version === 2 && decoded.snapshot.synthetic
           ? "Fictional sample data. "

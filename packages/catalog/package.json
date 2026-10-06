@@ -33,6 +33,10 @@
     "./market": {
       "types": "./dist/decision-market.d.ts",
       "default": "./dist/decision-market.js"
+    },
+    "./metadata": {
+      "types": "./dist/metadata.d.ts",
+      "default": "./dist/metadata.js"
     }
   },
   "files": [

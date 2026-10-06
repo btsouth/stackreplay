@@ -1,6 +1,6 @@
 "use client";
 
-import { Button } from "@stackreplay/ui";
+import { Button } from "@stackreplay/ui/components/button";
 import { type ReactNode, useState } from "react";
 import type { ImportRecord } from "@/lib/worker-protocol";
 import { count } from "./format";

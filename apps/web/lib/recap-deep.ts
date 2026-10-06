@@ -2,49 +2,8 @@ import { quantile } from "./recap-quantile";
 import { Decimal } from "@stackreplay/replay-engine";
 import type { TextUsageEventV1 } from "@stackreplay/schema";
 import { totalTokensOf } from "./recap";
-export const harnessNames: Record<string, string> = {
-  "claude-code": "Claude Code",
-  codex: "Codex CLI",
-  opencode: "OpenCode",
-  "command-code": "Command Code CLI",
-  hermes: "Hermes",
-  "t3-code": "T3 Code",
-  ccusage: "ccusage import",
-  unattributed: "Unattributed",
-};
-export const providerNames: Record<string, string> = {
-  openrouter: "OpenRouter",
-  anthropic: "Anthropic",
-  meta: "Meta",
-  alibaba: "Alibaba Cloud (Qwen)",
-  openai: "OpenAI",
-  deepseek: "DeepSeek",
-  "z-ai": "Z.ai",
-  zai: "Z.ai",
-  opencode: "OpenCode hosted",
-  "opencode-go": "OpenCode hosted",
-  "opencode-zen": "OpenCode hosted",
-  commandcode: "Command Code",
-  "command-code": "Command Code",
-  cline: "Cline",
-  clinepass: "Cline",
-  ollama: "Ollama Cloud",
-  "ollama-cloud": "Ollama Cloud",
-  google: "Google",
-  unattributed: "Unattributed",
-};
-export const developerNames: Record<string, string> = {
-  anthropic: "Anthropic",
-  meta: "Meta",
-  alibaba: "Alibaba Cloud (Qwen)",
-  openai: "OpenAI",
-  deepseek: "DeepSeek",
-  "z-ai": "Z.ai",
-  google: "Google",
-  xai: "xAI",
-  xiaomi: "Xiaomi",
-  other: "Unresolved",
-};
+import { harnessNames, providerNames, developerNames } from "./recap-names";
+export { harnessNames, providerNames, developerNames } from "./recap-names";
 export function servingRouteId(id: string): string {
   const aliases: Record<string, string> = {
     "opencode zen": "opencode",

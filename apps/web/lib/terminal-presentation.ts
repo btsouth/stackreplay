@@ -40,6 +40,14 @@ export function dollars(n: string | number): string {
     maximumFractionDigits: 0,
   }).format(value);
 }
+/** Rates keep cents even when the aggregate is displayed in whole dollars. */
+export const dollarRate = (n: number) =>
+  new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(n);
 export function dateLabel(date: string, year = false): string {
   return new Date(`${date}T12:00:00Z`).toLocaleDateString("en-US", {
     month: "short",

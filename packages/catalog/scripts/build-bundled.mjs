@@ -52,3 +52,6 @@ if (existing === next) {
   await writeFile(target, next, "utf8");
   console.log(`wrote bundled catalog snapshot (${catalog.catalogVersion})`);
 }
+
+const metadata = `/** GENERATED from the bundled catalog; labels and version only. */\nexport const BUNDLED_CATALOG_VERSION = ${JSON.stringify(catalog.catalogVersion)};\nexport const MODEL_NAMES: Record<string, string> = ${JSON.stringify(Object.fromEntries(Object.values(catalog.models).map((m) => [m.id, m.name])), null, 2)};\n`;
+await writeFile(join(packageRoot, "src", "metadata.ts"), metadata, "utf8");

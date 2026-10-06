@@ -1,4 +1,4 @@
-import { Decimal } from "@stackreplay/replay-engine";
+import { addAmounts } from "@stackreplay/share/money";
 import type { Recap, RecapModel, RecapPeriod } from "./recap";
 import { localCalendar, nextDay } from "./recap-calendar";
 import type { RecapDeep } from "./recap-deep";
@@ -6,7 +6,7 @@ import type { RecapIndex, RecapIndexDay } from "./recap-index";
 import { quantile } from "./recap-quantile";
 
 type Ordered<T> = T & { order: number };
-const addMoney = (a: string, b: string) => new Decimal(a).add(b).toString();
+const addMoney = (a: string, b: string) => addAmounts([a, b]);
 
 /** Period reduction touches day aggregates and exact session/speed sets, never events or prices. */
 export function buildRecapFromIndex(index: RecapIndex, period: RecapPeriod, now: string): Recap {

@@ -1,9 +1,16 @@
 "use client";
 import Link from "next/link";
+import type { ReactNode } from "react";
 import { useRecapData } from "@/lib/use-recap-data";
 import { usePaidMultiplier } from "@/lib/use-paid-multiplier";
 import { Overview } from "@/components/terminal/overview";
-export function RecapSurface({ initialImportId }: { initialImportId?: string | undefined }) {
+export function RecapSurface({
+  initialImportId,
+  sample,
+}: {
+  initialImportId?: string | undefined;
+  sample?: ReactNode;
+}) {
   const data = useRecapData(initialImportId),
     paid = usePaidMultiplier(data.recap);
   if (data.error)
@@ -18,13 +25,26 @@ export function RecapSurface({ initialImportId }: { initialImportId?: string | u
     );
   if (!data.recap)
     return data.imports?.length === 0 ? (
-      <div className="status" data-testid="recap-empty">
-        <div className="label">LOCAL · NOTHING UPLOADED</div>
-        <h1>Your AI coding, all of it.</h1>
-        <p>Scan your tool history to see your tokens, speed, models and rhythm here.</p>
-        <Link className="btn primary" href="/app/scan">
-          Scan my history ↗
-        </Link>
+      <div className="first-run" data-testid="recap-empty">
+        <div className="first-run-intro">
+          <div className="path">
+            <b>›</b> YOUR LOCAL AI HISTORY
+          </div>
+          <h1>
+            Your AI coding,
+            <br />
+            all of it.
+          </h1>
+          <p>See your tokens, speed, models and rhythm in one overview.</p>
+          <Link className="btn primary" href="/app/scan">
+            Scan my history ↗
+          </Link>
+          <div className="supported-tools label">
+            CLAUDE CODE · CODEX · OPENCODE · COMMAND CODE · HERMES
+          </div>
+          <div className="local-proof label">NOTHING LEAVES YOUR BROWSER. YOUR LOGS STAY HERE.</div>
+        </div>
+        {sample}
       </div>
     ) : (
       <div className="status" role="status">
@@ -37,11 +57,7 @@ export function RecapSurface({ initialImportId }: { initialImportId?: string | u
       {(data.imports?.length ?? 0) > 1 && (
         <div className="history-picker">
           <label htmlFor="history">History</label>
-          <select
-            id="history"
-            value={data.id}
-            onChange={(e) => data.selectHistory(e.target.value)}
-          >
+          <select id="history" value={data.id} onChange={(e) => data.selectHistory(e.target.value)}>
             {data.imports?.map((r) => (
               <option key={r.id} value={r.id}>
                 {r.label}

@@ -12,18 +12,22 @@ export function DailyChart({
   cost?: boolean;
 }) {
   const ref = useRef<HTMLDivElement>(null),
-    [width, setWidth] = useState(800);
+    [size, setSize] = useState({ width: 800, height: cost ? 210 : 260 });
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
     const observer = new ResizeObserver(([entry]) => {
-      if (entry) setWidth(Math.max(200, entry.contentRect.width));
+      if (entry)
+        setSize({
+          width: Math.max(200, entry.contentRect.width),
+          height: Math.max(cost ? 190 : 240, entry.contentRect.height),
+        });
     });
     observer.observe(el);
     return () => observer.disconnect();
-  }, []);
-  const h = cost ? 210 : 260,
-    left = 54,
+  }, [cost]);
+  const { width, height: h } = size;
+  const left = 54,
     base = github ? h * 0.6 : h - 22,
     max = Math.max(1, ...days.map((d) => d.value)),
     ghMax = Math.max(1, ...(github?.values() ?? []));
@@ -32,7 +36,7 @@ export function DailyChart({
     peak = days.reduce((p, d, i) => (d.value > (days[p]?.value ?? 0) ? i : p), 0);
   const ticks = [0, Math.floor((days.length - 1) / 2), days.length - 1];
   return (
-    <div ref={ref}>
+    <div ref={ref} className="chart-area">
       <svg
         className="chart"
         viewBox={`0 0 ${width} ${h}`}

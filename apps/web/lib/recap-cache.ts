@@ -1,4 +1,4 @@
-import { BUNDLED_CATALOG_VERSION } from "@stackreplay/catalog/bundled";
+import { BUNDLED_CATALOG_VERSION } from "@stackreplay/catalog/metadata";
 import { readRecapIndex, recapPayloadRevision } from "./idb";
 import { historyGeneration, sessionHistoryRecord, subscribeHistory } from "./local-history";
 import type { Recap, RecapPeriod } from "./recap";

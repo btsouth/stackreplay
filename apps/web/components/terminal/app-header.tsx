@@ -1,8 +1,9 @@
 "use client";
 import Link from "next/link";
+import { TerminalBrand } from "./brand";
+import { listHistoryMetadata } from "@/lib/local-history";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { getWorkerClient } from "@/lib/worker-client";
 import { themeStorageKey } from "@/lib/theme";
 
 export function TerminalHeader() {
@@ -12,8 +13,7 @@ export function TerminalHeader() {
   useEffect(() => {
     let active = true;
     setReady(true);
-    getWorkerClient()
-      .listImports()
+    listHistoryMetadata()
       .then((rows) => {
         if (active && rows[0]) {
           const minutes = Math.max(
@@ -54,13 +54,7 @@ export function TerminalHeader() {
       </Link>
       <header className="terminal-header">
         <div className="wrap">
-          <Link href="/app/recap" className="logo" aria-label="StackReplay overview">
-            <svg aria-hidden="true" width="16" height="16" viewBox="0 0 22 22">
-              <rect width="22" height="22" rx="3" fill="var(--signal)" />
-              <path d="M5 16V7m4 9V10m4 6V4m4 12v-4" stroke="#120800" strokeWidth="2" />
-            </svg>
-            stackreplay
-          </Link>
+          <TerminalBrand />
           <nav aria-label="App navigation">
             <Link
               href="/app/recap"
