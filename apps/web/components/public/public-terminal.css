@@ -1,5 +1,8 @@
 /* Public page bodies reuse the app's terminal tokens. Shell ownership stays separate. */
 .terminal.public-terminal {
+  --font-geist-sans: "GeistSans", "GeistSans Fallback";
+  --sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--sans);
   min-height: 0;
   counter-reset: public-section;
 }
