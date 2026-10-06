@@ -112,8 +112,10 @@ describe("period insight facts", () => {
       expect(find(r, "night:calls")?.headline).toBe(
         "20 model calls landed between midnight and 5 AM",
       );
-      r.tools.push({ id: "hermes", records: 1, total: 0, output: 0 });
-      expect(find(r, "night:calls")).toBeUndefined();
+      for (const id of ["hermes", "ccusage", "unknown-recorder"]) {
+        const aggregate = { ...r, tools: [...r.tools, { id, records: 1, total: 0, output: 0 }] };
+        expect(find(aggregate, "night:calls")).toBeUndefined();
+      }
     }
   });
   it("counts named active models and first logged use only inside the period", () => {
@@ -138,6 +140,8 @@ describe("period insight facts", () => {
     expect(find(r, "value:cache")?.headline).toBe(
       "Cache reads saved at least $1,234 at list prices",
     );
+    r.deep!.cacheSavings = "1234.99999999999999999999";
+    expect(find(r, "value:cache")?.figure).toBe("$1,234");
     r.deep!.cacheSavings = "0";
     expect(find(r, "value:cache")).toBeUndefined();
     r.usd = "999.9";
@@ -147,6 +151,10 @@ describe("period insight facts", () => {
     expect(
       recapInsightCandidates(r, undefined, paid).find((i) => i.id === "value:paid")?.figure,
     ).toBe("10×");
+    r.usd = "986.8421052631578947368";
+    expect(
+      recapInsightCandidates(r, undefined, paid).find((i) => i.id === "value:paid")?.figure,
+    ).toBe("9×");
     for (const p of [
       { ...paid, monthlyUsd: "0" },
       { ...paid, days: 90 },

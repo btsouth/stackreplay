@@ -18,6 +18,12 @@ export interface RecapInsight {
   detail: string;
   score: number;
 }
+// Keep financial lower bounds exact without pulling pricing code into the overview.
+function decimalRatio(value: string | undefined) {
+  if (!value || !/^\d+(?:\.\d+)?$/.test(value)) return undefined;
+  const [whole = "0", fraction = ""] = value.split(".");
+  return { units: BigInt(whole + fraction), scale: 10n ** BigInt(fraction.length) };
+}
 const order = (a: string, b: string) => (a < b ? -1 : a > b ? 1 : 0);
 
 /** Facts from the displayed period only. IDs start with a family; one winner per family. */
@@ -73,9 +79,16 @@ export function recapInsightCandidates(
     .filter((m) => m.records > 0 && m.family !== "other" && !unresolvedModel(m.id, m.name))
     .sort((a, b) => b.total - a.total || order(a.id, b.id));
   const top = models[0];
-  if (top && r.total > 0 && top.total > 0 && top.total <= r.total) {
+  if (
+    top &&
+    r.total > 0 &&
+    top.total > 0 &&
+    top.total <= r.total &&
+    Number.isSafeInteger(top.total) &&
+    Number.isSafeInteger(r.total)
+  ) {
     // A lower bound stays true even when a rounded percentage would overstate the share.
-    const share = Math.floor((top.total / r.total) * 100);
+    const share = Number((BigInt(top.total) * 100n) / BigInt(r.total));
     if (share >= 20)
       add(
         "model:leader",
@@ -112,13 +125,17 @@ export function recapInsightCandidates(
   const weeks = r.weeks
     .filter((w) => w.date >= r.start && nextDay(w.date, 6) <= r.end)
     .map((w) => ({ date: w.date, total: Object.values(w.families).reduce((a, b) => a + b, 0) }));
-  if (weeks.length >= 3) {
+  if (weeks.length >= 3 && weeks.every((week) => Number.isSafeInteger(week.total))) {
     const values = weeks.map((w) => w.total).sort((a, b) => a - b);
     const median =
       (values[Math.floor((values.length - 1) / 2)]! + values[Math.floor(values.length / 2)]!) / 2;
     const best = [...weeks].sort((a, b) => b.total - a.total || order(a.date, b.date))[0]!;
-    const lower = Math.floor((best.total / median) * 10) / 10;
-    if (median > 0 && lower >= 1.5)
+    const middleSum =
+      BigInt(values[Math.floor((values.length - 1) / 2)]!) +
+      BigInt(values[Math.floor(values.length / 2)]!);
+    const tenths = middleSum > 0n ? (BigInt(best.total) * 20n) / middleSum : 0n;
+    const lower = Number(tenths) / 10;
+    if (median > 0 && tenths <= BigInt(Number.MAX_SAFE_INTEGER) && lower >= 1.5)
       add(
         "week:peak",
         `Your busiest full week (${dateLabel(best.date)}) used at least ${lower.toFixed(1)}x the usual tokens`,
@@ -129,7 +146,8 @@ export function recapInsightCandidates(
   }
 
   // Aggregate session timestamps cannot establish when individual calls happened.
-  if (r.deep && !r.tools.some((t) => t.id === "hermes" && t.records > 0)) {
+  const timedTools = new Set(["claude-code", "codex", "opencode", "command-code", "t3-code"]);
+  if (r.deep && r.tools.every((t) => t.records === 0 || timedTools.has(t.id))) {
     const totalHours = r.deep.hours.flat().reduce((a, b) => a + b, 0);
     const late = r.deep.hours.reduce((sum, d) => sum + d.slice(0, 5).reduce((a, b) => a + b, 0), 0);
     if (totalHours === r.records && late >= 10 && late / r.records >= 0.1)
@@ -171,8 +189,8 @@ export function recapInsightCandidates(
     if (longestJoint >= 7)
       add(
         "github:streak",
-        `AI tokens and GitHub contributions overlapped for ${longestJoint} days in a row`,
-        `${longestJoint} days`,
+        `AI tokens and GitHub contributions overlapped for ${integer(longestJoint)} days in a row`,
+        `${integer(longestJoint)} days`,
         "LONGEST JOINT RUN THIS PERIOD",
         88,
       );
@@ -188,29 +206,40 @@ export function recapInsightCandidates(
         84,
       );
   }
-  const savings = Number(r.deep?.cacheSavings);
-  if (Number.isFinite(savings) && savings >= 1 && r.deep?.cacheSavingsRecords)
+  const savings = decimalRatio(r.deep?.cacheSavings);
+  const wholeSavings = savings ? savings.units / savings.scale : 0n;
+  if (
+    wholeSavings >= 1n &&
+    wholeSavings <= BigInt(Number.MAX_SAFE_INTEGER) &&
+    r.deep?.cacheSavingsRecords
+  )
     add(
       "value:cache",
-      `Cache reads saved at least ${dollars(Math.floor(savings))} at list prices`,
-      dollars(Math.floor(savings)),
+      `Cache reads saved at least ${dollars(Number(wholeSavings))} at list prices`,
+      dollars(Number(wholeSavings)),
       "ESTIMATE FOR MATCHED CACHE READS",
       90,
     );
-  const monthly = Number(paid?.monthlyUsd);
-  const ratio = Number(r.usd) / ((monthly * days.length) / 30.4);
+  const monthly = decimalRatio(paid?.monthlyUsd);
+  const value = decimalRatio(r.usd);
+  const ratio =
+    monthly && value && monthly.units > 0n && days.length > 0
+      ? (value.units * monthly.scale * 304n) /
+        (value.scale * monthly.units * BigInt(days.length) * 10n)
+      : 0n;
   if (
     paid &&
-    monthly > 0 &&
+    monthly &&
+    monthly.units > 0n &&
     paid.days === days.length &&
     r.priced > 0 &&
-    Number.isFinite(ratio) &&
-    ratio >= 2
+    ratio <= BigInt(Number.MAX_SAFE_INTEGER) &&
+    ratio >= 2n
   )
     add(
       "value:paid",
-      `Your API list-price value was at least ${Math.floor(ratio)}x your plan cost`,
-      `${integer(Math.floor(ratio))}×`,
+      `Your API list-price value was at least ${integer(Number(ratio))}x your plan cost`,
+      `${integer(Number(ratio))}×`,
       "ESTIMATE · PLAN COST PRORATED OVER THIS PERIOD",
       92,
     );
