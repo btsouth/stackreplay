@@ -126,7 +126,7 @@ test("all card formats measure non-overlapping text with every stat selected", a
   const timed = stackWorkloadFile({ scale: 100 });
   timed.events = timed.events.map((event) => ({
     ...event,
-    usage: { ...event.usage, outputTokens: 472 },
+    usage: { inputTokens: event.usage.inputTokens ?? 0, outputTokens: 472 },
     confidence: { ...event.confidence, usage: "exact" },
     requestStartedAt: new Date(Date.parse(event.occurredAt) - 10000).toISOString(),
     requestEndedAt: event.occurredAt,

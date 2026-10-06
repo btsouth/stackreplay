@@ -6,6 +6,10 @@ export const DEMO_PRESETS = ["moderate", "heavy", "multistack"] as const;
 export type DemoPreset = (typeof DEMO_PRESETS)[number];
 
 export async function gotoImport(page: Page): Promise<void> {
+  page.on("pageerror", (error) => console.error("Browser page error:", error.stack));
+  page.on("console", (message) => {
+    if (message.type() === "error") console.error("Browser console error:", message.text());
+  });
   await page.goto("/app/scan");
   await page.getByText("Use files or an export instead", { exact: true }).click();
   await page.getByText("Try a sample recap", { exact: true }).click();
