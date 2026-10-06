@@ -19,7 +19,8 @@ export type CardToggle =
   | "streak"
   | "models"
   | "peakHour"
-  | "paidMultiplier";
+  | "paidMultiplier"
+  | "headline";
 export type CardSelections = Record<CardToggle, boolean>;
 export const DEFAULT_SELECTIONS: CardSelections = {
   tokens: true,
@@ -30,6 +31,7 @@ export const DEFAULT_SELECTIONS: CardSelections = {
   models: true,
   peakHour: false,
   paidMultiplier: false,
+  headline: true,
 };
 export type PublicCard = NonNullable<ShareWorkloadV2["card"]>;
 export const CARD_SIZES = {
@@ -44,12 +46,14 @@ export function makeCard(
   paid?: PaidFigure,
   github?: number,
   githubDays?: ReadonlyMap<string, number>,
+  headline?: string,
 ): PublicCard {
   const p = presentation(r),
     top = p.top.slice(0, 5);
   const max = Math.max(1, ...p.days.map((d) => d.total));
   const githubMax = Math.max(1, ...p.days.map((d) => githubDays?.get(d.date) ?? 0));
   const step = Math.max(1, Math.ceil(p.days.length / 64));
+  const insight = headline?.trim();
   return {
     theme,
     start: r.start,
@@ -86,6 +90,7 @@ export function makeCard(
     ...(selected.paidMultiplier && paid
       ? { paidMultiplier: Number(paid.text.replace("×", "")) }
       : {}),
+    ...(selected.headline && insight ? { headline: insight } : {}),
   };
 }
 export function cardName(id: string): string {
@@ -130,6 +135,32 @@ export interface CardText {
   dim?: boolean;
   signal?: boolean;
   tight?: boolean;
+  /** Pre-wrapped lines for short multi-line copy; absent for single-line text. */
+  lines?: string[];
+}
+/** Reserved height for a text region, counting every wrapped line. */
+export function cardTextHeight(t: Pick<CardText, "size" | "lines">) {
+  return t.lines ? t.size * 1.16 * t.lines.length : t.size;
+}
+/** Wraps a short headline into at most `maxLines` lines for the given box. */
+export function wrapCardText(text: string, width: number, size: number, maxLines = 2): string[] {
+  const perLine = Math.max(1, Math.floor(width / (size * 0.52)));
+  const words = text.split(/\s+/u).filter(Boolean);
+  const lines: string[] = [];
+  let current = "";
+  for (const word of words) {
+    const candidate = current ? `${current} ${word}` : word;
+    if (current && candidate.length > perLine) {
+      if (lines.length >= maxLines - 1) {
+        current = candidate;
+        continue;
+      }
+      lines.push(current);
+      current = word;
+    } else current = candidate;
+  }
+  if (current) lines.push(current);
+  return lines.length ? lines.slice(0, maxLines) : [text];
 }
 export interface CardTextBox {
   id: string;
@@ -189,42 +220,56 @@ export function cardLayout(card: PublicCard, format: CardFormat, options: CardRe
     story ? width : width - 380,
     { dim: true, align: story ? "left" : "right" },
   );
-  if (options.headline?.trim())
-    add(
-      "headline",
-      options.headline.trim(),
-      pad,
-      story ? 178 : 80,
-      story ? 26 : square ? 20 : 18,
-      width,
-      { font: "sans" },
-    );
+  const headlineText = (options.headline?.trim() || card.headline?.trim() || "").trim();
+  const headlineSize = story ? 44 : square ? 36 : 30;
+  const headlineLines = headlineText ? wrapCardText(headlineText, width, headlineSize) : [];
+  const hasHeadline = headlineLines.length > 0;
+  if (hasHeadline)
+    add("headline", headlineText, pad, story ? 178 : 80, headlineSize, width, {
+      font: "sans",
+      lines: headlineLines,
+    });
   const metrics = cardMetrics(card);
   const speeds = card.speeds ?? (card.speed ? [card.speed] : []),
     dense = speeds.length > 0 || metrics.length > 4;
   const heroY = story
-    ? options.headline
-      ? 236
+    ? hasHeadline
+      ? 300
       : 210
     : square
-      ? 138
-      : options.headline
-        ? 118
+      ? hasHeadline
+        ? 176
+        : 138
+      : hasHeadline
+        ? 160
         : 100;
-  add(
-    "hero",
-    cardTitle(card),
-    pad,
-    heroY,
-    story ? 260 : square ? 156 : 144,
-    story ? width : square ? 490 : 600,
-    { tight: true },
-  );
+  const heroSize = story
+    ? hasHeadline
+      ? 150
+      : 260
+    : square
+      ? hasHeadline
+        ? 132
+        : 156
+      : hasHeadline
+        ? 104
+        : 144;
+  add("hero", cardTitle(card), pad, heroY, heroSize, story ? width : square ? 490 : 600, {
+    tight: true,
+  });
   add(
     "caption",
     card.totalTokens !== undefined ? "TOKENS OF AI CODING" : "YOUR AI CODING",
     pad,
-    story ? heroY + 282 : square ? 318 : 270,
+    hasHeadline
+      ? story
+        ? heroY + heroSize + 12
+        : heroY + heroSize + 6
+      : story
+        ? heroY + 282
+        : square
+          ? 318
+          : 270,
     story ? 30 : square ? 22 : 20,
     story ? width : square ? 490 : 600,
     { dim: true },
@@ -232,7 +277,21 @@ export function cardLayout(card: PublicCard, format: CardFormat, options: CardRe
   const models = card.models?.slice(0, 5) ?? [];
   const modelX = landscape ? 716 : square ? 600 : pad;
   const modelWidth = landscape ? 428 : square ? 424 : width;
-  const modelY = story ? (dense ? 638 : 674) : square ? 182 : 140;
+  const modelY = story
+    ? hasHeadline
+      ? dense
+        ? 560
+        : 600
+      : dense
+        ? 638
+        : 674
+    : square
+      ? hasHeadline
+        ? 214
+        : 182
+      : hasHeadline
+        ? 200
+        : 140;
   const modelStep = story ? (dense ? 84 : 110) : square ? 58 : 43;
   const modelSize = story ? (dense ? 40 : 44) : square ? 24 : 20;
   if (models.length)
@@ -273,26 +332,32 @@ export function cardLayout(card: PublicCard, format: CardFormat, options: CardRe
     });
   });
   const columns = story ? 2 : Math.max(1, metrics.length);
-  const metricY = story ? (dense ? 1070 : 1270) : square ? 520 : 514;
+  const metricY = story
+    ? hasHeadline
+      ? dense
+        ? 1000
+        : 1300
+      : dense
+        ? 1070
+        : 1270
+    : square
+      ? 520
+      : 514;
   const metricStep = story ? (dense ? 112 : 140) : 0;
   const metricSize = story ? (dense ? 60 : 72) : square ? (metrics.length > 3 ? 36 : 54) : 34;
+  let statsBottom = 0;
   metrics.forEach((m, i) => {
     const x = pad + ((i % columns) * width) / columns,
       y = metricY + Math.floor(i / columns) * metricStep;
     const cellWidth = width / columns - 20;
+    const labelY = y + metricSize + (story ? 12 : 10);
+    const labelSize = story ? 22 : square ? 16 : 13;
     add(`stat-${i}`, m.value, x, y, metricSize, cellWidth, { tight: true });
-    add(
-      `label-${i}`,
-      m.label,
-      x,
-      y + metricSize + (story ? 12 : 10),
-      story ? 22 : square ? 16 : 13,
-      cellWidth,
-      { dim: true },
-    );
+    add(`label-${i}`, m.label, x, labelY, labelSize, cellWidth, { dim: true });
+    statsBottom = Math.max(statsBottom, labelY + labelSize);
   });
   if (speeds.length) {
-    const headingY = story ? 1412 : square ? 634 : 300;
+    const headingY = story ? (hasHeadline ? 1330 : 1412) : square ? 634 : 300;
     const topY = headingY + (story ? 38 : square ? 32 : 26);
     const available = story ? 142 : square ? 118 : 78;
     const cols = 3,
@@ -329,16 +394,21 @@ export function cardLayout(card: PublicCard, format: CardFormat, options: CardRe
     githubSeries = card.github !== undefined ? (card.githubSpark ?? []) : [];
   const connected = githubSeries.length > 0;
   const activityY = story
-    ? speeds.length
-      ? 1630
-      : 1560
+    ? Math.max(
+        hasHeadline ? (speeds.length ? 1550 : 1560) : speeds.length ? 1630 : 1560,
+        statsBottom + 24,
+      )
     : square
       ? speeds.length
         ? 800
         : 658
-      : speeds.length
-        ? 408
-        : 348;
+      : hasHeadline
+        ? speeds.length
+          ? 408
+          : 420
+        : speeds.length
+          ? 408
+          : 348;
   const chartTop = activityY + (story ? 46 : square ? 42 : 28);
   const chartBottom = story ? 1800 : square ? 976 : 490,
     chartHeight = chartBottom - chartTop;
@@ -457,6 +527,41 @@ export function drawCard(
   for (const t of layout.texts) {
     const font = t.font === "sans" ? sans : mono;
     let size = t.size;
+    ctx.fillStyle = t.signal ? signal : t.dim ? dim : fg;
+    ctx.textAlign = "left";
+    if (t.lines && t.lines.length) {
+      const measureLines = () => {
+        ctx.font = `500 ${size}px ${font}`;
+        return t.lines!.map((line) => ctx.measureText(line).width);
+      };
+      let widths = measureLines();
+      let widest = Math.max(...widths);
+      if (widest > t.width) {
+        size *= t.width / widest;
+        widths = measureLines();
+        widest = Math.max(...widths);
+      }
+      const lineStep = size * 1.16;
+      const x = t.align === "right" ? t.x - widest : t.x;
+      t.lines.forEach((line, i) => {
+        ctx.font = `500 ${size}px ${font}`;
+        ctx.fillText(line, x, t.y + i * lineStep);
+      });
+      ctx.font = `500 ${size}px ${font}`;
+      const first = ctx.measureText(t.lines[0]!);
+      const last = ctx.measureText(t.lines[t.lines.length - 1]!);
+      boxes.push({
+        id: t.id,
+        x,
+        y: t.y - first.actualBoundingBoxAscent,
+        width: widest,
+        height:
+          (t.lines.length - 1) * lineStep +
+          first.actualBoundingBoxAscent +
+          last.actualBoundingBoxDescent,
+      });
+      continue;
+    }
     const measure = () => {
       ctx.font = `500 ${size}px ${font}`;
       return ctx.measureText(t.text).width - (t.tight && t.text.includes(".") ? size * 0.24 : 0);

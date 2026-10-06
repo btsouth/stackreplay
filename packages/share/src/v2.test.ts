@@ -10,6 +10,7 @@ import {
   encodeShareTokenV2,
 } from "./token.js";
 import type { ShareReplayV2, ShareWorkloadV2 } from "./v2.js";
+import { shareWorkloadV2Schema } from "./v2.js";
 
 const replay: ShareReplayV2 = {
   version: 2,
@@ -89,6 +90,27 @@ describe("share V2", () => {
       expect(decoded.ok).toBe(true);
       if (decoded.ok) expect(decoded.snapshot).toEqual(snapshot);
     }
+  });
+
+  it("keeps an optional card headline within the printable bound", () => {
+    const card = { theme: "dark", start: "2026-09-01", end: "2026-09-30", totalTokens: 100 };
+    const snapshot = {
+      version: 2 as const,
+      kind: "workload" as const,
+      card,
+      workload: { calls: 0, spanDays: 0, activeDays: 0, knownTokens: 0, tools: [] },
+      facts: [],
+      versions: { catalog: "catalog-1" },
+    };
+    expect(shareWorkloadV2Schema.safeParse(snapshot).success).toBe(true);
+    expect(
+      shareWorkloadV2Schema.safeParse({ ...snapshot, card: { ...card, headline: "x".repeat(90) } })
+        .success,
+    ).toBe(true);
+    expect(
+      shareWorkloadV2Schema.safeParse({ ...snapshot, card: { ...card, headline: "x".repeat(91) } })
+        .success,
+    ).toBe(false);
   });
 
   it("keeps reading V1 links, and the V1 reader refuses V2", async () => {

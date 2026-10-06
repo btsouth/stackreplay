@@ -69,6 +69,7 @@ test("empty history offers one scan action", async ({ page }) => {
     page.getByTestId("recap-empty").getByRole("link", { name: /Scan my history/ }),
   ).toBeVisible();
   await expect(page.getByTestId("recap-ready")).toHaveCount(0);
+  await expect(page.getByTestId("recap-insights").locator("article")).toHaveCount(4);
 });
 test("the legacy Stats URL keeps every query parameter", async ({ page }) => {
   await page.goto("/app/stats?period=all&import=missing&tag=a&tag=b");
@@ -212,4 +213,34 @@ test("all card formats measure non-overlapping text with every stat selected", a
     }),
   );
   expect(faults).toEqual([]);
+});
+
+test("insights follow the period and GitHub connection", async ({ page }) => {
+  await page.clock.install({ time: new Date("2026-10-04T12:00:00Z") });
+  await page.route("**/api/github/contributions?login=insight-test", async (route) => {
+    const days = Object.fromEntries(
+      Array.from({ length: 90 }, (_, i) => [
+        new Date(Date.UTC(2026, 9, 4 - i)).toISOString().slice(0, 10),
+        100,
+      ]),
+    );
+    await route.fulfill({
+      json: { login: "insight-test", fetchedAt: "2026-10-04T12:00:00Z", days, total: 9000 },
+    });
+  });
+  await gotoImport(page);
+  await page.getByTestId("import-file-input").setInputFiles(fixture);
+  const strip = page.getByTestId("recap-insights");
+  await expect(strip).toBeVisible({ timeout: 60000 });
+  await expect(strip.locator("article")).toHaveCount(4);
+  await expect(strip.locator('[data-insight^="github:"]')).toHaveCount(0);
+  await page.getByRole("textbox", { name: "GitHub username" }).fill("insight-test");
+  await page.getByRole("button", { name: "Connect", exact: true }).click();
+  await expect(strip.locator('[data-insight^="github:"]')).toHaveCount(1);
+  const thirty = await strip.innerText();
+  await page.getByRole("radio", { name: "90 days" }).check();
+  await expect(page.getByTestId("recap-ready")).toHaveAttribute("data-period", "90");
+  await expect.poll(() => strip.innerText()).not.toBe(thirty);
+  await page.getByRole("button", { name: "Disconnect", exact: true }).click();
+  await expect(strip.locator('[data-insight^="github:"]')).toHaveCount(0);
 });

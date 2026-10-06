@@ -1,9 +1,10 @@
 "use client";
 import type { CSSProperties } from "react";
 import { DailyChart } from "@/components/terminal/daily-chart";
+import { InsightStrip } from "@/components/terminal/insights";
 import { Readout, Section, TightNumber } from "@/components/terminal/primitives";
 import { TerminalShare } from "@/components/terminal/share";
-import { sampleGithub } from "@/lib/home/recap-sample";
+import { sampleGithub, sampleInsights } from "@/lib/home/recap-sample";
 import type { Recap } from "@/lib/recap";
 import { developerNames } from "@/lib/recap-deep";
 import { compact, dateLabel, dollars, integer, presentation } from "@/lib/terminal-presentation";
@@ -83,6 +84,7 @@ export function SampleInstrument({ recap: r }: { recap: Recap }) {
             />
           </div>
         </div>
+        <InsightStrip insights={sampleInsights} />
       </section>
       <Section
         number="01"
@@ -291,7 +293,14 @@ export function SampleInstrument({ recap: r }: { recap: Recap }) {
         note="Landscape, square top models and story. Make one from your history."
         id="share"
       >
-        <TerminalShare recap={r} github={ghTotal} githubDays={github} synthetic previewOnly />
+        <TerminalShare
+          recap={r}
+          github={ghTotal}
+          githubDays={github}
+          headline={sampleInsights[0]?.headline}
+          synthetic
+          previewOnly
+        />
       </Section>
     </>
   );

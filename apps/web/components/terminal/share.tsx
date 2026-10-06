@@ -42,6 +42,7 @@ export function TerminalShare({
   paid,
   github,
   githubDays,
+  headline,
   synthetic,
   previewOnly = false,
 }: {
@@ -49,6 +50,7 @@ export function TerminalShare({
   paid?: PaidFigure | undefined;
   github?: number | undefined;
   githubDays?: ReadonlyMap<string, number> | undefined;
+  headline?: string | undefined;
   synthetic?: boolean | undefined;
   previewOnly?: boolean;
 }) {
@@ -66,12 +68,13 @@ export function TerminalShare({
     return () => observer.disconnect();
   }, []);
   const card = useMemo(
-    () => makeCard(recap, selected, theme, paid, github, githubDays),
-    [recap, selected, theme, paid, github, githubDays],
+    () => makeCard(recap, selected, theme, paid, github, githubDays, headline),
+    [recap, selected, theme, paid, github, githubDays, headline],
   );
   const toggles: [CardToggle, string][] = [
     ["tokens", "Total tokens"],
     ["usd", "API value"],
+    ["headline", "Headline"],
     ["speed", "Speed board"],
     ["github", "GitHub"],
     ["streak", "Streak"],

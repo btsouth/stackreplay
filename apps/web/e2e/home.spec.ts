@@ -28,6 +28,7 @@ test("recap homepage renders, links to scan and keeps the sample public", async 
   ).toHaveAttribute("href", "/models");
   if (isMobile) await page.getByRole("button", { name: "Close menu" }).click();
   await expect(page.getByTestId("sample-total")).toContainText(/M|B/);
+  await expect(page.getByTestId("recap-insights").locator("article")).toHaveCount(4);
   await expect(page.locator(".terminal-home .srow")).toHaveCount(12);
   expect(languageMatches(await page.locator(".terminal-home").innerText())).toEqual([]);
   await page.getByRole("link", { name: "See a sample" }).click();
