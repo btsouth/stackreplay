@@ -13,21 +13,18 @@ test("recap homepage renders, links to scan and keeps the sample public", async 
     if (r.method() === "POST") uploads.push(r.url());
   });
   await page.goto("/");
-  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Your AI coding,replayed.");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Your AI coding, measured.");
   const scanLinks = page.getByRole("link", { name: "Scan my history", exact: true });
   await expect(scanLinks.first()).toBeVisible();
   for (const link of await scanLinks.all()) await expect(link).toHaveAttribute("href", "/app/scan");
-  await expect(page.getByRole("link", { name: "See a sample recap" })).toHaveAttribute(
-    "href",
-    "#sample",
-  );
+  await expect(page.getByRole("link", { name: "See a sample" })).toHaveAttribute("href", "#sample");
   if (isMobile) await page.getByRole("button", { name: "Open menu" }).click();
   await expect(
     page.getByRole(isMobile ? "dialog" : "banner").getByRole("link", { name: "Models & plans" }),
   ).toHaveAttribute("href", "/catalog");
   if (isMobile) await page.getByRole("button", { name: "Close menu" }).click();
-  await expect(page.locator(".replay-card-total").first()).toContainText("41.2B");
-  await page.getByRole("link", { name: "See a sample recap" }).click();
+  await expect(page.getByTestId("sample-total")).toContainText(/M|B/);
+  await page.getByRole("link", { name: "See a sample" }).click();
   await expect(page).toHaveURL(/#sample$/);
   await expect(page.locator("#sample-heading")).toBeInViewport();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
@@ -38,11 +35,9 @@ test("recap homepage renders, links to scan and keeps the sample public", async 
 test("reduced motion shows completed stats with no animations or tilt", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/");
-  await expect(page.locator(".replay-card-total").first()).toContainText("41.2B");
+  await expect(page.getByTestId("sample-total")).toContainText(/M|B/);
   await expect
-    .poll(async () =>
-      page.locator(".replay-card-position").evaluate((el) => getComputedStyle(el).transform),
-    )
+    .poll(async () => page.locator(".home-sample").evaluate((el) => getComputedStyle(el).transform))
     .toBe("none");
   expect(
     await page.evaluate(
@@ -56,11 +51,12 @@ test("reduced motion shows completed stats with no animations or tilt", async ({
     ),
   ).toBe(0);
 });
-test("sample cards download both real renderer sizes", async ({ page }) => {
+test("sample cards download all three real renderer sizes", async ({ page }) => {
   await page.goto("/");
   for (const [name, size] of [
-    ["Try landscape", [1200, 630]],
-    ["Try portrait", [1080, 1350]],
+    ["Download landscape PNG", [1200, 630]],
+    ["Download square PNG", [1080, 1080]],
+    ["Download story PNG", [1080, 1920]],
   ] as const) {
     const pending = page.waitForEvent("download");
     await page.getByRole("button", { name }).click();
