@@ -3,9 +3,9 @@ import { importDemo } from "./helpers";
 
 test("home copy scopes history and API value", async ({ page }) => {
   await page.goto("/");
-  await expect(page.locator("main")).toContainText("Illustrative comparison");
-  await expect(page.locator("main")).toContainText("estimate, not a bill or savings");
-  await expect(page.locator("main")).toContainText("fictional sample");
+  await expect(page.locator("main")).toContainText("AT LIST PRICES / NOT AN INVOICE");
+  await expect(page.locator("main")).toContainText("Fictional history. Real components.");
+  await expect(page.locator("main")).toContainText("Your scan supplies your numbers.");
   await expect(page.locator("main")).not.toContainText("every model call");
 });
 

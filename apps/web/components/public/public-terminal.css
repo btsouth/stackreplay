@@ -500,7 +500,35 @@
     text-align: right;
   }
 }
+@media (min-width: 701px) and (max-width: 1279px) {
+  .public-terminal .market-rate-table {
+    display: table;
+  }
+  .public-terminal .market-rate-table tbody {
+    display: table-row-group;
+  }
+  .public-terminal .market-rate-table tr {
+    display: table-row;
+  }
+  .public-terminal .market-rate-table :is(th, td) {
+    display: table-cell;
+    padding: 14px 0 14px 24px;
+    border-bottom: 1px solid var(--line);
+  }
+  .public-terminal .market-rate-table :is(th, td):first-child {
+    padding-left: 0;
+  }
+  .public-terminal .market-rate-table .market-table-label {
+    display: none;
+  }
+}
 @media (max-width: 800px) {
+  .public-terminal .provider-summary-stats > * {
+    padding: 12px;
+  }
+  .public-terminal .provider-summary-stats {
+    margin-block: 8px;
+  }
   .public-terminal :is(.market-header, .bench-header) {
     grid-template-columns: 1fr;
     gap: 20px;

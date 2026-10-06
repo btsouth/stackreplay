@@ -179,7 +179,7 @@ test("homepage keeps catalog and keyboard routes reachable", async ({ page, isMo
   await catalog.click();
   await expect(page).toHaveURL(/\/catalog$/u);
   await expect(
-    page.getByRole("heading", { level: 1, name: /AI models\.\s*Prices\. Plans\./u }),
+    page.getByRole("heading", { level: 1, name: "AI models, prices and plans." }),
   ).toBeVisible();
   await page.goBack();
   await expect(page).toHaveURL(/\/(?:#main-content)?$/u);

@@ -23,7 +23,7 @@ test("public and workspace content keep safe gutters", async ({ page }, testInfo
   for (const route of ["/", "/methodology", "/app/scan", "/app/settings"]) {
     await page.goto(route);
     // The recap homepage owns section gutters; catalog and app shells own main gutters.
-    const rail = route === "/" ? page.locator(".replay-hero") : page.getByRole("main");
+    const rail = route === "/" ? page.locator(".home-intro") : page.getByRole("main");
     const gutter = await rail.evaluate((element) => {
       const rect = element.getBoundingClientRect();
       const style = getComputedStyle(element);
