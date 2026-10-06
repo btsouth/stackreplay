@@ -105,7 +105,7 @@ test("a recap link can be stored as a short link that carries only its aggregate
   const path = (await page.getByTestId("recap-share-open").getAttribute("href"))!;
   const shortId = new URL(path).pathname.replace("/s/", "");
   // A parent render recreates the same GitHub map without changing the card.
-  await page.getByRole("textbox", { name: "GitHub username" }).fill("btsouth1");
+  await page.getByRole("button", { name: "Refresh GitHub", exact: true }).click();
   await expect(page.getByTestId("recap-share-open")).toHaveAttribute("href", path);
   await expect(page.getByTestId("recap-share-copy")).toHaveText("Copy link");
   const intent = new URL((await page.getByTestId("recap-share-x").getAttribute("href"))!);
