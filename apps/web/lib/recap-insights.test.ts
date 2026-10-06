@@ -57,6 +57,9 @@ describe("period insight facts", () => {
       figure: "47 days",
       detail: "CURRENT STREAK · INCLUDING BEFORE THIS PERIOD",
     });
+    const unfinished = recap(Array.from({ length: 29 }, (_, i) => nextDay("2026-09-01", i)));
+    unfinished.streak = 47;
+    expect(find(unfinished, "streak:ai")?.headline).toBe("47 days in a row with AI, and counting");
     r.streak = 0;
     expect(find(r, "streak:ai")?.headline).toBe("You used AI every day of this 30-day period");
   });

@@ -57,10 +57,11 @@ export function recapInsightCandidates(
     d = nextDay(d, -1)
   )
     current++;
-  const wholePeriod =
-    days.length === Math.round((Date.parse(r.end) - Date.parse(r.start)) / 86400000) + 1 &&
-    longest === days.length;
-  const extended = wholePeriod && r.streak > days.length;
+  const periodDays = Math.round((Date.parse(r.end) - Date.parse(r.start)) / 86400000) + 1;
+  const wholePeriod = days.length === periodDays && longest === days.length;
+  // The current run may end yesterday while today is still unfinished.
+  // Require the displayed days to agree with the full-history current run.
+  const extended = r.streak > periodDays && current >= periodDays - 1;
   if (longest >= 2)
     add(
       "streak:ai",
