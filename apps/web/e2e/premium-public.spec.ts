@@ -48,6 +48,9 @@ for (const theme of ["dark", "light"] as const) {
         await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth),
         path,
       ).toBe(true);
+      await expect(page.getByRole("button", { name: "Toggle theme" })).toBeEnabled();
+      if (name.startsWith("providers"))
+        await expect(page.getByRole("searchbox", { name: "Find a provider" })).toBeEnabled();
       const result = await new AxeBuilder({ page })
         .withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"])
         .analyze();

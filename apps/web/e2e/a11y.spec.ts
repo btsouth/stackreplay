@@ -154,6 +154,7 @@ test.describe("public site accessibility", () => {
     await expect(page.locator("#main-content")).toBeFocused();
     if (testInfo.project.name === "mobile") {
       const trigger = page.getByRole("button", { name: "Open menu" });
+      await expect(trigger).toBeEnabled();
       await trigger.focus();
       await page.keyboard.press("Enter");
       await expect(page.getByRole("dialog")).toBeVisible();
@@ -181,6 +182,7 @@ test.describe("public site accessibility", () => {
     ).toBeVisible();
     if (testInfo.project.name === "mobile") {
       const trigger = page.getByRole("button", { name: "Open menu" });
+      await expect(trigger).toBeEnabled();
       await trigger.focus();
       await page.keyboard.press("Enter");
       await expect(page.getByRole("dialog")).toBeVisible();
