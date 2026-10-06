@@ -63,10 +63,36 @@ test("a recap link can be stored as a short link that carries only its aggregate
   request,
 }) => {
   test.setTimeout(120_000);
+  await page.addInitScript(() => {
+    Object.defineProperty(navigator, "clipboard", {
+      value: {
+        writeText: async (value: string) => {
+          (window as unknown as { copiedLink: string }).copiedLink = value;
+        },
+      },
+    });
+  });
   await scanMarkedHistory(page);
   const id = new URL(page.url()).searchParams.get("import");
-  await page.goto(`/app/recap?import=${id}`);
+  await page.goto(`/app/recap?import=${id}&period=30`);
   await expect(page.getByTestId("recap-ready")).toBeVisible({ timeout: 60_000 });
+  await expect(page.getByTestId("recap-ready")).toHaveAttribute("data-period", "30");
+  await page.route("**/api/github/contributions?*", (route) =>
+    route.fulfill({
+      json: {
+        login: "btsouth",
+        fetchedAt: new Date().toISOString(),
+        total: 40,
+        days: { "2026-09-19": 40 },
+      },
+    }),
+  );
+  await page.getByRole("textbox", { name: "GitHub username" }).fill("btsouth");
+  await page.getByRole("button", { name: "Connect", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Disconnect", exact: true })).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "GITHUB CONTRIBUTIONS", exact: true }),
+  ).toBeEnabled();
   const posted = page.waitForRequest(
     (r) => r.url().endsWith("/api/share") && r.method() === "POST",
   );
@@ -77,24 +103,59 @@ test("a recap link can be stored as a short link that carries only its aggregate
   expectNoMarkers(decoded.ok ? JSON.stringify(decoded.snapshot) : "");
   await expect(page.getByTestId("recap-share-open")).toBeVisible();
   const path = (await page.getByTestId("recap-share-open").getAttribute("href"))!;
-  const shortId = path.replace("/s/", "");
+  const shortId = new URL(path).pathname.replace("/s/", "");
+  // A parent render recreates the same GitHub map without changing the card.
+  await page.getByRole("button", { name: "Refresh GitHub", exact: true }).click();
+  await expect(page.getByTestId("recap-share-open")).toHaveAttribute("href", path);
+  await expect(page.getByTestId("recap-share-copy")).toHaveText("Copy link");
+  const intent = new URL((await page.getByTestId("recap-share-x").getAttribute("href"))!);
+  expect(intent.origin + intent.pathname).toBe("https://x.com/intent/post");
+  expect(intent.searchParams.get("url")).toBe(path);
+  expect(intent.searchParams.get("text")).toMatch(/tokens of AI coding in 30 days/u);
+  expect(intent.searchParams.get("text")).not.toMatch(/[–—#]/u);
+  await page.getByTestId("recap-share-copy").click();
+  await expect(page.getByTestId("recap-share-copy")).toHaveText("Copied");
+  expect(await page.evaluate(() => (window as unknown as { copiedLink: string }).copiedLink)).toBe(
+    path,
+  );
+  await page.getByRole("button", { name: "TOTAL TOKENS", exact: true }).click();
+  await expect(page.getByTestId("recap-share-x")).toHaveCount(0);
+  await expect(page.getByTestId("recap-share-copy")).toHaveCount(0);
   expect(shortId).toMatch(/^[A-Za-z0-9_-]{22}$/u);
 
   // The public page renders from the stored token, with nothing private.
-  const response = await request.get(`/s/${shortId}`);
+  const response = await request.get(`/s/${shortId}`, {
+    headers: { "user-agent": "Twitterbot/1.0" },
+  });
   expect(response.status()).toBe(200);
   const html = await response.text();
   expectNoMarkers(html);
+  const head = html.split("</head>")[0]!;
+  expect(head).toContain('name="twitter:card" content="summary_large_image"');
+  expect(head).not.toMatch(/noindex|nofollow/u);
+  expect(head).toMatch(/property="og:title" content="[^"]*tokens of AI coding in 30 days/u);
+  expect(head).toMatch(/name="twitter:description" content="[^"]*tokens of AI coding/u);
   const ogImage = /<meta property="og:image" content="([^"]+)"/u.exec(html)?.[1];
-  expect(ogImage).toBe(`https://stackreplay.com/s/${shortId}/image`);
+  expect(ogImage).toBe(`https://stackreplay.com/s/${shortId}/image?v=2`);
+  expect(head).toContain(`name="twitter:image" content="${ogImage}"`);
+  const robots = await request.get("/robots.txt", { headers: { "user-agent": "Twitterbot/1.0" } });
+  expect(await robots.text()).toContain("Allow: /s/");
+  expect(await robots.text()).not.toMatch(/Disallow: \/s/u);
   await page.goto(`/s/${shortId}`);
   await expect(page.getByTestId("share-card-v2")).toBeVisible();
   expectNoMarkers(await page.locator("main").innerText());
   const shortTokens = await page.locator(".public-terminal-card").getAttribute("alt");
 
-  const image = await request.get(`/s/${shortId}/image`);
+  const image = await request.get(`/s/${shortId}/image`, {
+    headers: { "user-agent": "Twitterbot/1.0" },
+  });
   expect(image.status()).toBe(200);
   expect(image.headers()["content-type"]).toBe("image/png");
+  expect(image.headers()["cache-control"]).toContain("public");
+  const bytes = await image.body();
+  expect(bytes.subarray(0, 8).toString("hex")).toBe("89504e470d0a1a0a");
+  expect([bytes.readUInt32BE(16), bytes.readUInt32BE(20)]).toEqual([1200, 630]);
+  expect(bytes.length).toBeLessThan(5_000_000);
 
   // The same result as a self-contained link reads exactly the same.
   await page.goto(`/s/${token}`);

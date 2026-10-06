@@ -77,12 +77,22 @@ export function makeCard(
             ? {
                 githubSpark: p.days
                   .filter((_, i) => i % step === 0)
-                  .map((d) => Math.round(((githubDays.get(d.date) ?? 0) / githubMax) * 1000)),
+                  .map((d) =>
+                    githubDays.get(d.date)
+                      ? Math.max(1, Math.round(((githubDays.get(d.date) ?? 0) / githubMax) * 1000))
+                      : 0,
+                  ),
               }
             : {}),
         }
       : {}),
-    ...(selected.streak ? { streak: r.longestStreak } : {}),
+    ...(selected.streak
+      ? r.period === "all"
+        ? r.streak > 0
+          ? { currentStreak: r.streak }
+          : { streak: r.longestStreak }
+        : { aiDays: { active: r.days.filter((d) => d.records > 0).length, total: r.days.length } }
+      : {}),
     ...(selected.models
       ? { models: top.map((m) => ({ id: m.id, tokenCount: m.total, family: m.family })) }
       : {}),
@@ -100,7 +110,13 @@ export function cardMetrics(card: PublicCard) {
   return [
     ...(card.usd !== undefined ? [{ label: "API VALUE", value: dollars(card.usd) }] : []),
     ...(card.github !== undefined
-      ? [{ label: "CONTRIBUTIONS", value: card.github.toLocaleString("en-US") }]
+      ? [{ label: "GITHUB CONTRIBUTIONS", value: card.github.toLocaleString("en-US") }]
+      : []),
+    ...(card.aiDays !== undefined
+      ? [{ label: "DAYS WITH AI", value: `${card.aiDays.active}/${card.aiDays.total}` }]
+      : []),
+    ...(card.currentStreak !== undefined
+      ? [{ label: "CURRENT STREAK", value: `${card.currentStreak} days` }]
       : []),
     ...(card.streak !== undefined
       ? [{ label: "LONGEST STREAK", value: `${card.streak} days` }]
@@ -134,6 +150,7 @@ export interface CardText {
   font?: "sans" | "mono";
   dim?: boolean;
   signal?: boolean;
+  color?: string;
   tight?: boolean;
   /** Pre-wrapped lines for short multi-line copy; absent for single-line text. */
   lines?: string[];
@@ -405,38 +422,40 @@ export function cardLayout(card: PublicCard, format: CardFormat, options: CardRe
       : hasHeadline
         ? speeds.length
           ? 408
-          : 420
+          : 414
         : speeds.length
           ? 408
           : 348;
-  const chartTop = activityY + (story ? 46 : square ? 42 : 28);
-  const chartBottom = story ? 1800 : square ? 976 : 490,
+  const chartTop = activityY + (story ? 46 : square ? 42 : 30);
+  const chartBottom = story ? 1800 : square ? 976 : 500,
     chartHeight = chartBottom - chartTop;
-  const tokenHeight = tokenSeries.length ? (connected ? chartHeight * 0.67 : chartHeight) : 0,
+  const tokenHeight = tokenSeries.length ? (connected ? (chartHeight - 4) * 0.55 : chartHeight) : 0,
     baseline = chartTop + tokenHeight;
+  const signal = card.theme === "dark" ? "#ff6a1f" : "#e24e00";
+  const green = card.theme === "dark" ? "#4ac26b" : "#238636";
   if (tokenSeries.length || connected) {
     add(
       "activity-heading",
-      tokenSeries.length ? "TOKENS / DAY" : "GITHUB / DAY",
+      tokenSeries.length ? "■ AI TOKENS / DAY" : "■ GITHUB CONTRIBUTIONS / DAY",
       pad,
       activityY,
-      story ? 24 : square ? 18 : 14,
-      width / 2,
-      { dim: true },
+      story ? 24 : 18,
+      tokenSeries.length && connected ? width * 0.4 : width,
+      { color: tokenSeries.length ? signal : green },
     );
     if (tokenSeries.length && connected)
       add(
         "github-heading",
-        "GITHUB / DAY ↓",
-        w - pad,
+        "■ GITHUB CONTRIBUTIONS / DAY",
+        pad + width * 0.4,
         activityY,
-        story ? 24 : square ? 18 : 14,
-        width / 2,
-        { align: "right", dim: true },
+        story ? 24 : 18,
+        width * 0.6,
+        { color: green },
       );
   }
-  const signal = card.theme === "dark" ? "#ff6a1f" : "#e24e00";
-  const green = card.theme === "dark" ? "#4ac26b" : "#238636";
+  const githubMax = Math.max(1, ...githubSeries);
+  const githubHeight = Math.max(0, chartBottom - baseline - 4);
   tokenSeries.forEach((value, i) => {
     if (!value) return;
     const slot = width / tokenSeries.length,
@@ -453,13 +472,13 @@ export function cardLayout(card: PublicCard, format: CardFormat, options: CardRe
   githubSeries.forEach((value, i) => {
     if (!value) return;
     const slot = width / githubSeries.length,
-      bh = (value / 1000) * (chartHeight - tokenHeight);
+      bh = Math.max(Math.min(4, githubHeight), (value / githubMax) * githubHeight);
     activityBars.push({
       id: `github-day-${i}`,
       x: pad + i * slot,
-      y: baseline + 3,
+      y: baseline + 4,
       width: slot * 0.7,
-      height: Math.max(0, bh - 3),
+      height: bh,
       color: green,
     });
   });
@@ -527,7 +546,7 @@ export function drawCard(
   for (const t of layout.texts) {
     const font = t.font === "sans" ? sans : mono;
     let size = t.size;
-    ctx.fillStyle = t.signal ? signal : t.dim ? dim : fg;
+    ctx.fillStyle = t.color ?? (t.signal ? signal : t.dim ? dim : fg);
     ctx.textAlign = "left";
     if (t.lines && t.lines.length) {
       const measureLines = () => {
@@ -571,7 +590,7 @@ export function drawCard(
       size *= t.width / width;
       width = measure();
     }
-    ctx.fillStyle = t.signal ? signal : t.dim ? dim : fg;
+    ctx.fillStyle = t.color ?? (t.signal ? signal : t.dim ? dim : fg);
     ctx.textAlign = "left";
     let x = t.align === "right" ? t.x - width : t.x;
     const left = x;

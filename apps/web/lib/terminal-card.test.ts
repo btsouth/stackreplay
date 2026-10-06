@@ -36,7 +36,7 @@ describe("terminal share privacy boundary", () => {
     expect(card.paidMultiplier).toBeUndefined();
     expect(card.speed).toBeUndefined();
     expect(card.speeds).toBeUndefined();
-    expect(card.streak).toBe(recap.longestStreak);
+    expect(card.currentStreak ?? card.streak).toBe(recap.streak || recap.longestStreak);
     expect(card.models?.length).toBeGreaterThan(0);
     expect(JSON.stringify(snapshot)).not.toMatch(/project|hash|rawName|label/);
   });
@@ -342,5 +342,76 @@ describe("poster composition", () => {
     expect(
       makeCard(recap, DEFAULT_SELECTIONS, "dark", undefined, 6228).githubSpark,
     ).toBeUndefined();
+  });
+});
+
+describe("readable activity and period stats", () => {
+  it("prints explicit colored legends and visible independently scaled GitHub bars in every format", () => {
+    for (const theme of ["dark", "light"] as const)
+      for (const format of ["landscape", "square", "story"] as const) {
+        const layout = cardLayout(
+          {
+            theme,
+            start: "2026-09-01",
+            end: "2026-09-30",
+            totalTokens: 100,
+            spark: [1000, 100, 0],
+            github: 12,
+            githubSpark: [1, 10, 0],
+            headline: "47 days in a row with AI, and counting",
+          },
+          format,
+        );
+        const orange = layout.texts.find((t) => t.id === "activity-heading")!;
+        const green = layout.texts.find((t) => t.id === "github-heading")!;
+        expect(orange.text).toBe("■ AI TOKENS / DAY");
+        expect(green.text).toBe("■ GITHUB CONTRIBUTIONS / DAY");
+        expect(orange.color).toBe(theme === "dark" ? "#ff6a1f" : "#e24e00");
+        expect(green.color).toBe(theme === "dark" ? "#4ac26b" : "#238636");
+        const bars = layout.activityBars.filter((b) => b.id.startsWith("github-day-"));
+        expect(bars).toHaveLength(2);
+        expect(Math.min(...bars.map((b) => b.height))).toBeGreaterThanOrEqual(4);
+        expect(bars[1]!.height).toBeGreaterThan(20);
+        expect(
+          cardMetrics({ theme, start: "2026-09-01", end: "2026-09-30", github: 12 }),
+        ).toContainEqual({ label: "GITHUB CONTRIBUTIONS", value: "12" });
+      }
+  });
+  it("draws actual server color swatches rather than missing font glyphs", () => {
+    const html = renderToStaticMarkup(
+      createElement(TerminalLandscape, {
+        card: {
+          theme: "dark",
+          start: "2026-09-01",
+          end: "2026-09-30",
+          spark: [1000],
+          github: 1,
+          githubSpark: [1000],
+        },
+      }),
+    );
+    expect(html).toContain("AI TOKENS / DAY");
+    expect(html).toContain("GITHUB CONTRIBUTIONS / DAY");
+    expect(html).not.toContain("■");
+    expect(html).toContain("width:9px;height:9px");
+    expect(html).toContain('id="terminal-grid"');
+  });
+  it("uses active period days, ongoing all-history streaks, and preserves old links", async () => {
+    const period = { ...recap, period: "30" as const, streak: 47, longestStreak: 47 };
+    const card = makeCard(period, DEFAULT_SELECTIONS, "dark");
+    expect(cardMetrics(card)).toContainEqual({
+      label: "DAYS WITH AI",
+      value: `${recap.days.filter((d) => d.records > 0).length}/${recap.days.length}`,
+    });
+    expect(card.streak).toBeUndefined();
+    expect(card.currentStreak).toBeUndefined();
+    const decoded = await decodeAnyShareToken(await encodeShareTokenV2(terminalShareV2(card)));
+    expect(decoded.ok && decoded.snapshot).toEqual(terminalShareV2(card));
+    expect(
+      cardMetrics(makeCard({ ...period, period: "all" }, DEFAULT_SELECTIONS, "dark")),
+    ).toContainEqual({ label: "CURRENT STREAK", value: "47 days" });
+    expect(
+      cardMetrics({ theme: "dark", start: recap.start, end: recap.end, streak: 47 }),
+    ).toContainEqual({ label: "LONGEST STREAK", value: "47 days" });
   });
 });

@@ -2,6 +2,8 @@
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { Recap } from "@/lib/recap";
+import { shareCopy, xIntentUrl } from "@/lib/share-presentation";
+import { terminalShareV2 } from "@/lib/share-v2";
 import {
   CARD_SIZES,
   type CardFormat,
@@ -58,7 +60,12 @@ export function TerminalShare({
     [theme, setTheme] = useState<"dark" | "light">("dark"),
     [busy, setBusy] = useState(false),
     [error, setError] = useState<string>(),
-    [href, setHref] = useState<string>();
+    [link, setLink] = useState<{
+      href: string;
+      cardJson: string;
+      synthetic: boolean | undefined;
+    }>(),
+    [copied, setCopied] = useState(false);
   useEffect(() => {
     const refresh = () =>
       setTheme(document.documentElement.classList.contains("dark") ? "dark" : "light");
@@ -71,13 +78,17 @@ export function TerminalShare({
     () => makeCard(recap, selected, theme, paid, github, githubDays, headline),
     [recap, selected, theme, paid, github, githubDays, headline],
   );
+  // Parent renders may rebuild the same daily map. Invalidate only when the
+  // published figures change, rather than when a memoized object is recreated.
+  const cardJson = JSON.stringify(card);
+  const href = link?.cardJson === cardJson && link.synthetic === synthetic ? link.href : undefined;
   const toggles: [CardToggle, string][] = [
     ["tokens", "Total tokens"],
     ["usd", "API value"],
     ["headline", "Headline"],
     ["speed", "Speed board"],
-    ["github", "GitHub"],
-    ["streak", "Streak"],
+    ["github", "GitHub contributions"],
+    ["streak", recap.period === "all" ? "Streak" : "Days with AI"],
     ["models", "Top models"],
     ["peakHour", "Peak hour"],
     ["paidMultiplier", "What you paid"],
@@ -116,7 +127,8 @@ export function TerminalShare({
       const data = await response.json();
       if (!response.ok || typeof data.path !== "string")
         throw Error(data.error ?? "Could not create a share link.");
-      setHref(data.path);
+      setLink({ href: new URL(data.path, window.location.origin).toString(), cardJson, synthetic });
+      setCopied(false);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Could not create a share link.");
     } finally {
@@ -161,7 +173,7 @@ export function TerminalShare({
                 }
                 onClick={() => {
                   setSelected((old) => ({ ...old, [key]: !old[key] }));
-                  setHref(undefined);
+                  setLink(undefined);
                 }}
               >
                 {label.toUpperCase()}
@@ -179,9 +191,36 @@ export function TerminalShare({
               Create share link
             </button>
             {href && (
-              <Link className="btn" href={href} data-testid="recap-share-open">
-                Open shared recap ↗
-              </Link>
+              <>
+                <button
+                  type="button"
+                  className="btn"
+                  data-testid="recap-share-copy"
+                  onClick={async () => {
+                    try {
+                      await navigator.clipboard.writeText(href);
+                      setCopied(true);
+                    } catch {
+                      setError("Copy failed. Open the shared recap and copy its address.");
+                    }
+                  }}
+                >
+                  {copied ? "Copied" : "Copy link"}
+                </button>
+                <a
+                  className="btn primary"
+                  data-testid="recap-share-x"
+                  href={xIntentUrl(shareCopy(terminalShareV2(card, synthetic)).post, href)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Post on X ↗
+                </a>
+                <Link className="btn" href={href} data-testid="recap-share-open">
+                  Open shared recap ↗
+                </Link>
+                <span role="status">{copied ? "Link copied." : "Your share link is ready."}</span>
+              </>
             )}
             <p>Creating a link uploads only the selected card numbers.</p>
           </div>

@@ -1,9 +1,12 @@
 import { decodeAnyShareToken } from "@stackreplay/share";
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { resolveShareParam } from "@/lib/share-link-store";
+import { shareCopy, shareImagePath } from "@/lib/share-presentation";
 import { sharedRecap } from "@/lib/shared-recap";
+import { absoluteUrl } from "@/lib/site";
 import { compact, dollars } from "@/lib/terminal-presentation";
 import "@/components/terminal/terminal.css";
 
@@ -12,12 +15,33 @@ interface Props {
 }
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const r = await resolveShareParam((await params).token);
+  const decoded = r.kind === "token" ? await decodeAnyShareToken(r.token) : undefined;
+  if (!decoded?.ok) return { title: "Share unavailable", robots: { index: false, follow: false } };
+  const copy = shareCopy(decoded.snapshot);
+  // Workers branch previews have their own KV and renderer. A preview must not
+  // advertise the production image for an id that exists only in preview KV.
+  const host = (await headers()).get("host");
+  const origin = host && /^[a-z0-9.-]+\.workers\.dev$/i.test(host) ? `https://${host}` : undefined;
+  const image = origin ? `${origin}${shareImagePath(r.path)}` : absoluteUrl(shareImagePath(r.path));
+  const url = origin ? `${origin}${r.path}` : absoluteUrl(r.path);
   return {
-    title: "A coding recap",
-    description: "AI coding in numbers. Shared by its creator.",
-    robots: { index: false, follow: false },
-    openGraph: { images: [{ url: `${r.path}/image`, width: 1200, height: 630 }] },
-    twitter: { card: "summary_large_image", images: [`${r.path}/image`] },
+    title: { absolute: copy.title.replace(" · stackreplay.com", " · StackReplay") },
+    description: copy.description,
+    robots: { index: true, follow: true, "max-image-preview": "large" },
+    openGraph: {
+      type: "website",
+      siteName: "StackReplay",
+      url,
+      title: copy.title,
+      description: copy.description,
+      images: [{ url: image, width: 1200, height: 630, type: "image/png", alt: copy.title }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: copy.title,
+      description: copy.description,
+      images: [{ url: image, alt: copy.title }],
+    },
   };
 }
 export default async function SharePage({ params }: Props) {
@@ -51,7 +75,7 @@ export default async function SharePage({ params }: Props) {
       </div>
       <img
         className="public-terminal-card"
-        src={`${resolved.path}/image`}
+        src={shareImagePath(resolved.path)}
         width={1200}
         height={630}
         alt={`StackReplay card${tokens !== undefined ? `: ${compact(tokens)} tokens` : ""}${usd !== undefined ? `, ${dollars(usd)} API value` : ""}`}
@@ -64,7 +88,7 @@ export default async function SharePage({ params }: Props) {
         Logs and project names stay on their device.
       </p>
       <div className="card-actions">
-        <Link className="btn" href={`${resolved.path}/image`} download>
+        <Link className="btn" href={shareImagePath(resolved.path)} download>
           Download this card
         </Link>
         <Link className="btn primary" href="/app/scan" data-testid="share-cta">
