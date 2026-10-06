@@ -104,5 +104,5 @@ test("temporary workloads survive client-side handoff without being persisted", 
   await waitForWorkload(page);
   await expect(page.getByTestId("recap-value").locator(".v")).toHaveText(/^\$[\d,]+$/u);
   await page.reload();
-  await expect(page.getByRole("alert")).toContainText("no longer stored");
+  await expect(page.getByRole("main").getByRole("alert")).toContainText("no longer stored");
 });

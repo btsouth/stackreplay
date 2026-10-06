@@ -371,8 +371,8 @@ test.describe("share links", () => {
     // An older link opens the shared recap page with only the aggregates it carries.
     await expect(page.getByTestId("share-card-v2")).toBeVisible();
     await expect(page.getByRole("heading", { level: 1 })).toContainText("AI coding, in numbers");
-    await expect(page.getByTestId("share-tokens")).toHaveText("24.5M");
-    await expect(page.getByTestId("share-figure")).toHaveText("Value unreported");
+    await expect(page.getByTestId("share-tokens")).toHaveText("24.5M tokens");
+    await expect(page.getByTestId("share-figure")).toHaveText("Value not shared");
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
       true,
     );

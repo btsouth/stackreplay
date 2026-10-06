@@ -72,7 +72,7 @@ test("empty history offers one scan action", async ({ page }) => {
 test("the legacy Stats URL keeps every query parameter", async ({ page }) => {
   await page.goto("/app/stats?period=all&import=missing&tag=a&tag=b");
   await expect(page).toHaveURL(/\/app\/recap\?period=all&import=missing&tag=a&tag=b/);
-  await expect(page.getByRole("alert")).toContainText("no longer stored");
+  await expect(page.getByRole("main").getByRole("alert")).toContainText("no longer stored");
 });
 test("Settings plan prices drive the opt-in paid comparison", async ({ page }) => {
   await page.clock.install({ time: new Date("2026-10-04T12:00:00Z") });

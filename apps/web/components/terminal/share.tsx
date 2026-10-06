@@ -150,13 +150,14 @@ export function TerminalShare({
           </div>
         ))}
       </div>
-      <div className="toggles" aria-label="Card stats">
+      <div className="toggles" role="group" aria-label="Card stats">
         {toggles.map(([key, label]) => (
           <button
             key={key}
             type="button"
             className={`tg${selected[key] ? " on" : ""}`}
             aria-pressed={selected[key]}
+            aria-label={label.toUpperCase()}
             disabled={
               (key === "paidMultiplier" && !paid) || (key === "github" && github === undefined)
             }

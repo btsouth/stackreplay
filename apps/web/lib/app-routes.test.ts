@@ -10,7 +10,7 @@ describe("removed app pages", () => {
   });
   it("sends replay, compare and workload to Stats and import to Scan", () => {
     for (const route of ["replay", "compare", "workload"] as const)
-      expect(removedAppDestination(route, {})).toBe("/app/stats");
+      expect(removedAppDestination(route, {})).toBe("/app/recap");
     expect(removedAppDestination("import", {})).toBe("/app/scan");
   });
   it("keeps the period when the destination reads it", () => {
@@ -37,7 +37,7 @@ describe("removed app pages", () => {
       }),
       origin,
     );
-    expect(result.pathname).toBe("/app/stats");
+    expect(result.pathname).toBe("/app/recap");
     expect([...result.searchParams]).toEqual([
       ["import", "local id"],
       ["period", "30"],
@@ -52,7 +52,7 @@ describe("removed app pages", () => {
     );
   });
   it("only points at pages that stay", () => {
-    const staying = ["/app/stats", "/app/scan", "/app/settings"];
+    const staying = ["/app/recap", "/app/scan", "/app/settings"];
     for (const { to } of Object.values(removedAppRoutes)) expect(staying).toContain(to);
   });
 });
