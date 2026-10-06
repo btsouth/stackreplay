@@ -55,20 +55,16 @@ export async function importDemo(page: Page, preset: DemoPreset): Promise<void> 
 /** Follows the automatic recap handoff to the legacy workload assertions. */
 export async function waitForWorkload(page: Page): Promise<void> {
   await expect(page).toHaveURL(/\/app\/(?:recap|stats)\?import=/u, { timeout: 60_000 });
-  if (new URL(page.url()).pathname === "/app/recap") {
-    // Historical billing fixtures can fall outside the recap default period.
-    await page.getByRole("radio", { name: "All time", exact: true }).check();
-    await expect(page.getByTestId("recap-ready")).toHaveAttribute("data-period", "all", {
-      timeout: 60_000,
-    });
-    // Native link activation retains the temporary worker without repeating a
-    // full-page animated scroll in every domain fixture. Flow tests use input.
-    await page
-      .getByRole("link", { name: "Explore your stats" })
-      .evaluate((link: HTMLAnchorElement) => link.click());
-  }
-  await expect(page).toHaveURL(/\/app\/stats\?import=/u);
-  await expect(page.getByTestId("recap-ready")).toBeVisible({ timeout: 60_000 });
+  // Historical fixtures can fall outside the default period. The overview is continuous.
+  const all = page.getByRole("radio", { name: "All time", exact: true });
+  await all
+    .or(page.getByRole("button", { name: "ALL", exact: true }))
+    .first()
+    .click();
+  await expect(page).toHaveURL(/\/app\/recap\?import=/u);
+  await expect(page.getByTestId("recap-ready")).toHaveAttribute("data-period", "all", {
+    timeout: 60_000,
+  });
 }
 
 /** Client navigation preserves intentionally temporary workloads in the worker. */

@@ -60,10 +60,9 @@ for (const archive of [false, true]) {
           ],
     );
     await waitForWorkload(page);
-    await page.getByRole("tab", { name: "Tools" }).click();
-    await expect(page.getByRole("table", { name: "Tools in this period" })).toContainText(
-      "OpenCode",
-    );
+    await expect(
+      page.locator("#section-06 .lcol").filter({ has: page.getByText("Tools", { exact: true }) }),
+    ).toContainText("OpenCode");
     await page.reload();
     await expect(page.getByTestId("recap-ready")).toBeVisible({ timeout: 60_000 });
     // Nothing is assumed about what the person pays.
@@ -100,8 +99,9 @@ test("OpenCode and Command Code appear as independent tools in Stats", async ({ 
     },
   ]);
   await waitForWorkload(page);
-  await page.getByRole("tab", { name: "Tools" }).click();
-  const tools = page.getByRole("table", { name: "Tools in this period" });
+  const tools = page
+    .locator("#section-06 .lcol")
+    .filter({ has: page.getByText("Tools", { exact: true }) });
   await expect(tools).toContainText("OpenCode");
   await expect(tools).toContainText("Command Code");
 });

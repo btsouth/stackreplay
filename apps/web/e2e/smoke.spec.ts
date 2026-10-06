@@ -9,16 +9,13 @@ test("the app entry opens Scan on a first visit, with working navigation", async
   await expect(page.getByRole("heading", { name: "Scan your history", exact: true })).toBeVisible();
   await expect(page.getByRole("banner")).toBeVisible();
   await expect(
-    page.getByRole("banner").getByRole("link", { name: "StackReplay home" }),
+    page.getByRole("banner").getByRole("link", { name: "StackReplay overview" }),
   ).toBeVisible();
 
   if (testInfo.project.name === "desktop") {
-    const nav = page.getByRole("navigation", { name: "Primary" });
-    await expect(nav.getByRole("link")).toHaveCount(4);
-    await expect(nav.getByRole("link", { name: "Scan my history" })).toHaveAttribute(
-      "href",
-      "/app/scan",
-    );
+    const nav = page.getByRole("navigation", { name: "App navigation" });
+    await expect(nav.getByRole("link")).toHaveCount(2);
+    await expect(page.getByRole("link", { name: "RESCAN" })).toHaveAttribute("href", "/app/scan");
   }
 });
 
@@ -42,22 +39,17 @@ test("public and workspace content keep safe gutters", async ({ page }, testInfo
   }
 });
 
-test("Scan and Settings provide a route on into Stats", async ({ page }, testInfo) => {
+test("Scan and Settings provide a route into the overview", async ({ page }) => {
   for (const route of ["/app/scan", "/app/settings"]) {
     await page.goto(route);
     await expect(
-      page.getByRole("banner").getByRole("link", { name: "StackReplay home" }),
-    ).toHaveAttribute("href", "/");
-    if (testInfo.project.name === "mobile") {
-      await page.getByRole("button", { name: "Open menu" }).click();
-      await page.getByRole("dialog").getByRole("link", { name: "Stats", exact: true }).click();
-    } else {
-      await page
-        .getByRole("navigation", { name: "Primary" })
-        .getByRole("link", { name: "Stats" })
-        .click();
-    }
-    await expect(page).toHaveURL(/\/app\/stats$/);
+      page.getByRole("banner").getByRole("link", { name: "StackReplay overview" }),
+    ).toHaveAttribute("href", "/app/recap");
+    await page
+      .getByRole("navigation", { name: "App navigation" })
+      .getByRole("link", { name: "OVERVIEW", exact: true })
+      .click();
+    await expect(page).toHaveURL(/\/app\/recap$/);
   }
 });
 
@@ -94,33 +86,15 @@ test("theme toggle switches and persists across reloads", async ({ page }) => {
   await expect(html).not.toHaveClass(/dark/);
 });
 
-test("mobile drawer navigation works and closes on navigate", async ({ page }, testInfo) => {
-  test.skip(testInfo.project.name !== "mobile", "mobile viewport only");
-  await page.goto("/app/scan");
-
-  await page.getByRole("button", { name: "Open menu" }).click();
-  const dialog = page.getByRole("dialog");
-  await expect(dialog).toBeVisible();
-
-  await dialog.getByRole("link", { name: "Settings", exact: true }).click();
-  await expect(page).toHaveURL(/\/app\/settings$/);
-  await expect(page.getByRole("heading", { name: "Settings", exact: true })).toBeVisible();
-  await expect(page.getByRole("dialog")).toBeHidden();
-
-  // Reopen: the drawer marks the current section.
-  await page.getByRole("button", { name: "Open menu" }).click();
-  await expect(
-    page.getByRole("dialog").getByRole("link", { name: "Settings", exact: true }),
-  ).toHaveAttribute("aria-current", "page");
-});
-
-test("desktop keeps the workspace navigation", async ({ page }, testInfo) => {
-  test.skip(testInfo.project.name !== "desktop", "desktop viewport only");
+test("the app keeps its navigation visible on mobile and desktop", async ({ page }) => {
   await page.goto("/app/stats");
-  const nav = page.getByRole("navigation", { name: "Primary" });
-  await expect(nav.getByRole("link", { name: "Stats" })).toHaveAttribute("aria-current", "page");
-  await expect(nav.getByRole("link", { name: "Plans" })).toHaveCount(0);
-  await expect(page.getByRole("button", { name: "Open menu" })).toBeHidden();
+  await expect(page).toHaveURL(/\/app\/recap$/);
+  const nav = page.getByRole("navigation", { name: "App navigation" });
+  await expect(nav.getByRole("link", { name: "OVERVIEW" })).toHaveAttribute("aria-current", "page");
+  await nav.getByRole("link", { name: "SETTINGS" }).click();
+  await expect(page.getByRole("heading", { name: "Settings", exact: true })).toBeVisible();
+  await expect(nav.getByRole("link", { name: "SETTINGS" })).toHaveAttribute("aria-current", "page");
+  await expect(page.getByRole("button", { name: "Open menu" })).toHaveCount(0);
 });
 
 test("internal design surface does not claim a navigation section", async ({ page }, testInfo) => {
@@ -170,61 +144,19 @@ test("invalid stored theme falls back to system", async ({ page }) => {
   await expect(page.locator("html")).toHaveClass(/dark/);
 });
 
-test("all workspace routes have a matching heading and navigation state", async ({
-  page,
-}, info) => {
+test("app routes have matching headings and navigation state", async ({ page }) => {
   for (const [path, label, heading] of [
-    ["/app/stats", "Stats", "Your stats"],
-    ["/app/settings", "Settings", "Settings"],
+    ["/app/recap", "OVERVIEW", "Your AI coding, all of it."],
+    ["/app/settings", "SETTINGS", "Settings"],
   ] as const) {
     await page.goto(path);
     await expect(page.getByRole("heading", { name: heading, exact: true })).toBeVisible();
-    if (info.project.name === "mobile")
-      await page.getByRole("button", { name: "Open menu" }).click();
-    const nav =
-      info.project.name === "mobile"
-        ? page.getByRole("dialog").getByRole("navigation", { name: "Primary" })
-        : page.getByRole("navigation", { name: "Primary" });
-    await expect(nav.getByRole("link", { name: label, exact: true })).toHaveAttribute(
-      "aria-current",
-      "page",
-    );
+    await expect(
+      page
+        .getByRole("navigation", { name: "App navigation" })
+        .getByRole("link", { name: label, exact: true }),
+    ).toHaveAttribute("aria-current", "page");
   }
-});
-
-test("mobile drawer traps focus, dismisses, and adapts to desktop", async ({ page }, info) => {
-  test.skip(info.project.name !== "mobile", "mobile viewport only");
-  await page.goto("/app/scan");
-  const trigger = page.getByRole("button", { name: "Open menu" });
-  await trigger.click();
-  const dialog = page.getByRole("dialog");
-  await expect(dialog).toBeVisible();
-  await expect(dialog.getByRole("link", { name: "StackReplay home" })).toBeVisible();
-  for (const route of ["Recap", "Stats", "Settings", "Scan my history"])
-    await expect(dialog.getByRole("link", { name: route, exact: true })).toBeVisible();
-  // Base UI transfers focus through an offscreen guard asynchronously.
-  await expect.poll(() => dialog.evaluate((el) => el.contains(document.activeElement))).toBe(true);
-  for (let i = 0; i < 10; i++) {
-    await page.keyboard.press("Tab");
-    await expect
-      .poll(() => dialog.evaluate((el) => el.contains(document.activeElement)))
-      .toBe(true);
-  }
-  await page.keyboard.press("Escape");
-  await expect(dialog).toBeHidden();
-  await expect(trigger).toBeFocused();
-  for (const theme of ["light", "dark"] as const) {
-    await page.emulateMedia({ colorScheme: theme, reducedMotion: "reduce" });
-    await page.reload();
-    await trigger.click();
-    expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
-    await page.getByRole("button", { name: "Close menu" }).click();
-    await expect(trigger).toBeFocused();
-  }
-  await trigger.click();
-  await page.setViewportSize({ width: 1280, height: 800 });
-  await expect(dialog).toBeHidden();
-  await expect(page.getByRole("navigation", { name: "Primary" })).toBeVisible();
 });
 
 test("mobile controls have touch-sized targets and narrow layouts fit", async ({ page }, info) => {

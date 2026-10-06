@@ -88,8 +88,10 @@ test("a delayed storage lookup never appears empty or sends the recap through Sc
   await expect(page.getByTestId("stored-imports")).toBeVisible();
 
   await page.goto((workloadHref ?? "/app/recap").replace("/app/recap", "/app/stats"));
-  await expect(page.getByTestId("workload-restoring")).toBeVisible();
-  await expect(page.getByTestId("workload-empty")).toHaveCount(0);
+  await expect(
+    page.getByRole("status").filter({ hasText: "Calculating your overview" }),
+  ).toBeVisible();
+  await expect(page.getByTestId("recap-empty")).toHaveCount(0);
   await expect(page.getByTestId("recap-ready")).toBeVisible({ timeout: 60_000 });
 });
 

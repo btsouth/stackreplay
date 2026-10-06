@@ -58,9 +58,9 @@ test("old links to removed pages land on a page that stays", async ({ request })
   const landings: Record<string, string> = {
     "/app/plans?period=90": "/app/settings",
     "/app/stack": "/app/settings",
-    "/app/replay": "/app/stats",
-    "/app/compare": "/app/stats",
-    "/app/workload": "/app/stats",
+    "/app/replay": "/app/recap",
+    "/app/compare": "/app/recap",
+    "/app/workload": "/app/recap",
     "/app/import": "/app/scan",
   };
   for (const [from, to] of Object.entries(landings)) {

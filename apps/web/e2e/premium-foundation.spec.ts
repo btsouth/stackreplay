@@ -17,9 +17,9 @@ const legacyQuery = () => {
 };
 
 for (const [source, destination] of [
-  ["workload", "stats"],
-  ["replay", "stats"],
-  ["compare", "stats"],
+  ["workload", "recap"],
+  ["replay", "recap"],
+  ["compare", "recap"],
   ["import", "scan"],
 ] as const) {
   test(`legacy ${source} keeps query values and fragment`, async ({ page }) => {
@@ -55,18 +55,11 @@ test("saved and temporary scans keep a path through recap, Stats and Settings", 
     buffer: Buffer.from(JSON.stringify(buildDemoExport("moderate"))),
   });
   await expect(page.getByTestId("recap-ready")).toBeVisible({ timeout: 60000 });
-  await page.getByRole("link", { name: "Explore your stats" }).click();
-  await expect(page).toHaveURL(/\/app\/stats\?import=/u);
-  await expect(page.getByTestId("recap-ready")).toBeVisible();
-  // Client links retain the in-memory import. A full page navigation would intentionally discard it.
-  if (
-    !(await page
-      .getByRole("banner")
-      .getByRole("link", { name: "Settings", exact: true })
-      .isVisible())
-  )
-    await page.getByRole("button", { name: "Open menu" }).click();
-  await page.getByRole("link", { name: "Settings", exact: true }).filter({ visible: true }).click();
+  // Client navigation retains the temporary import.
+  await page
+    .getByRole("navigation", { name: "App navigation" })
+    .getByRole("link", { name: "SETTINGS", exact: true })
+    .click();
   await expect(page.getByTestId("settings-saved")).toContainText("Temporary, until reload");
 });
 
@@ -129,7 +122,7 @@ test("public and app mobile menus trap focus, close on Escape and return focus",
   page,
 }) => {
   await page.setViewportSize({ width: 390, height: 844 });
-  for (const path of ["/", "/app/scan"]) {
+  for (const path of ["/"]) {
     await page.goto(path);
     const trigger = page.getByRole("button", { name: "Open menu" });
     await trigger.click();
