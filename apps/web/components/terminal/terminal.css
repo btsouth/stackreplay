@@ -2147,3 +2147,7 @@
     display: none;
   }
 }
+
+.terminal .app-scan .sr-find-machine {
+  display: block;
+}

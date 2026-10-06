@@ -208,7 +208,12 @@ export function Overview({
                     REFRESH
                   </button>
                   ·{" "}
-                  <button className="text-button" type="button" onClick={gh.disconnect}>
+                  <button
+                    className="text-button"
+                    type="button"
+                    aria-label="Disconnect"
+                    onClick={gh.disconnect}
+                  >
                     DISCONNECT
                   </button>
                 </span>
