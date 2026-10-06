@@ -6,6 +6,7 @@ import { resolveShareParam } from "@/lib/share-link-store";
 import { sharedRecap } from "@/lib/shared-recap";
 import { compact, dollars } from "@/lib/terminal-presentation";
 import "@/components/terminal/terminal.css";
+
 interface Props {
   params: Promise<{ token: string }>;
 }

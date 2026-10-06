@@ -14,6 +14,7 @@ export function TerminalLandscape({
     dim = dark ? "#8d9691" : "#5c625e",
     signal = dark ? "#ff6a1f" : "#e24e00";
   const layout = cardLayout(card, "landscape");
+  const spark = card.spark?.map((value, slot) => ({ value, slot }));
   return (
     <div
       style={{
@@ -39,7 +40,7 @@ export function TerminalLandscape({
         }}
       />
       {layout.spark &&
-        card.spark?.map((v, i) => (
+        spark?.map(({ value: v, slot: i }) => (
           <div
             key={i}
             style={{
@@ -81,12 +82,13 @@ export function TerminalLandscape({
               color: t.signal ? signal : t.dim ? dim : fg,
             }}
           >
-            {parts.map((part, i) => (
-              <span key={i} style={{ display: "flex" }}>
-                {i > 0 && <span style={{ marginLeft: "-0.12em", marginRight: "-0.12em" }}>.</span>}
-                {part}
+            <span style={{ display: "flex" }}>{parts[0]}</span>
+            {parts.length > 1 && (
+              <span style={{ display: "flex" }}>
+                <span style={{ marginLeft: "-0.12em", marginRight: "-0.12em" }}>.</span>
+                {parts[1]}
               </span>
-            ))}
+            )}
           </div>
         );
       })}

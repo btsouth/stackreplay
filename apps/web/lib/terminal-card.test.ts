@@ -3,7 +3,7 @@ import { buildArchetypeExport } from "@stackreplay/test-fixtures";
 import { describe, expect, it } from "vitest";
 import { buildRecap } from "./recap";
 import { terminalShareV2 } from "./share-v2";
-import { DEFAULT_SELECTIONS, makeCard, cardLayout, CARD_SIZES } from "./terminal-card";
+import { CARD_SIZES, cardLayout, DEFAULT_SELECTIONS, makeCard } from "./terminal-card";
 
 const recap = buildRecap(
   buildArchetypeExport("mixed").events,

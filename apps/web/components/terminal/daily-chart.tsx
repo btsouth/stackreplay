@@ -34,7 +34,7 @@ export function DailyChart({
   const slot = (width - left) / Math.max(1, days.length),
     bw = Math.max(0.25, slot * 0.73),
     peak = days.reduce((p, d, i) => (d.value > (days[p]?.value ?? 0) ? i : p), 0);
-  const ticks = [0, Math.floor((days.length - 1) / 2), days.length - 1];
+  const ticks = [...new Set([0, Math.floor((days.length - 1) / 2), days.length - 1])];
   return (
     <div ref={ref} className="chart-area">
       <svg
@@ -99,7 +99,7 @@ export function DailyChart({
         )}
         {ticks.map((i, k) => (
           <text
-            key={k}
+            key={i}
             className="axis"
             x={left + i * slot}
             y={h - 3}

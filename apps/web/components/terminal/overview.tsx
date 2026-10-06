@@ -1,27 +1,29 @@
 "use client";
 import Link from "next/link";
-import { useMemo, useState } from "react";
 import type { CSSProperties } from "react";
+import { useMemo, useState } from "react";
 import { PartialScanNotice } from "@/components/import/evidence";
+import { combinedActivity } from "@/lib/github-activity";
 import type { Recap, RecapPeriod } from "@/lib/recap";
 import { developerNames, harnessNames, providerNames } from "@/lib/recap-names";
 import {
   compact,
   dateLabel,
-  dollars,
   dollarRate,
+  dollars,
   integer,
   modelName,
   presentation,
 } from "@/lib/terminal-presentation";
-import { combinedActivity } from "@/lib/github-activity";
 import { useGitHubActivity } from "@/lib/use-github-activity";
 import type { PaidFigure } from "@/lib/use-paid-multiplier";
-import { isSyntheticWorkload } from "@/lib/workload-kind";
 import type { ImportRecord } from "@/lib/worker-protocol";
+import { isSyntheticWorkload } from "@/lib/workload-kind";
 import { DailyChart } from "./daily-chart";
 import { BarList, Readout, Section, TightNumber } from "./primitives";
 import { TerminalShare } from "./share";
+
+const HOURS = Array.from({ length: 24 }, (_, hour) => hour);
 
 export function Overview({
   recap: r,
@@ -304,6 +306,7 @@ export function Overview({
                   {name(s.id)}
                 </div>
                 <div
+                  role="img"
                   className="strack"
                   aria-label={`${s.p25.toFixed(1)} to ${s.p75.toFixed(1)} tokens per second`}
                 >
@@ -459,7 +462,7 @@ export function Overview({
                 })}
               </tbody>
             </table>
-            <div className="mobile-models" role="group" aria-label="Models in this period">
+            <section className="mobile-models" aria-label="Models in this period">
               {p.top.map((m) => {
                 const speed = p.speeds.find((s) => s.id === m.id);
                 const first = r.deep?.firstSeen.find((f) => f.id === m.id);
@@ -492,7 +495,7 @@ export function Overview({
                   </div>
                 );
               })}
-            </div>
+            </section>
             {p.tail.length > 0 && (
               <div className="tail">
                 <span className="label">+ {p.tail.length} more</span>
@@ -566,7 +569,7 @@ export function Overview({
               {[1, 2, 3, 4, 5, 6, 0].map((d, i) => (
                 <div className="heat-row" key={d}>
                   {<div className="hd">{["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"][i]}</div>}
-                  {Array.from({ length: 24 }, (_, h) => (
+                  {HOURS.map((h) => (
                     <div
                       className="hc"
                       key={h}
@@ -581,7 +584,7 @@ export function Overview({
             </div>
             <div className="hticks">
               <span />
-              {Array.from({ length: 24 }, (_, h) => (
+              {HOURS.map((h) => (
                 <span key={h}>{h % 3 === 0 ? String(h).padStart(2, "0") : ""}</span>
               ))}
             </div>
@@ -607,6 +610,7 @@ export function Overview({
           <BarList
             label="Tools"
             rows={(r.deep?.harnesses ?? r.tools).map((t) => ({
+              id: t.id,
               name: harnessNames[t.id] ?? t.id,
               total: t.total,
             }))}
@@ -614,6 +618,7 @@ export function Overview({
           <BarList
             label="Served by"
             rows={(r.deep?.providers ?? []).map((t) => ({
+              id: t.id,
               name: providerNames[t.id] ?? t.id,
               total: t.total,
             }))}
@@ -621,6 +626,7 @@ export function Overview({
           <BarList
             label="Projects · private"
             rows={(r.deep?.projects ?? []).map((t, i) => ({
+              id: t.hash,
               name: labels.get(t.hash) ?? `Local project ${i + 1}`,
               total: t.total,
             }))}

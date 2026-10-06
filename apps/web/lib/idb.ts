@@ -4,12 +4,12 @@ import {
   LOCAL_DATABASE_VERSION as DATABASE_VERSION,
   IMPORTS_STORE,
   PAYLOADS_STORE,
-  WORKLOAD_RESULTS_STORE,
   RECAP_INDEXES_STORE,
+  WORKLOAD_RESULTS_STORE,
 } from "./local-database";
 import { decodeLocalPayload, encodeLocalPayloadWithMetadata, isBlobPayload } from "./local-payload";
-import type { ImportRecord } from "./worker-protocol";
 import type { RecapIndex } from "./recap-index";
+import type { ImportRecord } from "./worker-protocol";
 
 /**
  * Browser-local persistence (M3 brief).

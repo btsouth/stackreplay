@@ -3,9 +3,8 @@ import type { CatalogV1 } from "@stackreplay/catalog";
 import { loadBundledCatalog } from "@stackreplay/catalog/bundled";
 import { Decimal, moneyUnitsForUsage, replayObservingQuotes } from "@stackreplay/replay-engine";
 import type { TextUsageEventV1 } from "@stackreplay/schema";
-
-import { deepRecap, type RecapDeep } from "./recap-deep";
 import { localCalendar, nextDay } from "./recap-calendar";
+import { deepRecap, type RecapDeep } from "./recap-deep";
 
 export type RecapPeriod = "30" | "90" | "all";
 export interface RecapModel {

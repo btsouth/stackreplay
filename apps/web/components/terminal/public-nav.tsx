@@ -1,11 +1,11 @@
 "use client";
 import { Dialog } from "@stackreplay/ui/components/dialog";
+import { catalogNavItems } from "@stackreplay/ui/lib/public-nav";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { catalogNavItems } from "@stackreplay/ui/lib/public-nav";
-import { TerminalBrand } from "./brand";
 import { LocalWorkloadAction } from "@/components/local-workload-action";
+import { TerminalBrand } from "./brand";
 
 const items = [
   { label: "Overview", href: "/app/recap" },
@@ -25,6 +25,7 @@ export function TerminalPublicNav() {
     desktop.addEventListener("change", close);
     return () => desktop.removeEventListener("change", close);
   }, []);
+  // biome-ignore lint/correctness/useExhaustiveDependencies: every navigation closes the menu.
   useEffect(() => setOpen(false), [pathname]);
   const active = (href: string) =>
     href === "/models"

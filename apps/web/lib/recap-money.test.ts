@@ -1,6 +1,7 @@
-import { describe, expect, it } from "vitest";
 import { addAmounts } from "@stackreplay/share/money";
+import { describe, expect, it } from "vitest";
 import { addRecapMoney } from "./recap-money";
+
 describe("recap aggregate money", () => {
   it("matches exact sums across the schema's decimal envelope", () => {
     const values = [

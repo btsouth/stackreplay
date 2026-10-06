@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import { SamplePreview } from "@/components/terminal/sample-preview";
 import { RecapSurface } from "@/components/recap/recap-surface";
+import { SamplePreview } from "@/components/terminal/sample-preview";
 export const metadata: Metadata = {
   title: "Your coding recap",
   robots: { index: false, follow: false },

@@ -5,9 +5,9 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { AppPageSkeleton } from "@/components/app/app-page-state";
 import { formatBytes } from "@/components/import/large-history-note";
+import { listHistoryMetadata } from "@/lib/local-history";
 import { themeStorageKey } from "@/lib/theme";
 import { getWorkerClient } from "@/lib/worker-client";
-import { listHistoryMetadata } from "@/lib/local-history";
 import type { ImportRecord } from "@/lib/worker-protocol";
 
 /** Export preserves the worker's exact serialized bytes; deletion is per scan. */

@@ -53,5 +53,9 @@ if (existing === next) {
   console.log(`wrote bundled catalog snapshot (${catalog.catalogVersion})`);
 }
 
-const metadata = `/** GENERATED from the bundled catalog; labels and version only. */\nexport const BUNDLED_CATALOG_VERSION = ${JSON.stringify(catalog.catalogVersion)};\nexport const MODEL_NAMES: Record<string, string> = ${JSON.stringify(Object.fromEntries(Object.values(catalog.models).map((m) => [m.id, m.name])), null, 2)};\n`;
+const modelNames = Object.values(catalog.models).map((model) => {
+  const key = /^[A-Za-z_$][\w$]*$/.test(model.id) ? model.id : JSON.stringify(model.id);
+  return `  ${key}: ${JSON.stringify(model.name)},`;
+});
+const metadata = `/** GENERATED from the bundled catalog; labels and version only. */\nexport const BUNDLED_CATALOG_VERSION =\n  ${JSON.stringify(catalog.catalogVersion)};\nexport const MODEL_NAMES: Record<string, string> = {\n${modelNames.join("\n")}\n};\n`;
 await writeFile(join(packageRoot, "src", "metadata.ts"), metadata, "utf8");

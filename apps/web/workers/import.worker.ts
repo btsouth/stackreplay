@@ -1,7 +1,5 @@
 /// <reference lib="webworker" />
 
-import { buildRecapIndex } from "../lib/recap-index";
-
 import {
   type BrowserCandidate,
   BrowserIntakeBudget,
@@ -27,6 +25,7 @@ import {
   validateExportText,
   validateExportValue,
 } from "../lib/import-validation";
+import { buildRecapIndex } from "../lib/recap-index";
 import {
   type ImportRecord,
   isSafeErrorCode,

@@ -1,8 +1,8 @@
-import { addRecapMoney } from "./recap-money";
 import type { Recap, RecapModel, RecapPeriod } from "./recap";
 import { localCalendar, nextDay } from "./recap-calendar";
 import type { RecapDeep } from "./recap-deep";
 import type { RecapIndex, RecapIndexDay } from "./recap-index";
+import { addRecapMoney } from "./recap-money";
 import { quantile } from "./recap-quantile";
 
 type Ordered<T> = T & { order: number };

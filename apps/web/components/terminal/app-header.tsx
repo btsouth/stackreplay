@@ -1,15 +1,16 @@
 "use client";
 import Link from "next/link";
-import { TerminalBrand } from "./brand";
-import { listHistoryMetadata } from "@/lib/local-history";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
+import { listHistoryMetadata } from "@/lib/local-history";
 import { themeStorageKey } from "@/lib/theme";
+import { TerminalBrand } from "./brand";
 
 export function TerminalHeader() {
   const path = usePathname();
   const [scanned, setScanned] = useState<string>();
   const [ready, setReady] = useState(false);
+  // biome-ignore lint/correctness/useExhaustiveDependencies: navigation refreshes the last-scan label.
   useEffect(() => {
     let active = true;
     setReady(true);
