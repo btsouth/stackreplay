@@ -127,6 +127,46 @@ for (const theme of [
   }
 }
 
+// The app has an isolated terminal palette; check the colors it actually renders.
+const terminalCss = readFileSync(
+  join(here, "..", "..", "apps", "web", "components", "terminal", "terminal.css"),
+  "utf8",
+);
+for (const [theme, selector] of [
+  ["dark", ".dark .terminal"],
+  ["light", ".terminal {\n  --bg:"],
+]) {
+  const open = terminalCss.indexOf("{", terminalCss.indexOf(selector));
+  const body = terminalCss.slice(open, terminalCss.indexOf("}", open));
+  const tokens = Object.fromEntries(
+    [...body.matchAll(/--([a-z-]+):\s*(#[a-f0-9]{6})/g)].map((m) => [m[1], m[2]]),
+  );
+  const rgb = (hex) => [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255);
+  const ratio = (a, b) => {
+    const values = [relativeLuminance(rgb(a)), relativeLuminance(rgb(b))].sort((a, b) => b - a);
+    return (values[0] + 0.05) / (values[1] + 0.05);
+  };
+  console.log(`\n${theme} terminal theme`);
+  for (const [fg, bg, min] of [
+    ["fg", "bg", 7],
+    ["fg", "panel", 7],
+    ["dim", "bg", 4.5],
+    ["dim", "panel", 4.5],
+    ["signal-text", "bg", 4.5],
+    ["signal-text", "panel", 4.5],
+  ]) {
+    const value = ratio(tokens[fg], tokens[bg]);
+    const ok = value >= min;
+    if (!ok) failed++;
+    console.log(`  ${ok ? "pass" : "FAIL"} ${value.toFixed(2)} : 1 (min ${min}) ${fg} on ${bg}`);
+  }
+  const primary = ratio("#120800", tokens.signal);
+  if (primary < 4.5) failed++;
+  console.log(
+    `  ${primary >= 4.5 ? "pass" : "FAIL"} ${primary.toFixed(2)} : 1 (min 4.5) primary button label`,
+  );
+}
+
 if (failed > 0) {
   console.error(`\n${failed} contrast check(s) failed.`);
   process.exit(1);

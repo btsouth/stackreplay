@@ -8,7 +8,7 @@ export const FAMILIES: Record<string, string> = {
   xiaomi: "#f4c44e",
   alibaba: "#ff7aa8",
   meta: "#9aa7b8",
-  other: "#7d8790",
+  other: "#5d6670",
   google: "#f4c44e",
   xai: "#9aa7b8",
 };
@@ -26,7 +26,7 @@ export function compact(n: number): string {
     if (n >= unit) {
       const value = Number((n / unit).toPrecision(3));
       if (value >= 1000) return compact(value * unit);
-      return `${value}${suffix}`;
+      return `${value.toFixed(value < 10 ? 2 : value < 100 ? 1 : 0)}${suffix}`;
     }
   }
   return integer(n);

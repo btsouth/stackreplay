@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { compact } from "@/lib/terminal-presentation";
 export function Section({
   number,
   title,
@@ -64,12 +65,7 @@ export function BarList({
         rows.map((r, i) => (
           <div className="li" key={`${r.name}-${i}`}>
             <span className="ln">{r.name}</span>
-            <span className="lv">
-              {new Intl.NumberFormat("en-US", {
-                notation: "compact",
-                maximumSignificantDigits: 3,
-              }).format(r.total)}
-            </span>
+            <span className="lv">{compact(r.total)}</span>
             <div className="lb">
               <div style={{ width: `${(r.total / max) * 100}%` }} />
             </div>
