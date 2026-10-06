@@ -1384,10 +1384,16 @@
 }
 .terminal .sr-scan {
   background: var(--panel);
-  border-color: var(--line);
+  border: 1px solid var(--line);
   border-radius: 3px;
   box-shadow: none;
+  padding: 20px 24px 24px;
   --sr-signal: var(--signal);
+}
+@media (max-width: 640px) {
+  .terminal .sr-scan {
+    padding: 16px;
+  }
 }
 .terminal .sr-scan *,
 .terminal .sr-micro {
