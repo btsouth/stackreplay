@@ -1,4 +1,3 @@
-import { bundledModelIdentity, loadBundledCatalog } from "@stackreplay/catalog/bundled";
 import {
   canonicalStringify,
   decodeAnyShareToken,
@@ -10,7 +9,7 @@ import {
 } from "@stackreplay/share";
 import { buildArchetypeExport } from "@stackreplay/test-fixtures";
 import { describe, expect, it } from "vitest";
-import { runScopedReplay } from "./scoped-replay";
+import { buildRecap } from "./recap";
 import {
   createShareLink,
   isShareId,
@@ -19,11 +18,7 @@ import {
   resolveShareLink,
   type ShareLinkStore,
 } from "./share-links";
-import { replayShareV2, workloadShareV2 } from "./share-v2";
-import { verdictOfOutcome } from "./verdict-facts";
-import type { ImportRecord } from "./worker-protocol";
-import { buildWorkloadProfile } from "./workload-profile";
-import { summarizeExport } from "./workload-summary";
+import { recapShareV2 } from "./share-v2";
 
 /**
  * Short share links store one thing: the canonical aggregate V2 share token.
@@ -32,9 +27,7 @@ import { summarizeExport } from "./workload-summary";
  * call records, and that the server refuses anything shaped otherwise.
  */
 
-const catalog = loadBundledCatalog();
-const identity = bundledModelIdentity();
-const RULES = "2026-09-24";
+const NOW = "2026-09-24T12:00:00Z";
 
 function memoryStore(): ShareLinkStore & { values: Map<string, string> } {
   const values = new Map<string, string>();
@@ -49,7 +42,7 @@ function memoryStore(): ShareLinkStore & { values: Map<string, string> } {
 
 const request = (token: string) => JSON.stringify({ token });
 
-/** A mixed workload whose local names are distinctive markers, built once per file. */
+/** A mixed history whose local names are distinctive markers, built once per file. */
 let marked: ReturnType<typeof buildMarkedWorkload> | undefined;
 function markedWorkload() {
   marked ??= buildMarkedWorkload();
@@ -60,21 +53,8 @@ function buildMarkedWorkload() {
   const exported = buildArchetypeExport("mixed");
   const hashes = [...new Set(exported.events.flatMap((event) => event.projectHash ?? []))];
   const projectLabels = new Map(hashes.map((hash, index) => [hash, `zz-private-project-${index}`]));
-  const record: ImportRecord = {
-    id: "local-marked",
-    label: "/home/zzuser/code/zz-private-project · sessions.jsonl",
-    createdAt: "2026-09-24T12:00:00.000Z",
-    eventCount: exported.events.length,
-    summary: summarizeExport(exported, catalog.catalogVersion, identity),
-  };
-  const profile = buildWorkloadProfile(exported.events, {
-    identity,
-    catalog,
-    timeZone: "America/New_York",
-    projectLabels,
-    rulesAsOf: RULES,
-  });
-  return { exported, record, profile, projectLabels };
+  const recap = buildRecap(exported.events, "all", NOW, "America/New_York");
+  return { exported, recap, projectLabels };
 }
 
 /** Everything a stored link holds, decoded back to the snapshot a reader sees. */
@@ -130,8 +110,7 @@ describe("short share link ids", () => {
 
 let workloadSnapshot: ShareSnapshotV2 | undefined;
 function workloadShareV2Snapshot(): ShareSnapshotV2 {
-  const { record, profile } = markedWorkload();
-  workloadSnapshot ??= workloadShareV2(record, profile, { includePeriod: false });
+  workloadSnapshot ??= recapShareV2(markedWorkload().recap);
   return structuredClone(workloadSnapshot);
 }
 
@@ -152,60 +131,16 @@ describe("creating a short link", () => {
     expect(await resolveShareLink(created.id, store)).toBe(token);
   });
 
-  it("stores a workload link with no project names, paths, session IDs or call records", async () => {
+  it("stores a recap link with no project names, paths, session IDs or call records", async () => {
     const workload = markedWorkload();
-    expect(workload.profile.projects.some((project) => project.labelKind === "local")).toBe(true);
-    for (const options of [
-      { includePeriod: false },
-      { includePeriod: true, includeSessions: true, includeTimes: true },
-    ]) {
-      const store = memoryStore();
-      const token = await encodeShareTokenV2(
-        workloadShareV2(workload.record, workload.profile, options),
-      );
-      const created = await createShareLink(request(token), store);
-      expect(created.ok).toBe(true);
-      if (!created.ok) continue;
-      const { raw, json } = await storedContents(store, created.id);
-      expectNothingPrivate(json, workload);
-      expectNothingPrivate(raw, workload, { record: true });
-    }
-  });
-
-  it("stores a replay link with no raw model IDs, local labels or session IDs", async () => {
-    const workload = markedWorkload();
-    const outcome = runScopedReplay({
-      events: workload.exported.events,
-      target: { type: "api", providerId: "anthropic" },
-      catalog,
-      identity,
-      rulesAsOf: RULES,
-      timeZone: "America/New_York",
-      sources: ["claude-code"],
-      sourceNames: new Map([["claude-code", "/home/zzuser/code/zz-private-project"]]),
-    });
-    const composed = verdictOfOutcome(outcome, "Anthropic API", {
-      timeZone: "America/New_York",
-      catalog,
-    });
-    if (composed === undefined) throw new Error("no verdict");
-    const snapshot = replayShareV2(
-      {
-        facts: composed.facts,
-        projection: outcome.projection,
-        sourceIds: ["claude-code"],
-        target: { verificationStatus: "verified", sources: [] },
-        catalog,
-      },
-      { includePeriod: false },
-    );
     const store = memoryStore();
-    const created = await createShareLink(request(await encodeShareTokenV2(snapshot)), store);
+    const token = await encodeShareTokenV2(workloadShareV2Snapshot());
+    const created = await createShareLink(request(token), store);
     expect(created.ok).toBe(true);
     if (!created.ok) return;
-    const { json } = await storedContents(store, created.id);
+    const { raw, json } = await storedContents(store, created.id);
     expectNothingPrivate(json, workload);
-    expect(json).toContain('"label":"Claude Code"');
+    expectNothingPrivate(raw, workload, { record: true });
   });
 
   it("stores the canonical encoding, not the bytes it was sent", async () => {
@@ -251,8 +186,8 @@ describe("the share store refuses anything but a sanitized aggregate snapshot", 
       "a path inside an allowed name",
       async () => {
         const value = base();
-        const priced = value.value as { makers: { name: string }[] };
-        if (priced.makers[0] !== undefined) priced.makers[0].name = "/home/zzuser/app";
+        const tools = (value.workload as { tools: { id: string }[] }).tools;
+        if (tools[0] !== undefined) tools[0].id = "/home/zzuser/app";
         return crafted(value);
       },
     ],
@@ -260,8 +195,8 @@ describe("the share store refuses anything but a sanitized aggregate snapshot", 
       "a file name inside an allowed name",
       async () => {
         const value = base();
-        const priced = value.value as { makers: { name: string }[] };
-        if (priced.makers[0] !== undefined) priced.makers[0].name = "rollout-a.jsonl";
+        const tools = (value.workload as { tools: { id: string }[] }).tools;
+        if (tools[0] !== undefined) tools[0].id = "rollout-a.jsonl";
         return crafted(value);
       },
     ],

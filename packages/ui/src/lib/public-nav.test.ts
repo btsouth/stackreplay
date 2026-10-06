@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
+  catalogNavItems,
   isPublicNavItemActive,
-  personalNavItems,
   primaryCta,
   publicFooterGroups,
   publicNavItems,
@@ -9,49 +9,45 @@ import {
 } from "./public-nav";
 
 describe("public navigation", () => {
-  it("leads with the market, then the personal surfaces", () => {
+  it("leads with recap and one catalog entry", () => {
     expect(publicNavItems.map((item) => item.label)).toEqual([
+      "Recap",
+      "Models & plans",
+      "Privacy",
+    ]);
+    expect(catalogNavItems.map((item) => item.label)).toEqual([
       "Models",
       "Providers",
       "Benchmarks",
-      "Compare",
       "Plans",
+      "Compare",
       "Updates",
     ]);
-    expect(personalNavItems.map((item) => [item.label, item.href])).toEqual([
-      ["Workload", "/app/workload"],
-      ["My Stack", "/app/stack"],
-    ]);
   });
-
-  it("offers a scan first and the saved workload once one exists", () => {
-    expect(primaryCta).toEqual({ label: "Scan my history", href: "/app/import" });
-    expect(returningCta).toEqual({ label: "Open my workload", href: "/app/workload" });
+  it("opens saved scans in recap", () => {
+    expect(primaryCta).toEqual({ label: "Scan my history", href: "/app/scan" });
+    expect(returningCta).toEqual({ label: "Open my recap", href: "/app/recap" });
   });
-
-  it("keeps every header destination reachable from the footer or the header itself", () => {
-    const footer = publicFooterGroups.flatMap((group) => group.items.map((item) => item.href));
-    for (const href of [
-      "/methodology",
-      "/changelog",
-      "/plans",
-      "/models",
-      "/providers",
-      "/benchmarks",
-      "/compare",
-    ])
-      expect(footer).toContain(href);
+  it("keeps the catalog in the footer", () => {
+    const hrefs = publicFooterGroups.flatMap((group) => group.items.map((item) => item.href));
+    for (const item of catalogNavItems) expect(hrefs).toContain(item.href);
   });
-
-  it("marks nested public routes active for their section only", () => {
-    expect(isPublicNavItemActive("/providers/anthropic", "/providers")).toBe(true);
-    expect(isPublicNavItemActive("/providers/anthropic", "/models")).toBe(false);
-    expect(publicFooterGroups[0].items.slice(1, 3).map((item) => item.label)).toEqual([
-      "Models",
-      "Providers",
-    ]);
-    expect(isPublicNavItemActive("/plans/claude-max", "/plans")).toBe(true);
-    expect(isPublicNavItemActive("/planscape", "/plans")).toBe(false);
+  it("never links to a removed app page", () => {
+    const removed = ["plans", "stack", "replay", "compare", "workload", "import"].map(
+      (name) => `/app/${name}`,
+    );
+    const hrefs: string[] = [
+      ...publicFooterGroups.flatMap((group) => group.items.map((item) => item.href)),
+      ...publicNavItems.map((item) => item.href),
+      primaryCta.href,
+      returningCta.href,
+    ];
+    for (const href of hrefs) expect(removed).not.toContain(href.split(/[?#]/u)[0]);
+  });
+  it("marks catalog details active without false prefixes", () => {
+    expect(isPublicNavItemActive("/providers/anthropic", "/catalog")).toBe(true);
+    expect(isPublicNavItemActive("/providers-extra", "/catalog")).toBe(false);
     expect(isPublicNavItemActive("/models", "/")).toBe(false);
+    expect(isPublicNavItemActive("/methodology", "/methodology#privacy")).toBe(false);
   });
 });

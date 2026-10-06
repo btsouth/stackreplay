@@ -1,6 +1,7 @@
 @import "tailwindcss";
 @import "@stackreplay/ui/styles/tokens.css";
 @import "@stackreplay/ui/styles/theme.css";
+@import "@stackreplay/ui/styles/premium.css";
 /* The homepage Replay Instrument and the local scan instrument. */
 @import "./replay-hero.css";
 @import "./scan-instrument.css";
@@ -1227,4 +1228,33 @@ body {
 .replay-home h2,
 .replay-hero-title {
   letter-spacing: -0.03em;
+}
+
+/* Catalog typography follows the recap. Code IDs retain their code treatment. */
+.market-kicker,
+.market-section-title,
+.market-table thead th,
+.market-table [data-numeric],
+.market-matrix thead th,
+.market-rate-table thead th,
+.market-promo-tag {
+  font-family: var(--font-sans);
+  letter-spacing: 0;
+  text-transform: none;
+}
+.market-kicker {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/* Bridge legacy section labels to the recap typography while pages migrate. */
+.sr-micro {
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 1.5;
+  letter-spacing: 0;
+  text-transform: none;
+}
+.dark .sr-scan {
+  --sr-signal: var(--accent);
 }

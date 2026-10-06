@@ -1,5 +1,6 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, type Page, test } from "@playwright/test";
+import { expectCatalogSelection } from "./public-controls";
 
 async function accessible(page: Page) {
   await expect(page).toHaveTitle(/StackReplay/u);
@@ -125,8 +126,8 @@ test("shared models preserve filters, results and hash through reload and naviga
 }) => {
   await page.goto("/models?view=table&developer=anthropic&sort=input&dir=desc#published-api-rates");
   const path = new URL(page.url()).pathname + new URL(page.url()).search + new URL(page.url()).hash;
-  await expect(page.getByLabel("Developer")).toHaveValue("anthropic");
-  await expect(page.getByLabel("Order by")).toHaveValue("input");
+  await expectCatalogSelection(page.getByLabel("Developer"), "anthropic");
+  await expectCatalogSelection(page.getByLabel("Sort"), "input:descending");
   const rows = page.getByTestId("model-table-row");
   await expect(rows.first()).toBeVisible();
   const names = await rows.locator("th a").allTextContents();
@@ -141,7 +142,7 @@ test("shared models preserve filters, results and hash through reload and naviga
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
   await page.goBack();
   await expect(page).toHaveURL(new RegExp(`${path.replace(/[.*+?^${}()|[\]\\]/gu, "\\$&")}$`, "u"));
-  await expect(page.getByLabel("Developer")).toHaveValue("anthropic");
+  await expectCatalogSelection(page.getByLabel("Developer"), "anthropic");
   await expect(rows.first()).toBeVisible();
   expect(await rows.locator("th a").allTextContents()).toEqual(names);
   await page.goForward();
@@ -165,17 +166,31 @@ test("public discovery and hubs stay within 320px in both themes", async ({ page
 
 test("homepage keeps catalog and keyboard routes reachable", async ({ page, isMobile }) => {
   await page.goto("/");
-  await expect(page.getByRole("link", { name: "Models & plans" })).toBeInViewport();
   await capture(page, `${isMobile ? "mobile-dark" : "desktop-light"}-home`);
   await accessible(page);
   await page.keyboard.press("Tab");
   await expect(page.getByRole("link", { name: "Skip to content" })).toBeFocused();
   await page.keyboard.press("Enter");
   await expect(page.locator("#main-content")).toBeFocused();
-  await page.getByRole("link", { name: "Models & plans" }).click();
-  await expect(page).toHaveURL(/\/models$/u);
+  if (isMobile) await page.getByRole("button", { name: "Open menu" }).click();
+  const context = isMobile ? page.getByRole("dialog") : page.getByRole("banner");
+  const catalog = context.getByRole("link", { name: "Models & plans", exact: true });
+  await expect(catalog).toBeInViewport();
+  await catalog.click();
+  await expect(page).toHaveURL(/\/catalog$/u);
+  await expect(
+    page.getByRole("heading", { level: 1, name: /AI models\.\s*Prices\. Plans\./u }),
+  ).toBeVisible();
   await page.goBack();
+  await expect(page).toHaveURL(/\/(?:#main-content)?$/u);
   await expect(page.getByTestId("home")).toBeVisible();
   await page.setViewportSize({ width: 320, height: 844 });
+  // Measure after Chrome applies the viewport and responsive layout together.
+  await page.evaluate(
+    () =>
+      new Promise<void>((resolve) =>
+        requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
+      ),
+  );
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });

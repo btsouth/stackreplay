@@ -97,6 +97,9 @@ describe("private recap metrics", () => {
     expect(r.usd).toBe(expected.toString());
     expect(r.outputKnown).toBe(2);
     expect(r.models.find((m) => m.id === "private-model")?.priced).toBe(0);
+    const unpriced = buildRecap([unknown], "30", "2026-10-04T12:00:00Z", "UTC", catalog);
+    expect(unpriced.explorer?.days.find((d) => d.records > 0)?.usd).toBeUndefined();
+    expect(unpriced.explorer?.days.find((d) => d.records === 0)?.usd).toBe("0");
   });
   it("keeps charts and breakdowns equal to the event totals without mutating fixtures", () => {
     const before = JSON.stringify(base);

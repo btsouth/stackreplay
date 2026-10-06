@@ -1,4 +1,4 @@
-import type { TargetKey } from "../routes";
+import type { TargetKey } from "../current-stack";
 import type { ImportRecord, WorkloadSummary } from "../worker-protocol";
 
 /**

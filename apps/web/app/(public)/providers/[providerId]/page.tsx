@@ -1,3 +1,4 @@
+import { StatTile } from "@stackreplay/ui";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -31,15 +32,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 function ModelRows({ models, empty }: { models: readonly PublicModelSummary[]; empty: string }) {
   if (!models.length) return <p className="market-muted py-5">{empty}</p>;
   return (
-    <div>
+    <div className="provider-model-grid">
       {models.map((model) => {
         const context = model.kind === "family" ? undefined : modelContext(model);
         return (
-          <article
-            key={model.id}
-            className="border-b border-border py-5"
-            data-testid="provider-model"
-          >
+          <article key={model.id} className="provider-story-card" data-testid="provider-model">
             <h3 className="text-lg">
               <Link href={`/models/${model.id}`} className="hover:text-accent">
                 {model.name} ↗
@@ -124,10 +121,29 @@ export default async function ProviderPage({ params }: Props) {
       </Link>
       <MarketHeader
         compact
-        eyebrow="Provider / Recorded coverage"
+        eyebrow="Inside the catalog"
         title={provider.name}
-        description="Developed models, recorded API access and published plans are separate relationships. Each section shows the records held for this provider."
-      />
+        description="Explore this provider’s models, API access and coding plans. Each section links to the published evidence, including what is still unknown."
+      >
+        <aside className="provider-coverage-summary">
+          <p className="market-kicker">Recorded coverage</p>
+          <div className="provider-summary-stats">
+            <StatTile
+              label="Developed releases"
+              value={developed.filter((m) => m.kind === "release").length}
+              hint="Current and legacy releases"
+            />
+            <StatTile
+              label="Published plans & offers"
+              value={plans.length}
+              hint="Sourced subscription records"
+            />
+          </div>
+          <p className="market-muted">
+            Coverage in this catalog, not a complete inventory of the provider.
+          </p>
+        </aside>
+      </MarketHeader>
       <nav aria-label="Provider sections" className="market-section-jumps">
         {[...sections.filter((section) => section.count > 0), ...emptySections].map((section) => (
           <a key={section.id} href={`#${section.id}`} className="market-link">
@@ -173,11 +189,7 @@ export default async function ProviderPage({ params }: Props) {
             Published plans and offers
           </h2>
           {plans.map((plan) => (
-            <article
-              key={plan.id}
-              className="border-b border-border py-5"
-              data-testid="provider-plan"
-            >
+            <article key={plan.id} className="provider-story-card" data-testid="provider-plan">
               <h3 className="text-lg">
                 <Link href={`/plans/${plan.id}`} className="hover:text-accent">
                   {plan.name} ↗
@@ -197,9 +209,7 @@ export default async function ProviderPage({ params }: Props) {
                 <p className="mt-2 text-sm text-warning">{plan.publishedTerms.availabilityNote}</p>
               )}
               {plan.kind === "public_offer" && (
-                <p className="market-muted mt-2">
-                  Informational offer · Workload Replay unavailable.
-                </p>
+                <p className="market-muted mt-2">Informational offer.</p>
               )}
               <p className="market-muted mt-2">
                 {plan.kind === "public_offer" ? "Offer observed" : "Plan checked"}{" "}
@@ -233,11 +243,7 @@ export default async function ProviderPage({ params }: Props) {
             Accepted updates from this provider, ordered by when they occurred.
           </p>
           {events.map((event) => (
-            <article
-              key={event.id}
-              className="border-b border-border py-5"
-              data-testid="provider-update"
-            >
+            <article key={event.id} className="provider-story-card" data-testid="provider-update">
               <p className="market-kicker">
                 {formatCatalogDate(event.day)} · {event.typeLabel} · {event.status}
               </p>

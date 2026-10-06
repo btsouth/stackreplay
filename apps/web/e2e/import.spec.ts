@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { buildDemoExport } from "@stackreplay/test-fixtures";
 import { ensureLargeExport } from "./fixtures/large-export";
-import { gotoImport, importDemo, visitImportManager, waitForWorkload } from "./helpers";
+import { gotoImport, importDemo, visitImportManager, waitForWorkload } from "./premium-app-helpers";
 
 /**
  * Import route states (M3 brief): empty, drag-over, importing, invalid file,
@@ -14,7 +14,7 @@ test("empty import surface states the privacy contract up front", async ({ page 
   await expect(
     boundary.getByText("Scanned locally. Raw AI history stays on this device."),
   ).toBeVisible();
-  await expect(boundary).toContainText("It discards prompts, responses, code, command output");
+  await expect(boundary).toContainText("It leaves out prompts, responses, code, command output");
   await expect(boundary).toContainText("Site assets and public catalog facts only.");
   await expect(page.getByTestId("no-stored-imports")).toBeVisible();
   await expect(page.getByTestId("demo-presets")).toBeVisible();
@@ -120,9 +120,11 @@ test("imports a ~100k-event export without blocking the interface", async ({ pag
   // first: the visible summary is the newest request, never the stale one.
   await waitForWorkload(page);
   await visitImportManager(page);
+  await page.getByText("Use files or an export instead", { exact: true }).click();
+  await page.getByText("Try a sample recap", { exact: true }).click();
   await page.getByTestId("demo-moderate").click();
   await waitForWorkload(page);
-  await expect(page.getByTestId("overview-scale")).toContainText("900");
+  await expect(page.getByTestId("stats-ready")).toBeVisible();
   await expect(page.getByTestId("import-error")).toHaveCount(0);
   await expect(page.getByTestId("import-working")).toHaveCount(0);
 

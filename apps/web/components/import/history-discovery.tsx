@@ -54,7 +54,7 @@ import {
  * location. The user drops their home folder (or a tool folder) on the
  * machine; discovery asks that folder for each registered location by name and
  * reports what is really there. Nothing is parsed until the user picks what to
- * import and presses Build my workload; the scan instrument then takes over
+ * import and presses Make my recap; the scan instrument then takes over
  * with the same histories.
  *
  * Linked, WSL, relocated and external histories go through the folder chooser,
@@ -301,7 +301,7 @@ export function HistoryDiscovery({
         .filter((finding) => finding.status !== "not-found")
         .map((finding) => `${finding.name}: ${describe(finding)}`);
       setAnnouncement(
-        `${folder} connected${named.length > 0 ? `. ${named.join(". ")}` : ""}. Review the list, then build the workload.`,
+        `${folder} connected${named.length > 0 ? `. ${named.join(". ")}` : ""}. Review the list, then make your recap.`,
       );
       setPhase("selecting");
     },
@@ -435,7 +435,7 @@ export function HistoryDiscovery({
       <div className="sr-find-head">
         <h2 id={headingId} ref={headingRef} tabIndex={-1} className="sr-find-title">
           {intro
-            ? "Find my AI histories"
+            ? "Start with your history folder"
             : phase === "armed"
               ? "Choose your user folder"
               : settled
@@ -446,7 +446,7 @@ export function HistoryDiscovery({
         </h2>
         {intro ? (
           <p className="sr-find-rule" data-testid="discovery-promise">
-            One folder permission · known AI locations only · raw history stays here
+            Choose a folder to find your AI coding history.
           </p>
         ) : phase === "armed" ? (
           <p className="sr-find-lede" data-testid="permission-preview">
@@ -457,7 +457,7 @@ export function HistoryDiscovery({
         ) : settled ? (
           <p className="sr-find-lede">
             {found.length > 0
-              ? "Choose what to import. Nothing is read until you build the workload."
+              ? "Choose what to import. Nothing is read until you make your recap."
               : "Drop your user folder (the one that holds .claude or .codex), or connect a history folder yourself."}
           </p>
         ) : (
@@ -584,7 +584,16 @@ export function HistoryDiscovery({
             onClick={arm}
             data-testid="find-histories"
           >
-            Find my AI histories
+            Where is my history?
+          </Button>
+          <Button
+            type="button"
+            size="lg"
+            disabled={disabled}
+            onClick={() => openChooser()}
+            data-testid="choose-history-folder"
+          >
+            Choose a history folder
           </Button>
           {connectToggle("Connect individually →")}
         </div>
@@ -627,7 +636,7 @@ export function HistoryDiscovery({
                 <p className="sr-find-fine">
                   {saveLocal
                     ? "Only normalized usage is kept, in this browser."
-                    : "The workload stays available until this page reloads."}
+                    : "This scan stays available until this page reloads."}
                 </p>
               )}
             </div>
@@ -637,9 +646,9 @@ export function HistoryDiscovery({
               disabled={disabled || selected.length === 0 || building}
               onClick={() => void build()}
               data-testid="build-workload"
-              aria-label={`Build my workload from ${selected.length} selected ${selected.length === 1 ? "history" : "histories"}`}
+              aria-label={`Make my recap from ${selected.length} selected ${selected.length === 1 ? "history" : "histories"}`}
             >
-              Build my workload →
+              Make my recap →
             </Button>
           </div>
           <div className="sr-find-more">

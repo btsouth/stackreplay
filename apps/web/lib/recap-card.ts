@@ -61,7 +61,7 @@ export async function renderRecapCard(
   };
   text("↺ StackReplay", pad, 55, portrait ? 32 : 25, paletteColor("recap-card-text"), 650);
   text(
-    sample ? "Alex’s sample replay" : "My coding recap",
+    sample ? "Alex’s sample recap" : "My coding recap",
     portrait ? 700 : 930,
     62,
     portrait ? 23 : 17,

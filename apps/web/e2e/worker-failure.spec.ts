@@ -17,13 +17,15 @@ test("a Worker that cannot start reports a safe error instead of waiting forever
     route.fulfill({ status: 404, contentType: "text/javascript", body: "// unavailable" }),
   );
 
-  await page.goto("/app/import");
+  await page.goto("/app/scan");
+  await page.getByText("Use files or an export instead", { exact: true }).click();
+  await page.getByText("Try a sample recap", { exact: true }).click();
   await page.getByTestId("demo-moderate").click();
 
   const error = page.getByTestId("import-error");
   await expect(error).toBeVisible({ timeout: 60_000 });
-  await expect(error).toContainText("The replay Worker could not be started.");
-  await expect(error).toContainText("did not load the local replay Worker");
+  await expect(error).toContainText("The scan Worker could not be started.");
+  await expect(error).toContainText("did not load the local scan Worker");
   // No raw internals, no stack trace, no file content in the message.
   await expect(error).not.toContainText("stackreplay-worker.js");
   await expect(page.getByTestId("import-working")).toHaveCount(0);

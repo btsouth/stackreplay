@@ -1,6 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
-import { gotoReplayImport, waitForWorkload } from "./helpers";
+import { gotoImport, waitForWorkload } from "./helpers";
+import { expectCatalogSelection, selectCatalogOption } from "./public-controls";
 
 test("featured rates keep deliberate Claude and OpenAI pairs on the same price scale", async ({
   page,
@@ -43,7 +44,7 @@ test("the model library leads with the coding shortlist but keeps every model di
   page,
 }) => {
   await page.goto("/models");
-  await expect(page.getByLabel("Order by")).toHaveValue("featured");
+  await expectCatalogSelection(page.getByLabel("Sort"), "featured");
   const rows = page.getByTestId("model-row");
   await expect(rows.nth(0)).toContainText("Claude Opus 5.5");
   await expect(rows.nth(1)).toContainText("GPT-6.1 Sol");
@@ -60,7 +61,7 @@ test("the model library leads with the coding shortlist but keeps every model di
   await page.getByLabel("Find a model, family name or exact alias").fill("Composer 2.5");
   await expect(rows).toHaveCount(1);
   await page.getByLabel("Find a model, family name or exact alias").clear();
-  await page.getByLabel("Order by").selectOption("name");
+  await selectCatalogOption(page.getByLabel("Sort"), "name:ascending");
   await expect(rows.first()).toContainText("Amazon Nova 2 Lite");
 });
 
@@ -82,7 +83,7 @@ test("subscription discovery filters sourced tools and opens a selected comparis
   page,
 }) => {
   await page.goto("/plans");
-  await page.getByLabel("Works with").selectOption("Cline");
+  await selectCatalogOption(page.getByLabel("Works with"), "Cline");
   await expect(page.getByTestId("plan-card")).toHaveCount(1);
   await expect(page.getByTestId("plan-card")).toContainText("ClinePass");
   await expect(page.getByTestId("plan-card")).toContainText("$9.99");
@@ -144,16 +145,21 @@ test("model selection compares token categories without assigning missing prices
 });
 
 for (const theme of ["dark", "light"] as const) {
-  test(`market discovery remains accessible in ${theme}`, async ({ page }) => {
-    await page.emulateMedia({ colorScheme: theme, reducedMotion: "reduce" });
-    for (const path of [
-      "/models",
-      "/plans",
-      "/models/claude-opus-5-5",
-      "/plans/ollama-cloud-max",
-      "/changelog",
-    ]) {
+  for (const path of [
+    "/models",
+    "/plans",
+    "/models/claude-opus-5-5",
+    "/plans/ollama-cloud-max",
+    "/changelog",
+  ]) {
+    test(`${path} remains accessible in ${theme}`, async ({ page }) => {
+      await page.emulateMedia({ colorScheme: theme, reducedMotion: "reduce" });
       await page.goto(path);
+      await expect(page).toHaveTitle(/StackReplay/u);
+      await expect(page.getByRole("button", { name: "Toggle theme" })).toBeEnabled();
+      if (path === "/models")
+        await expect(page.getByRole("radio", { name: "Cards", exact: true })).toBeEnabled();
+      await page.evaluate(() => document.fonts.ready);
       expect(
         await page.evaluate(() => document.documentElement.scrollWidth - innerWidth),
         path,
@@ -162,12 +168,12 @@ for (const theme of ["dark", "light"] as const) {
         .withTags(["wcag2a", "wcag2aa", "wcag21aa"])
         .analyze();
       expect(results.violations, path).toEqual([]);
-    }
-  });
+    });
+  }
 }
 
 test("native Sonnet 5.5 history receives the published cache-duration range", async ({ page }) => {
-  await gotoReplayImport(page);
+  await gotoImport(page);
   const record = JSON.stringify({
     type: "assistant",
     uuid: "synthetic-sonnet55",
@@ -191,8 +197,10 @@ test("native Sonnet 5.5 history receives the published cache-duration range", as
     buffer: Buffer.from(record),
   });
   await waitForWorkload(page);
-  await expect(page.getByTestId("overview-api-total")).toHaveText("$2.51 – $3.26");
-  await expect(page.getByTestId("overview-scale")).toContainText("100%");
+  await expect(page.getByTestId("overview-api-total")).toHaveText("$3");
+  const id = new URL(page.url()).searchParams.get("import");
+  await page.goto(`/app/recap?import=${id}`);
+  await expect(page.locator(".recap-priced-coverage")).toContainText("100%");
 });
 
 test("model capabilities filter and selected specifications are useful without opening evidence", async ({
@@ -200,9 +208,10 @@ test("model capabilities filter and selected specifications are useful without o
 }) => {
   await page.goto("/models");
   await expect(page.locator("[data-layout-pending]")).toHaveCount(0);
-  await page
-    .getByRole("combobox", { name: "Capability", exact: true })
-    .selectOption("long-context");
+  await selectCatalogOption(
+    page.getByRole("combobox", { name: "Capability", exact: true }),
+    "long-context",
+  );
   await page.getByLabel("Find a model, family name or exact alias").fill("Sonnet 5.5");
   await expect(page.getByTestId("model-row")).toHaveCount(1);
   await expect(page.getByTestId("model-row")).toContainText("1M context");

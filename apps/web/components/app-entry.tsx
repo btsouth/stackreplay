@@ -21,7 +21,9 @@ export function AppEntry() {
       .listImports()
       .then((list) => {
         if (cancelled) return;
-        router.replace(list.length > 0 ? "/app/workload" : "/app/import");
+        router.replace(
+          `${list.length > 0 ? "/app/recap" : "/app/scan"}${window.location.search}${window.location.hash}`,
+        );
       })
       .catch(() => {
         if (!cancelled) setFailed(true);
@@ -34,13 +36,15 @@ export function AppEntry() {
   if (failed)
     return (
       <div role="alert" className="flex max-w-prose flex-col gap-3" data-testid="app-entry-error">
-        <h1 className="text-2xl font-medium tracking-tight">Saved workloads could not be read</h1>
+        <h1 className="text-2xl font-medium tracking-tight">
+          Your saved scans could not be opened
+        </h1>
         <p className="text-sm leading-relaxed text-muted-foreground">
           This browser did not let StackReplay open its local storage. You can still scan your
           history; it will be available until the page reloads.
         </p>
-        <Link href="/app/import" className={`${buttonVariants({ size: "sm" })} self-start`}>
-          Scan your AI history
+        <Link href="/app/scan" className={`${buttonVariants({ size: "sm" })} self-start`}>
+          Scan my history
         </Link>
       </div>
     );
@@ -51,9 +55,9 @@ export function AppEntry() {
       role="status"
       data-testid="app-entry"
     >
-      <p className="font-mono text-xs uppercase tracking-widest text-accent">StackReplay</p>
-      <h1 className="text-2xl font-medium">Opening your workload</h1>
-      <p className="text-sm text-muted-foreground">Checking this browser for a saved workload…</p>
+      <p className="sr-eyebrow">StackReplay</p>
+      <h1 className="text-2xl font-medium">Opening your recap</h1>
+      <p className="text-sm text-muted-foreground">Checking this browser for your saved history…</p>
     </div>
   );
 }

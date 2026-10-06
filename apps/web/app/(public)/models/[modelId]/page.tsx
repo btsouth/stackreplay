@@ -40,7 +40,7 @@ function PlanAccessPrice({
       : "Price not verified";
   return (
     <div className="w-full shrink-0 sm:w-auto sm:max-w-sm sm:text-right">
-      <span className="font-mono text-sm">
+      <span className="text-sm tabular-nums">
         {price} <span className="text-accent">↗</span>
       </span>
       {plan?.publishedTerms?.billingSummary && (
@@ -201,7 +201,7 @@ export default async function ModelPage({ params }: Props) {
       {model.kind === "release" && (
         <>
           <div className="market-section-title">
-            <span>01 / API price</span>
+            <span>API price</span>
             <span>USD / 1M tokens</span>
           </div>
           {base && (
@@ -233,7 +233,7 @@ export default async function ModelPage({ params }: Props) {
       {specifications && (
         <section className="market-specifications" aria-label="Model specifications">
           <div className="market-section-title">
-            <span>02 / Capabilities & limits</span>
+            <span>Capabilities & limits</span>
             <span>Provider specifications</span>
           </div>
           <dl className="market-fact-list">

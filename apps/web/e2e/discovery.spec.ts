@@ -13,7 +13,7 @@ import {
   openConnectIndividually,
   visitImportManager,
   waitForWorkload,
-} from "./helpers";
+} from "./premium-app-helpers";
 
 /**
  * Find my AI histories (history discovery before import).
@@ -130,7 +130,7 @@ test("finds histories in a dropped home folder and builds only what is selected"
   await expect(page.getByTestId("detected-sources").first()).not.toContainText("Codex");
 });
 
-test("the happy path opens a recap after scanning and can reopen workload details", async ({
+test("the happy path opens a recap after scanning and can reopen its details", async ({
   page,
 }, testInfo) => {
   const home = testInfo.outputPath("dev-home");
@@ -150,11 +150,11 @@ test("the happy path opens a recap after scanning and can reopen workload detail
   await expect(page.getByTestId("stored-imports")).toContainText("Claude Code + Codex");
   await page
     .getByTestId("stored-imports")
-    .getByRole("link", { name: "Open workload", exact: true })
+    .getByRole("link", { name: /^Explore my stats/u })
     .first()
     .click();
-  await expect(page).toHaveURL(/\/app\/workload\?import=/u);
-  await expect(page.getByTestId("automatic-workload")).toBeVisible();
+  await expect(page).toHaveURL(/\/app\/stats\?import=/u);
+  await expect(page.getByTestId("stats-ready")).toBeVisible();
 });
 
 test("a linked history needs additional access and connects without disturbing the others", async ({
@@ -232,7 +232,8 @@ test("an OpenCode data folder can be imported, dropped or chosen", async ({ page
   await page.getByTestId("select-codex").uncheck();
   await page.getByTestId("build-workload").click();
   await waitForWorkload(page);
-  await expect(page.getByTestId("discovery-group-opencode")).toContainText("OpenCode activity");
+  await page.getByRole("tab", { name: "Tools" }).click();
+  await expect(page.getByRole("table", { name: "Tools in this period" })).toContainText("OpenCode");
 });
 
 test("a dropped bare projects folder asks for access and is never listed", async ({
@@ -342,7 +343,7 @@ test("Cancel scan stops the scan and leaves saved workloads alone", async ({ pag
   const cancel = page.getByTestId("cancel-scan");
   await cancel.focus();
   await page.keyboard.press("Enter");
-  await expect(page.getByTestId("scan-canceled")).toContainText("saved workloads are unchanged");
+  await expect(page.getByTestId("scan-canceled")).toContainText("saved scans are unchanged");
   await expect(page.getByTestId("scan-instrument")).toHaveCount(0);
   // The sources are back, still selected, ready to build again.
   await expect(page.getByTestId("select-claude-code")).toBeChecked();
@@ -384,7 +385,7 @@ test("connected histories are remembered by name and refresh asks for the folder
   await expect(page.getByTestId("connected-histories")).toHaveCount(0);
 });
 
-test("account identity: profiles stay hidden, local and unsent, and suggest a plan", async ({
+test("account profiles beside a history are never read, stored or sent", async ({
   page,
 }, testInfo) => {
   const home = testInfo.outputPath("dev-home");
@@ -398,104 +399,45 @@ test("account identity: profiles stay hidden, local and unsent, and suggest a pl
       tier: "default_claude_max_5x",
     }),
   });
-  // A second Claude config folder, signed in to another account.
-  const second = testInfo.outputPath("dot-claude2");
-  await writeClaudeProjects(join(second, "projects"), 2, { first: 100, model: "claude-opus-4-6" });
-  await mkdir(join(second, "session-env"), { recursive: true });
-  await writeFile(
-    join(second, ".claude.json"),
-    claudeProfile({
-      id: "0b0b0b0b-0000-4000-8000-00000000000b",
-      name: "Zed Side",
-      email: "side@example.test",
-      type: "claude_pro",
-      tier: "default_claude_ai",
-    }),
-  );
   const requests = captureRequests(page);
   await discover(page, home);
-  await dropFolders(page, [second]);
-  await expect(page.getByTestId("history-claude-code-2")).toHaveAttribute("data-status", "found");
-  // Only the two Claude histories: the other fixtures use demo-only model names.
+  // Only the Claude history: the other fixtures use demo-only model names.
   await page.getByTestId("select-codex").uncheck();
   await page.getByTestId("select-opencode").uncheck();
   await page.getByTestId("build-workload").click();
   await waitForWorkload(page);
   const id = new URL(page.url()).searchParams.get("import") ?? "";
 
-  await page.evaluate(() =>
-    localStorage.setItem(
-      "stackreplay.current-stack",
-      JSON.stringify(["plan:anthropic-claude-pro"]),
-    ),
+  for (const route of ["recap", "stats", "settings", "scan"]) {
+    await page.goto(`/app/${route}?import=${id}`);
+    await expect(page.getByRole("main").getByRole("heading", { level: 1 })).toBeVisible();
+    await expect(page.locator("body")).not.toContainText("Zed");
+    await expect(page.locator("body")).not.toContainText("example.test");
+    await expect(page.locator("body")).not.toContainText(/Profile says|Claude Max 5x/u);
+  }
+  // No plan is guessed from the profile: what you pay stays empty until it is entered.
+  await page.goto("/app/settings#what-you-pay");
+  await expect(page.getByTestId("what-you-pay-empty")).toBeVisible();
+  const stored = await page.evaluate(() =>
+    Object.entries(localStorage)
+      .map(([key, value]) => `${key}=${value}`)
+      .join("\n"),
   );
-  await page.goto(`/app/stack?import=${id}`);
-  const accounts = page.getByTestId("stack-accounts");
-  await expect(accounts).toBeVisible({ timeout: 60_000 });
+  for (const marker of [
+    "Zed",
+    "example.test",
+    CANARY,
+    "0a0a0a0a",
+    "claude_max",
+    "account-identity",
+  ])
+    expect(stored).not.toContain(marker);
 
-  // Hidden until shown: the page carries no name or email, only the plan each account reports.
-  await expect(page.locator("body")).not.toContainText("Zed");
-  await expect(page.locator("body")).not.toContainText("example.test");
-  await expect(accounts).toContainText("Profile says Claude Max 5x");
-  await expect(accounts).toContainText("Profile says Claude Pro");
-
-  const stored = await page.evaluate(
-    () => localStorage.getItem("stackreplay.account-identity.v1") ?? "",
-  );
-  for (const dropped of [CANARY, "0a0a0a0a", "0b0b0b0b", "eeeeeeee", "admin", "stripe"])
-    expect(stored).not.toContain(dropped);
-
-  // One switch shows every name and email; the same switch hides them again.
-  const reveal = page.getByTestId("stack-accounts-reveal");
-  await expect(reveal).toHaveAttribute("aria-pressed", "false");
-  await page.getByTestId("stack-accounts-section").screenshot({
-    path: testInfo.outputPath("accounts-hidden.png"),
-  });
-  await reveal.click();
-  await expect(reveal).toHaveAttribute("aria-pressed", "true");
-  await expect(accounts).toContainText("Zed Main");
-  await expect(accounts).toContainText("side@example.test");
-  await page.getByTestId("stack-accounts-section").screenshot({
-    path: testInfo.outputPath("accounts-shown.png"),
-  });
-  await page.setViewportSize({ width: 390, height: 900 });
-  await page.getByTestId("stack-accounts-section").screenshot({
-    path: testInfo.outputPath("accounts-narrow.png"),
-  });
-  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(
-    true,
-  );
-  await page.setViewportSize({ width: 960, height: 900 });
-  await page.getByTestId("stack-accounts-section").screenshot({
-    path: testInfo.outputPath("accounts-medium.png"),
-  });
-  await page.setViewportSize({ width: 1280, height: 900 });
-  await reveal.click();
-  await expect(page.locator("body")).not.toContainText("Zed");
-
-  // A suggestion is only a suggestion: linking is the person's own click.
-  await accounts.getByRole("button", { name: "Link to Claude Max 5x" }).click();
-  await expect(page.getByTestId("stack-published-total")).toContainText("2 subscriptions");
-  await expect(accounts.getByText("Profile says Claude Max 5x")).toHaveCount(0);
-  await expect(page.getByTestId("stack-accounts-section")).not.toContainText("Zed");
-  const results = await new AxeBuilder({ page }).analyze();
-  expect(results.violations).toEqual([]);
-
-  // Nothing from a profile is ever sent.
   for (const request of requests) {
     const surface = `${request.url} ${JSON.stringify(request.headers)} ${request.body ?? ""}`;
-    for (const marker of ["Zed", "example.test", CANARY, "0a0a0a0a", "0b0b0b0b", "claude_max"])
+    for (const marker of ["Zed", "example.test", CANARY, "0a0a0a0a", "claude_max"])
       expect(surface, request.url).not.toContain(marker);
   }
-
-  // Clear local data forgets every profile.
-  await visitImportManager(page);
-  await page.getByTestId("clear-local-data").click();
-  await page.getByTestId("clear-local-data-confirm").click();
-  await expect(page.getByTestId("no-stored-imports")).toBeVisible();
-  expect(
-    await page.evaluate(() => localStorage.getItem("stackreplay.account-identity.v1")),
-  ).toBeNull();
 });
 
 test("privacy: discovery opens only registered locations, reads nothing, and sends nothing", async ({
@@ -566,7 +508,7 @@ test("discovery states pass axe and selection works from the keyboard", async ({
   await expect(codex).not.toBeChecked();
   await page.getByTestId("select-opencode").uncheck();
   await expect(page.getByTestId("selection-count")).toContainText("1 selected");
-  const build = page.getByRole("button", { name: "Build my workload from 1 selected history" });
+  const build = page.getByRole("button", { name: "Make my recap from 1 selected history" });
   await build.focus();
   await page.keyboard.press("Enter");
   await waitForWorkload(page);

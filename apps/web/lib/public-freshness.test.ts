@@ -47,7 +47,7 @@ describe("scoped public freshness", () => {
     );
   });
 
-  it("prefers published plan terms over the older Replay rule check", () => {
+  it("prefers published plan terms over the older rule check", () => {
     const catalog = loadPublicCatalog();
     const plan = catalog.plans.find((plan) => plan.publishedTerms);
     if (!plan?.publishedTerms) throw new Error("Expected published plan terms");

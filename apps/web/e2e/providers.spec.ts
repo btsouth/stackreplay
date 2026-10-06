@@ -1,14 +1,18 @@
 import { expect, test } from "@playwright/test";
+import { expectCatalogSelection, selectCatalogOption } from "./public-controls";
 
 test("provider discovery shares filters and restores the index through history", async ({
   page,
 }) => {
   await page.goto("/providers");
-  await expect(page.getByRole("combobox", { name: "View", exact: true })).toHaveValue("featured");
+  await expectCatalogSelection(
+    page.getByRole("combobox", { name: "View", exact: true }),
+    "featured",
+  );
   await expect(page.getByTestId("provider-results")).not.toContainText("Devin");
   await page.getByLabel("Find a provider").fill("Devin");
   await expect(page).toHaveURL(/scope=all&q=Devin/u);
-  await expect(page.getByRole("combobox", { name: "View", exact: true })).toHaveValue("all");
+  await expectCatalogSelection(page.getByRole("combobox", { name: "View", exact: true }), "all");
   await expect(page.getByTestId("provider-row")).toHaveCount(1);
   await page.getByRole("link", { name: "Devin ↗", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Devin", exact: true })).toBeVisible();
@@ -22,28 +26,31 @@ test("provider discovery shares filters and restores the index through history",
   await expect(page.getByLabel("Find a provider")).toHaveValue("Devin");
   await page.getByRole("button", { name: "Clear filters", exact: true }).click();
   await expect(page).toHaveURL(/\/providers$/u);
-  await expect(page.getByRole("combobox", { name: "View", exact: true })).toHaveValue("featured");
+  await expectCatalogSelection(
+    page.getByRole("combobox", { name: "View", exact: true }),
+    "featured",
+  );
 });
 
 test("shared provider role and tool filters normalize and label plan scope", async ({ page }) => {
   await page.goto("/providers?role=publisher&q=Devin#directory");
   await expect(page).toHaveURL(/scope=all&q=Devin&role=publisher#directory/u);
-  await expect(page.getByLabel("Provider role")).toHaveValue("publisher");
+  await expectCatalogSelection(page.getByLabel("Provider role"), "publisher");
   await expect(page.getByTestId("provider-row")).toHaveCount(1);
-  await page.getByLabel("Provider role").selectOption("developer");
+  await selectCatalogOption(page.getByLabel("Provider role"), "developer");
   await expect(page.getByTestId("provider-row")).toHaveCount(0);
   await page.getByRole("button", { name: "Clear filters", exact: true }).click();
-  await page.getByLabel("Works with").selectOption({ label: "Claude Code" });
+  await selectCatalogOption(page.getByLabel("Works with"), { label: "Claude Code" });
   await expect(page.getByRole("status")).toContainText("Matching published plans for Claude Code");
   await expect(page.getByTestId("provider-results")).toContainText("matching published plans");
   await page.goto("/providers?scope=invalid&role=unknown&tool=unknown&q=mistral");
   await expect(page).toHaveURL(/\/providers\?scope=all&q=mistral$/u);
-  await expect(page.getByLabel("Provider role")).toHaveValue("all");
-  await expect(page.getByLabel("Works with")).toHaveValue("all");
+  await expectCatalogSelection(page.getByLabel("Provider role"), "all");
+  await expectCatalogSelection(page.getByLabel("Works with"), "all");
   await expect(page.getByTestId("provider-row")).toHaveCount(1);
 });
 
-test("provider offers preserve compound and licensed units without Replay links", async ({
+test("provider offers preserve compound and licensed units without links into the app", async ({
   page,
 }) => {
   await page.goto("/providers/devin");
@@ -52,10 +59,8 @@ test("provider offers preserve compound and licensed units without Replay links"
     page.getByText("$80/month base + $40/month per full developer seat", { exact: true }),
   ).toBeVisible();
   await expect(page.getByText("No developed models recorded.", { exact: true })).toBeVisible();
-  await expect(
-    page.getByText("Informational offer · Workload Replay unavailable.", { exact: true }),
-  ).toHaveCount(4);
-  await expect(page.locator('a[href^="/app/import?target=devin"]')).toHaveCount(0);
+  await expect(page.getByText("Informational offer.", { exact: true })).toHaveCount(4);
+  await expect(page.locator('a[href^="/app/scan?target=devin"]')).toHaveCount(0);
   await expect(page.getByRole("heading", { name: "Publisher offer sources" })).toBeVisible();
   await expect(page.getByTestId("source-list")).toHaveCount(5);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(
@@ -121,12 +126,12 @@ test("model-only and empty coverage stays accessible with unknowns and no API su
   const unknown = await page.goto("/providers/unknown-provider");
   expect(unknown?.status()).toBe(404);
   await expect(
-    page.getByRole("heading", { name: "There is nothing at this address.", exact: true }),
+    page.getByRole("heading", { name: "Let’s get you somewhere useful.", exact: true }),
   ).toBeVisible();
   const synthetic = await page.goto("/providers/example-provider");
   expect(synthetic?.status()).toBe(404);
   await expect(
-    page.getByRole("heading", { name: "There is nothing at this address.", exact: true }),
+    page.getByRole("heading", { name: "Let’s get you somewhere useful.", exact: true }),
   ).toBeVisible();
 });
 
@@ -166,6 +171,8 @@ test("provider discovery supports multiword typing and both themes without clipp
   await expect(page.getByRole("combobox", { name: "View", exact: true })).toBeEnabled();
   await page.getByLabel("Find a provider").pressSequentially("Devin Teams", { delay: 40 });
   await expect(page.getByLabel("Find a provider")).toHaveValue("Devin Teams");
+  await expect(page.getByLabel("Find a provider")).toBeFocused();
+  await expect(page).toHaveURL(/q=Devin\+Teams/u);
   await expect(page.getByTestId("provider-row")).toHaveCount(1);
   await page.getByRole("button", { name: "Clear filters", exact: true }).click();
   await expect(page).toHaveURL(/\/providers$/u);

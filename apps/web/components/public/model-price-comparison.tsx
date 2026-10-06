@@ -72,7 +72,7 @@ export function ModelPriceComparison({
       className="market-price-comparison"
     >
       <div className="market-section-title">
-        <span>02 / Published API rates</span>
+        <span>Published API rates</span>
         <span>USD per million tokens</span>
       </div>
       <div className="flex flex-wrap items-center justify-between gap-3">

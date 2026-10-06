@@ -138,8 +138,7 @@ export function PublishedSubscriptionTerms({ terms }: { terms: SubscriptionPubli
         ))}
       </dl>
       <p className="mt-4 text-xs text-muted-foreground">
-        Published terms checked {terms.checkedAt}. Provider terms can change. These documented
-        allowances are separate from StackReplay’s executable capacity model.
+        Published terms checked {terms.checkedAt}. Provider terms can change.
       </p>
     </div>
   );

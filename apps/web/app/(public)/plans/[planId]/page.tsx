@@ -11,7 +11,6 @@ import { SubscriptionModelAccess } from "@/components/public/subscription-model-
 import {
   buildCompareFacts,
   defaultComparePair,
-  PUBLIC_OFFER_REPLAY_UNAVAILABLE,
   publicOfferObservationText,
 } from "@/lib/compare-facts";
 import { compareSearch } from "@/lib/compare-url";
@@ -38,7 +37,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title: p?.name ?? "Plan not found",
     description:
       p?.kind === "public_offer"
-        ? `${p.name}: ${publicPlanPriceText(p)}. Published offer; workload replay is unavailable.`
+        ? `${p.name}: ${publicPlanPriceText(p)}. Published offer.`
         : `${p?.name ?? "Plan"}: published price, model access, compatible tools and usage terms.`,
     path: `/plans/${planId}`,
   });
@@ -157,12 +156,9 @@ export default async function PlanPage({ params }: Props) {
       {plan.kind === "catalog_plan" && plan.timeline !== undefined && (
         <PlanHistory asOf={catalog.asOf} followToday id="history" plan={plan.timeline} />
       )}
-      {plan.kind === "public_offer" && (
-        <p className="market-muted my-5">{PUBLIC_OFFER_REPLAY_UNAVAILABLE}</p>
-      )}
       <section id="usage" className="scroll-mt-24">
         <div className="market-section-title">
-          <span>01 / What you get</span>
+          <span>What you get</span>
         </div>
         {plan.publishedTerms ? (
           <PublishedSubscriptionTerms terms={plan.publishedTerms} />
@@ -197,7 +193,7 @@ export default async function PlanPage({ params }: Props) {
       </section>
       <section id="model-access" className="mt-10 scroll-mt-24">
         <div className="market-section-title">
-          <span>02 / Included models & access</span>
+          <span>Included models & access</span>
         </div>
         {plan.modelAccess ? (
           <SubscriptionModelAccess access={plan.modelAccess} />
@@ -223,7 +219,7 @@ export default async function PlanPage({ params }: Props) {
       </section>
       <section className="mt-10">
         <div className="market-section-title">
-          <span>03 / When you reach the limit</span>
+          <span>When you reach the limit</span>
         </div>
         <div className="max-w-3xl space-y-3 text-sm leading-relaxed">
           {facts.afterLimit.lines.length || facts.afterLimit.quotes.length ? (
@@ -250,7 +246,7 @@ export default async function PlanPage({ params }: Props) {
               className="flex flex-wrap justify-between gap-3 border-b border-border py-4 hover:text-accent"
             >
               <span>{p.name}</span>
-              <span className="font-mono text-sm">
+              <span className="text-sm tabular-nums">
                 {publicPlanPriceText(p)} <span className="ml-4 text-accent">Compare ↗</span>
               </span>
             </Link>
@@ -265,7 +261,7 @@ export default async function PlanPage({ params }: Props) {
           <p className="market-muted">
             {plan.kind === "catalog_plan" && plan.limits.length
               ? "Published rules are available for this plan."
-              : "Published price and access do not establish a deterministic workload allowance."}
+              : "Published price and access do not establish a numeric allowance."}
           </p>
           <ul className="space-y-4" data-testid="qualitative-limits">
             {plan.kind === "catalog_plan" &&

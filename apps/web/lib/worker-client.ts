@@ -1,63 +1,29 @@
 "use client";
 
-import type {
-  ApiPriceabilityCountsV1,
-  PriceReceiptV1,
-  ProjectedReplayV1,
-} from "@stackreplay/replay-engine";
-import type { ExecutionReplayResultV1, ExecutionTargetV1 } from "@stackreplay/schema";
 import type { DemoWorkloadPresetId } from "@stackreplay/test-fixtures";
-import type { CapacityBurden } from "./capacity-episodes";
-import type { MarketDecision } from "./market-decision";
-import type { OptimizerDetail, OptimizerSummary } from "./optimizer-runtime";
-import { clearReviewState, localSourceRootSalt } from "./review-storage";
-import { browserTimeZone } from "./time-zone";
-import type { OptimizerConfiguration } from "./worker-protocol";
+import { clearLocalPreferences, localSourceRootSalt } from "./local-data";
 import {
   type ImportPhase,
   type ImportRecord,
   isSafeError,
   isWorkerResponse,
   protocolMismatch,
-  type ReplayPhase,
-  type ReplayScope,
-  type ResolvedScopeReplay,
   type SafeError,
   type ScanProgress,
-  type TimelinePoint,
   WORKER_PROTOCOL_VERSION,
   type WorkerRequest,
   type WorkerResponse,
 } from "./worker-protocol";
-import type { WindowFact, WorkloadProfile } from "./workload-profile";
-
-/** What a completed replay returns: the result plus aggregate timeline buckets. */
-export interface ReplayOutcome {
-  result: ExecutionReplayResultV1;
-  timeline: TimelinePoint[];
-  /** The display contract for the same result (M4D). */
-  projection: ProjectedReplayV1;
-  /** Present when the replay ran under an explicit, user-chosen scope. */
-  scope?: ReplayScope | undefined;
-  /** The engine's model × category arithmetic behind the result's money. */
-  receipt?: PriceReceiptV1 | undefined;
-  /** Direct API only: how many events fared each way. */
-  priceability?: ApiPriceabilityCountsV1 | undefined;
-  /** Direct API only: the resolved-only scope, when it completes the price. */
-  resolvedScope?: ResolvedScopeReplay | undefined;
-  /** Subscription targets: when each undecided call occurred, epoch ms. */
-  undecidedAtMs?: number[] | undefined;
-}
 
 /**
- * Main-thread client for the replay Worker.
+ * Main-thread client for the import Worker.
  *
  * Responsibilities that matter for correctness:
  * - one terminal response per request, matched by requestId;
  * - stale responses are dropped, so importing a second file can never be
  *   overwritten by the first one finishing late;
  * - the event array never crosses this boundary: only summaries, progress and
- *   replay results do.
+ *   exported bytes do.
  */
 
 export class SupersededError extends Error {
@@ -77,11 +43,7 @@ export class WorkerFailure extends Error {
   }
 }
 
-type ProgressHandler = (
-  phase: ImportPhase | ReplayPhase,
-  detail?: string,
-  scan?: ScanProgress,
-) => void;
+type ProgressHandler = (phase: ImportPhase, detail?: string, scan?: ScanProgress) => void;
 
 /**
  * A request's channel. Supersession is decided per channel: a newer import must
@@ -90,15 +52,7 @@ type ProgressHandler = (
  * start with IMPORT", which is true of the list response `IMPORTS` as well, so a
  * perfectly valid listing was dropped whenever an import was running.
  */
-type Channel =
-  | "import"
-  | "replay"
-  | "list"
-  | "mutation"
-  | "analyze"
-  | "inspect"
-  | "optimizer"
-  | "optimizer-detail";
+type Channel = "import" | "list" | "mutation";
 
 interface Pending {
   resolve: (response: WorkerResponse) => void;
@@ -112,7 +66,7 @@ interface Pending {
 /**
  * How long a request may go without a word before it is treated as hung.
  *
- * Imports and replays report progress as they work, so silence means something is
+ * Imports report progress as they work, so silence means something is
  * wrong; the budget is wide because a large file really can take minutes between
  * phases. A listing answers immediately once it is reached. A deletion or clear is
  * *queued behind* earlier storage work by design, so its budget has to cover the
@@ -120,23 +74,13 @@ interface Pending {
  */
 const IDLE_TIMEOUT_MS: Record<Channel, number> = {
   import: 300_000,
-  replay: 300_000,
   list: 60_000,
   mutation: 900_000,
-  analyze: 300_000,
-  inspect: 120_000,
-  optimizer: 120_000,
-  "optimizer-detail": 30_000,
 };
 
-/** Completed market summaries kept for reuse (each is a bounded aggregate). */
-const MARKET_SUMMARY_LIMIT = 16;
-
-export class ReplayWorkerClient {
+export class LocalWorkerClient {
   private worker: Worker | undefined;
   private nextRequestId = 1;
-  private optimizerGeneration = 0;
-  private optimizerAbortCleanup: (() => void) | undefined;
   private readonly pending = new Map<number, Pending>();
   /** Newest request id per channel: an older request on that channel is stale. */
   private readonly latestByChannel: Partial<Record<Channel, number>> = {};
@@ -156,8 +100,8 @@ export class ReplayWorkerClient {
   private static workerFailure(): SafeError {
     return {
       code: "INTERNAL",
-      title: "The replay Worker could not be started.",
-      message: "This browser did not load the local replay Worker.",
+      title: "The scan Worker could not be started.",
+      message: "This browser did not load the local scan Worker.",
       hint: "Reload the page. If it keeps happening, an extension, policy or proxy may be blocking same-origin Workers.",
     };
   }
@@ -180,10 +124,6 @@ export class ReplayWorkerClient {
    * the next request starts a fresh Worker instead of queueing behind a dead one.
    */
   private failWorker(error: SafeError): void {
-    this.marketSummaries.clear();
-    this.capacitySummaries.clear();
-    this.capacityEpoch++;
-    this.invalidateOptimizer();
     this.clearReadyTimer();
     const worker = this.worker;
     this.worker = undefined;
@@ -209,9 +149,9 @@ export class ReplayWorkerClient {
       if (!this.pending.has(requestId)) return;
       this.failWorker({
         code: "INTERNAL",
-        title: "The replay Worker stopped responding.",
+        title: "The scan Worker stopped responding.",
         message: "The operation was still running but stopped reporting progress.",
-        hint: "Reload the page and try again. A very large workload may need a narrower export.",
+        hint: "Reload the page and try again. A very large history may need a narrower scan.",
       });
     }, IDLE_TIMEOUT_MS[entry.channel]);
   }
@@ -223,20 +163,20 @@ export class ReplayWorkerClient {
     // load the identical artifact.
     const worker = new Worker("/stackreplay-worker.js", {
       type: "module",
-      name: "stackreplay-replay",
+      name: "stackreplay-scan",
     });
     worker.onmessage = (event: MessageEvent<unknown>) => {
       if (this.worker === worker) this.receive(event.data);
     };
     worker.onerror = () => {
-      if (this.worker === worker) this.failWorker(ReplayWorkerClient.workerFailure());
+      if (this.worker === worker) this.failWorker(LocalWorkerClient.workerFailure());
     };
     this.worker = worker;
     this.workerReady = false;
     this.clearReadyTimer();
     this.readyTimer = setTimeout(() => {
-      if (!this.workerReady) this.failWorker(ReplayWorkerClient.workerFailure());
-    }, ReplayWorkerClient.WORKER_START_TIMEOUT_MS);
+      if (!this.workerReady) this.failWorker(LocalWorkerClient.workerFailure());
+    }, LocalWorkerClient.WORKER_START_TIMEOUT_MS);
     return worker;
   }
 
@@ -248,7 +188,7 @@ export class ReplayWorkerClient {
     if (this.announcementMismatch(data)) {
       this.failWorker({
         code: "INTERNAL",
-        title: "The replay Worker is a different version than this page.",
+        title: "The scan Worker is a different version than this page.",
         message: "The Worker asset does not speak this page's protocol.",
         hint: "Hard-reload the page (Shift+Reload) so both come from the same build.",
       });
@@ -271,10 +211,6 @@ export class ReplayWorkerClient {
     // even by reporting progress.
     const stale = response.requestId < (this.latestByChannel[entry.channel] ?? 0);
 
-    if (response.type === "OPTIMIZER_PHASE") {
-      if (!stale) this.armIdleTimer(response.requestId, entry);
-      return;
-    }
     if (response.type === "PROGRESS") {
       if (stale) return;
       this.armIdleTimer(response.requestId, entry);
@@ -285,15 +221,6 @@ export class ReplayWorkerClient {
     this.pending.delete(response.requestId);
     if (entry.idleTimer !== undefined) clearTimeout(entry.idleTimer);
     if (stale) {
-      entry.reject(new SupersededError());
-      return;
-    }
-    if (
-      response.type === "CANCELLED" &&
-      (entry.channel === "optimizer" ||
-        entry.channel === "optimizer-detail" ||
-        entry.channel === "analyze")
-    ) {
       entry.reject(new SupersededError());
       return;
     }
@@ -308,7 +235,7 @@ export class ReplayWorkerClient {
             : {
                 code: "INTERNAL",
                 title: "Something went wrong.",
-                message: "The replay Worker reported a failure it could not describe.",
+                message: "The scan Worker reported a failure it could not describe.",
                 hint: "Try again; if it repeats, reload the page.",
               },
         ),
@@ -344,48 +271,8 @@ export class ReplayWorkerClient {
     const worker = this.ensureWorker();
     const requestId = this.nextRequestId;
     this.nextRequestId += 1;
-    if (
-      channel === "import" ||
-      channel === "replay" ||
-      channel === "list" ||
-      channel === "analyze" ||
-      channel === "inspect" ||
-      channel === "optimizer" ||
-      channel === "optimizer-detail"
-    ) {
-      this.latestByChannel[channel] = requestId;
-    }
+    if (channel === "import" || channel === "list") this.latestByChannel[channel] = requestId;
     const request = build(requestId);
-    if (
-      [
-        "IMPORT_FILE",
-        "IMPORT_SOURCES",
-        "IMPORT_DEMO",
-        "CLEAR_LOCAL_DATA",
-        "DELETE_LOCAL_IMPORT",
-      ].includes(request.type)
-    ) {
-      this.marketSummaries.clear();
-      this.capacitySummaries.clear();
-      this.capacityEpoch++;
-    }
-    if (
-      [
-        "IMPORT_FILE",
-        "IMPORT_SOURCES",
-        "IMPORT_DEMO",
-        "CANCEL_IMPORT",
-        "CLEAR_LOCAL_DATA",
-        "DELETE_LOCAL_IMPORT",
-        "RUN_REPLAY",
-        "OPTIMIZE",
-        "API_MARKET",
-        "CANCEL_OPTIMIZER",
-      ].includes(request.type)
-    )
-      this.invalidateOptimizer();
-    if (request.type === "OPTIMIZE" || request.type === "API_MARKET")
-      this.optimizerGeneration = requestId;
     return new Promise<WorkerResponse>((resolve, reject) => {
       const entry: Pending = { resolve, reject, channel, ...(onProgress ? { onProgress } : {}) };
       this.pending.set(requestId, entry);
@@ -394,167 +281,13 @@ export class ReplayWorkerClient {
         worker.postMessage(request);
       } catch {
         // A worker that died between requests would otherwise swallow the request.
-        this.failWorker(ReplayWorkerClient.workerFailure());
+        this.failWorker(LocalWorkerClient.workerFailure());
       }
     });
   }
 
-  private marketSummaries = new Map<string, MarketDecision>();
-
-  private invalidateOptimizer(): void {
-    this.optimizerAbortCleanup?.();
-    this.optimizerAbortCleanup = undefined;
-    this.optimizerGeneration = 0;
-    for (const [id, entry] of this.pending)
-      if (entry.channel === "optimizer" || entry.channel === "optimizer-detail") {
-        if (entry.idleTimer !== undefined) clearTimeout(entry.idleTimer);
-        this.pending.delete(id);
-        entry.reject(new SupersededError());
-      }
-  }
-  /** Call when leaving/changing optimizer scope. Existing import/clear/replay actions also invalidate it. */
-  async cancelOptimizer(): Promise<void> {
-    await this.send((requestId) => ({
-      protocol: WORKER_PROTOCOL_VERSION,
-      type: "CANCEL_OPTIMIZER",
-      requestId,
-    }));
-  }
-  private capacityEpoch = 0;
-  private capacitySummaries = new Map<string, CapacityBurden>();
-  async capacityBurden(input: {
-    importId: string;
-    resourceInstanceId: string;
-    planId: string | undefined;
-    period: import("./review-period").ReviewPeriod;
-    contextImportIds: string[];
-  }): Promise<CapacityBurden> {
-    const normalized = { ...input, contextImportIds: [...new Set(input.contextImportIds)].sort() };
-    const key = JSON.stringify(normalized);
-    const cached = this.capacitySummaries.get(key);
-    if (cached) return cached;
-    const epoch = this.capacityEpoch;
-    const response = await this.send((requestId) => ({
-      protocol: WORKER_PROTOCOL_VERSION,
-      type: "CAPACITY_EPISODES",
-      requestId,
-      ...normalized,
-    }));
-    if (epoch !== this.capacityEpoch) throw new SupersededError();
-    if (response.type !== "CAPACITY_EPISODES_OK") throw new Error("unexpected capacity response");
-    if (this.capacitySummaries.size >= 3)
-      this.capacitySummaries.delete(this.capacitySummaries.keys().next().value ?? "");
-    this.capacitySummaries.set(key, response.burden);
-    return response.burden;
-  }
-  async apiMarket(
-    importId: string,
-    signal?: AbortSignal,
-    period?: import("./review-period").ReviewPeriod,
-    resourceInstanceId?: string,
-    sources?: readonly string[],
-    accounts?: readonly string[],
-  ): Promise<MarketDecision> {
-    const tools = [...new Set(sources ?? [])].sort();
-    const scope = [...new Set(accounts ?? [])].sort();
-    const cacheKey = `${importId}\u0000${period ? `${period.start}/${period.end}` : "history"}\u0000${resourceInstanceId ?? "all"}\u0000${tools.join(",") || "every-tool"}\u0000${scope.join(",") || "every-account"}`;
-    if (signal?.aborted) throw new SupersededError();
-    const cached = this.marketSummaries.get(cacheKey);
-    if (cached) return cached;
-    let generation = 0;
-    const pending = this.send(
-      (requestId) => {
-        generation = requestId;
-        return {
-          protocol: WORKER_PROTOCOL_VERSION,
-          type: "API_MARKET",
-          requestId,
-          importId,
-          ...(period ? { period } : {}),
-          ...(resourceInstanceId ? { resourceInstanceId } : {}),
-          ...(tools.length ? { sources: tools } : {}),
-          ...(scope.length ? { accounts: scope } : {}),
-        };
-      },
-      undefined,
-      "optimizer",
-    );
-    const abort = () => {
-      if (this.optimizerGeneration === generation)
-        void this.cancelOptimizer().catch(() => undefined);
-    };
-    signal?.addEventListener("abort", abort, { once: true });
-    this.optimizerAbortCleanup = () => signal?.removeEventListener("abort", abort);
-    const response = await pending;
-    if (response.type !== "API_MARKET_OK") throw new Error("unexpected market response");
-    if (signal?.aborted || this.optimizerGeneration !== generation) throw new SupersededError();
-    // Bounded aggregates: the whole workload, a billing review, and My Stack's
-    // per-tool and per-account scopes of one period. A stack with more scopes
-    // than this evicts the oldest, which only costs a recompute.
-    const oldest = this.marketSummaries.keys().next().value;
-    if (this.marketSummaries.size >= MARKET_SUMMARY_LIMIT && oldest !== undefined)
-      this.marketSummaries.delete(oldest);
-    this.marketSummaries.set(cacheKey, response.decision);
-    this.optimizerAbortCleanup?.();
-    this.optimizerAbortCleanup = undefined;
-    return response.decision;
-  }
-  async optimize(
-    importId: string,
-    configuration: OptimizerConfiguration,
-    sources?: string[],
-    signal?: AbortSignal,
-  ): Promise<{ generation: number; summary: OptimizerSummary }> {
-    if (signal?.aborted) throw new SupersededError();
-    let generation = 0;
-    const pending = this.send(
-      (requestId) => {
-        generation = requestId;
-        return {
-          protocol: WORKER_PROTOCOL_VERSION,
-          type: "OPTIMIZE",
-          requestId,
-          importId,
-          configuration,
-          ...(sources ? { sources } : {}),
-        };
-      },
-      undefined,
-      "optimizer",
-    );
-    const abort = () => {
-      if (this.optimizerGeneration === generation)
-        void this.cancelOptimizer().catch(() => undefined);
-    };
-    signal?.addEventListener("abort", abort, { once: true });
-    this.optimizerAbortCleanup = () => signal?.removeEventListener("abort", abort);
-    const response = await pending;
-    if (response.type !== "OPTIMIZER_OK") throw new Error("unexpected worker response");
-    return { generation: response.requestId, summary: response.summary };
-  }
-  async optimizerDetail(generation: number, offset: number, limit = 100): Promise<OptimizerDetail> {
-    if (generation !== this.optimizerGeneration) throw new SupersededError();
-    const response = await this.send(
-      (requestId) => ({
-        protocol: WORKER_PROTOCOL_VERSION,
-        type: "OPTIMIZER_DETAIL",
-        requestId,
-        generation,
-        offset,
-        limit,
-      }),
-      undefined,
-      "optimizer-detail",
-    );
-    if (response.type !== "OPTIMIZER_DETAIL_OK") throw new Error("unexpected worker response");
-    return response.detail;
-  }
-  /** End all activity owned by this client, including child optimization, on owner teardown. */
+  /** End all activity owned by this client on owner teardown. */
   dispose(): void {
-    this.marketSummaries.clear();
-    this.capacitySummaries.clear();
-    this.capacityEpoch++;
-    this.invalidateOptimizer();
     this.clearReadyTimer();
     this.worker?.terminate();
     this.worker = undefined;
@@ -676,94 +409,6 @@ export class ReplayWorkerClient {
     return response.record;
   }
 
-  async runReplay(
-    importId: string,
-    target: ExecutionTargetV1,
-    rulesAsOf: string,
-    onProgress?: ProgressHandler,
-    options: {
-      excludeUnresolved?: boolean;
-      timeZone?: string;
-      /** Recording tools to keep, by adapter id. */
-      sources?: readonly string[] | undefined;
-    } = {},
-  ): Promise<ReplayOutcome> {
-    const response = await this.send(
-      (requestId) => ({
-        protocol: WORKER_PROTOCOL_VERSION,
-        type: "RUN_REPLAY",
-        requestId,
-        importId,
-        target,
-        rulesAsOf,
-        timeZone: options.timeZone ?? browserTimeZone(),
-        ...(options.excludeUnresolved === true ? { excludeUnresolved: true } : {}),
-        ...(options.sources === undefined || options.sources.length === 0
-          ? {}
-          : { sources: [...options.sources] }),
-      }),
-      onProgress,
-      "replay",
-    );
-    if (response.type !== "REPLAY_OK") throw new Error("unexpected worker response");
-    return {
-      result: response.result,
-      timeline: response.timeline,
-      projection: response.projection,
-      ...(response.scope === undefined ? {} : { scope: response.scope }),
-      ...(response.receipt === undefined ? {} : { receipt: response.receipt }),
-      ...(response.priceability === undefined ? {} : { priceability: response.priceability }),
-      ...(response.resolvedScope === undefined ? {} : { resolvedScope: response.resolvedScope }),
-      ...(response.undecidedAtMs === undefined ? {} : { undecidedAtMs: response.undecidedAtMs }),
-    };
-  }
-
-  /** The workload profile, computed locally in the Worker from the stored events. */
-  async analyzeWorkload(
-    importId: string,
-    timeZone: string,
-    rulesAsOf?: string,
-  ): Promise<WorkloadProfile> {
-    const response = await this.send(
-      (requestId) => ({
-        protocol: WORKER_PROTOCOL_VERSION,
-        type: "ANALYZE_WORKLOAD",
-        requestId,
-        importId,
-        timeZone,
-        ...(rulesAsOf === undefined ? {} : { rulesAsOf }),
-      }),
-      undefined,
-      "analyze",
-    );
-    if (response.type !== "PROFILE_OK") throw new Error("unexpected worker response");
-    return response.profile;
-  }
-
-  /** What recorded demand fell inside one window, [startMs, endMs). */
-  async inspectWindow(
-    importId: string,
-    startMs: number,
-    endMs: number,
-    timeZone: string,
-  ): Promise<WindowFact> {
-    const response = await this.send(
-      (requestId) => ({
-        protocol: WORKER_PROTOCOL_VERSION,
-        type: "INSPECT_WINDOW",
-        requestId,
-        importId,
-        startMs,
-        endMs,
-        timeZone,
-      }),
-      undefined,
-      "inspect",
-    );
-    if (response.type !== "WINDOW_OK") throw new Error("unexpected worker response");
-    return response.window;
-  }
-
   async listImports(): Promise<ImportRecord[]> {
     const response = await this.send(
       (requestId) => ({
@@ -786,7 +431,6 @@ export class ReplayWorkerClient {
       importId,
     }));
     if (response.type !== "DELETED") throw new Error("unexpected worker response");
-    clearReviewState(importId);
   }
 
   async clearLocalData(): Promise<void> {
@@ -796,15 +440,15 @@ export class ReplayWorkerClient {
       requestId,
     }));
     if (response.type !== "CLEARED") throw new Error("unexpected worker response");
-    clearReviewState();
+    clearLocalPreferences();
   }
 }
 
-let sharedClient: ReplayWorkerClient | undefined;
+let sharedClient: LocalWorkerClient | undefined;
 
 /** One Worker per page, shared by every surface that needs it. */
-export function getWorkerClient(): ReplayWorkerClient {
-  sharedClient ??= new ReplayWorkerClient();
+export function getWorkerClient(): LocalWorkerClient {
+  sharedClient ??= new LocalWorkerClient();
   return sharedClient;
 }
 

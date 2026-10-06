@@ -120,7 +120,8 @@ describe("permanent update provenance", () => {
     expect(
       [...html.matchAll(/id="([^"]+)" class="updates-event"/gu)].map((match) => match[1]),
     ).toEqual(selected.map((event) => event.id));
-    expect(html).toContain('<option value="google" selected="">Google</option>');
+    expect(html).toContain('data-selected-value="google"');
+    expect(html).toMatch(/role="combobox"[^>]*aria-label="Provider"[^>]*><span>Google<\/span>/u);
     expect(html).toContain('aria-pressed="true" data-testid="updates-filter-benchmarks"');
   });
   it("sitemaps every permalink without filters, feeds or substituted review dates", () => {

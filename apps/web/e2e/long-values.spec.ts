@@ -30,7 +30,7 @@ async function expectInsideViewport(page: Page, testId: string): Promise<void> {
 test("schema-valid long workload and model identities remain usable at 390px", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await gotoImport(page);
-  await page.getByRole("checkbox", { name: "Save normalized workload on this browser" }).check();
+  await page.getByRole("checkbox", { name: "Save this scan in this browser" }).check();
   const file = validWorkload();
   for (const name of workloadNames) {
     await page.getByTestId("import-file-input").setInputFiles({
@@ -52,25 +52,20 @@ test("schema-valid long workload and model identities remain usable at 390px", a
 
   const rows = page.getByTestId("stored-imports").locator(":scope > li");
   await expect(rows).toHaveCount(2);
-  await expect(rows.getByRole("link", { name: /^Replay first-observed-workload/u })).toBeVisible();
+  await expect(
+    rows.getByRole("link", { name: /^Open my recap for first-observed-workload/u }),
+  ).toBeVisible();
   const second = rows.filter({ hasText: "second-observed-workload" });
   await second.getByText("More").click();
   await expect(
-    second.getByRole("button", { name: /^Delete snapshot .*second-observed-workload/u }),
+    second.getByRole("button", { name: /^Delete scan .*second-observed-workload/u }),
   ).toBeVisible();
 
-  await page.goto("/app/replay?mode=custom");
-  await expect(page.getByTestId("workload-strip")).toBeVisible();
-  const select = page.getByTestId("workload-select");
-  await expect(select).toBeVisible();
-  await expect(select.locator("option")).toHaveCount(2);
-  await expect(page.getByTestId("model-identities")).toContainText(modelId);
-  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-  await expectInsideViewport(page, "workload-select");
-  await expectInsideViewport(page, "run-replay");
-  const otherValue = await select.locator("option").first().getAttribute("value");
-  if (otherValue === null) throw new Error("stored workload has no select value");
-  await select.selectOption(otherValue);
-  await expect(select).toHaveValue(otherValue);
+  const href = await rows
+    .first()
+    .getByRole("link", { name: /^Explore my stats/u })
+    .getAttribute("href");
+  await page.goto(href ?? "/app/stats");
+  await expect(page.getByTestId("stats-ready")).toBeVisible({ timeout: 60_000 });
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });

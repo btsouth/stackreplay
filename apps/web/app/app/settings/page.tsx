@@ -1,24 +1,28 @@
+import "@/components/app/premium-app.css";
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { PageHeader } from "@/components/page-header";
-import { PlansYouPayFor, SavedWorkloads, ThemeChoiceControl } from "@/components/settings-panels";
+import { SavedWorkloads, ThemeChoiceControl } from "@/components/settings-panels";
+import { WhatYouPayEditor } from "@/components/what-you-pay-editor";
 
 export const metadata: Metadata = { title: "Settings" };
 
 function Setting({
+  id,
   title,
   description,
   children,
 }: {
+  id?: string;
   title: string;
   description: string;
   children: ReactNode;
 }) {
   return (
-    <section className="grid gap-4 border-t border-border-strong pt-5 sm:grid-cols-[14rem_minmax(0,1fr)] sm:gap-8">
+    <section id={id} className="app-setting">
       <div className="flex flex-col gap-1.5">
-        <h2 className="text-base font-medium">{title}</h2>
-        <p className="text-sm leading-relaxed text-muted-foreground">{description}</p>
+        <h2 className="font-medium">{title}</h2>
+        <p className="app-setting-description">{description}</p>
       </div>
       {children}
     </section>
@@ -27,28 +31,29 @@ function Setting({
 
 export default function SettingsPage() {
   return (
-    <>
+    <div className="premium-app">
       <PageHeader
         title="Settings"
-        description="Your settings stay in this browser. They are not uploaded."
+        description="Make this space yours. Choose how it looks, tell us what you pay, and keep your saved scans in order."
       />
-      <div className="flex max-w-4xl flex-col gap-8">
-        <Setting
-          title="Plans you pay for"
-          description="Your confirmed Current Stack is shared by Workload, Replay and Compare. History narrows the choices; you confirm which plans you currently pay for."
-        >
-          <PlansYouPayFor />
-        </Setting>
-        <Setting
-          title="Saved workloads"
-          description="Normalized usage from your scans: models, token counts and timestamps. Raw history is never stored."
-        >
-          <SavedWorkloads />
-        </Setting>
+      <div className="app-settings">
         <Setting title="Appearance" description="Dark, or a warm paper theme for reading.">
           <ThemeChoiceControl />
         </Setting>
+        <Setting
+          id="what-you-pay"
+          title="What you pay"
+          description="Optional. Add the subscriptions you pay for and your recap and stats compare your usage, at API prices, with what you paid."
+        >
+          <WhatYouPayEditor />
+        </Setting>
+        <Setting
+          title="Saved scans"
+          description="Models, token counts and timestamps from your scans. Your raw logs are never saved."
+        >
+          <SavedWorkloads />
+        </Setting>
       </div>
-    </>
+    </div>
   );
 }

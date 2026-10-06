@@ -1,23 +1,6 @@
-import type { Metadata } from "next";
-import { WorkloadSurface } from "@/components/workload/workload-surface";
+import { redirect } from "next/navigation";
+import { type RouteQuery, removedAppDestination } from "@/lib/app-routes";
 
-export const metadata: Metadata = {
-  title: "Workload",
-  description:
-    "How you actually use AI: chronology, working hours, peak windows, projects, models and token composition, analyzed in your browser.",
-};
-
-/**
- * The workload route accepts an opaque local import id only. Project names,
- * session hashes and timestamps never appear in a URL.
- */
-export default async function WorkloadPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ import?: string; target?: string }>;
-}) {
-  const params = await searchParams;
-  const importId = typeof params.import === "string" ? params.import : undefined;
-  const target = typeof params.target === "string" ? params.target : undefined;
-  return <WorkloadSurface initialImportId={importId} initialTarget={target} />;
+export default async function RemovedPage({ searchParams }: { searchParams: Promise<RouteQuery> }) {
+  redirect(removedAppDestination("workload", await searchParams));
 }

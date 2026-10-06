@@ -1,24 +1,29 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 
-test("the app entry opens Import on a first visit, with working navigation", async ({
+test("the app entry opens Scan on a first visit, with working navigation", async ({
   page,
 }, testInfo) => {
   await page.goto("/app");
-  await expect(page).toHaveURL(/\/app\/import$/);
-  await expect(page.getByRole("heading", { name: "Import", exact: true })).toBeVisible();
+  await expect(page).toHaveURL(/\/app\/scan$/);
+  await expect(page.getByRole("heading", { name: "Scan your history", exact: true })).toBeVisible();
   await expect(page.getByRole("banner")).toBeVisible();
-  await expect(page.getByRole("link", { name: "StackReplay home" })).toBeVisible();
+  await expect(
+    page.getByRole("banner").getByRole("link", { name: "StackReplay home" }),
+  ).toBeVisible();
 
   if (testInfo.project.name === "desktop") {
     const nav = page.getByRole("navigation", { name: "Primary" });
-    await expect(nav.getByRole("link")).toHaveCount(7);
-    await expect(nav.getByRole("link", { name: "Import" })).toHaveAttribute("aria-current", "page");
+    await expect(nav.getByRole("link")).toHaveCount(4);
+    await expect(nav.getByRole("link", { name: "Scan my history" })).toHaveAttribute(
+      "href",
+      "/app/scan",
+    );
   }
 });
 
 test("public and workspace content keep safe gutters", async ({ page }, testInfo) => {
-  for (const route of ["/", "/methodology", "/app/import", "/app/settings"]) {
+  for (const route of ["/", "/methodology", "/app/scan", "/app/settings"]) {
     await page.goto(route);
     // The recap homepage owns section gutters; catalog and app shells own main gutters.
     const rail = route === "/" ? page.locator(".replay-hero") : page.getByRole("main");
@@ -37,25 +42,27 @@ test("public and workspace content keep safe gutters", async ({ page }, testInfo
   }
 });
 
-test("Import and Settings provide a route back into Replay", async ({ page }, testInfo) => {
-  for (const route of ["/app/import", "/app/settings"]) {
+test("Scan and Settings provide a route on into Stats", async ({ page }, testInfo) => {
+  for (const route of ["/app/scan", "/app/settings"]) {
     await page.goto(route);
-    await expect(page.getByRole("link", { name: "StackReplay home" })).toHaveAttribute("href", "/");
+    await expect(
+      page.getByRole("banner").getByRole("link", { name: "StackReplay home" }),
+    ).toHaveAttribute("href", "/");
     if (testInfo.project.name === "mobile") {
-      await page.getByRole("button", { name: "Open navigation" }).click();
-      await page.getByRole("dialog").getByRole("link", { name: "Replay", exact: true }).click();
+      await page.getByRole("button", { name: "Open menu" }).click();
+      await page.getByRole("dialog").getByRole("link", { name: "Stats", exact: true }).click();
     } else {
       await page
         .getByRole("navigation", { name: "Primary" })
-        .getByRole("link", { name: "Replay" })
+        .getByRole("link", { name: "Stats" })
         .click();
     }
-    await expect(page).toHaveURL(/\/app\/replay$/);
+    await expect(page).toHaveURL(/\/app\/stats$/);
   }
 });
 
 test("skip link becomes visible on focus", async ({ page }) => {
-  await page.goto("/app/import");
+  await page.goto("/app/scan");
   const skipLink = page.getByRole("link", { name: "Skip to content" });
   await page.keyboard.press("Tab");
   await expect(skipLink).toBeFocused();
@@ -66,12 +73,12 @@ test("skip link becomes visible on focus", async ({ page }) => {
 
 test("theme defaults to the system preference", async ({ page }) => {
   await page.emulateMedia({ colorScheme: "dark" });
-  await page.goto("/app/import");
+  await page.goto("/app/scan");
   await expect(page.locator("html")).toHaveClass(/dark/);
 });
 
 test("theme toggle switches and persists across reloads", async ({ page }) => {
-  await page.goto("/app/import");
+  await page.goto("/app/scan");
   const html = page.locator("html");
   await expect(html).not.toHaveClass(/dark/);
 
@@ -89,44 +96,45 @@ test("theme toggle switches and persists across reloads", async ({ page }) => {
 
 test("mobile drawer navigation works and closes on navigate", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== "mobile", "mobile viewport only");
-  await page.goto("/app/import");
+  await page.goto("/app/scan");
 
-  await page.getByRole("button", { name: "Open navigation" }).click();
+  await page.getByRole("button", { name: "Open menu" }).click();
   const dialog = page.getByRole("dialog");
   await expect(dialog).toBeVisible();
 
-  await dialog.getByRole("link", { name: "Replay", exact: true }).click();
-  await expect(page).toHaveURL(/\/app\/replay$/);
-  await expect(page.getByRole("heading", { name: "Start with your recorded work" })).toBeVisible();
+  await dialog.getByRole("link", { name: "Settings", exact: true }).click();
+  await expect(page).toHaveURL(/\/app\/settings$/);
+  await expect(page.getByRole("heading", { name: "Settings", exact: true })).toBeVisible();
   await expect(page.getByRole("dialog")).toBeHidden();
 
   // Reopen: the drawer marks the current section.
-  await page.getByRole("button", { name: "Open navigation" }).click();
+  await page.getByRole("button", { name: "Open menu" }).click();
   await expect(
-    page.getByRole("dialog").getByRole("link", { name: "Replay", exact: true }),
+    page.getByRole("dialog").getByRole("link", { name: "Settings", exact: true }),
   ).toHaveAttribute("aria-current", "page");
 });
 
 test("desktop keeps the workspace navigation", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== "desktop", "desktop viewport only");
-  await page.goto("/app/replay?mode=custom");
+  await page.goto("/app/stats");
   const nav = page.getByRole("navigation", { name: "Primary" });
-  await expect(nav.getByRole("link", { name: "Replay" })).toHaveAttribute("aria-current", "page");
-  await expect(page.getByRole("button", { name: "Open navigation" })).toBeHidden();
+  await expect(nav.getByRole("link", { name: "Stats" })).toHaveAttribute("aria-current", "page");
+  await expect(nav.getByRole("link", { name: "Plans" })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Open menu" })).toBeHidden();
 });
 
 test("internal design surface does not claim a navigation section", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== "desktop", "desktop viewport only");
   await page.goto("/design");
   const nav = page.getByRole("navigation", { name: "Primary" });
-  await expect(nav.getByRole("link", { name: "Workload" })).not.toHaveAttribute(
+  await expect(nav.getByRole("link", { name: "Stats" })).not.toHaveAttribute(
     "aria-current",
     "page",
   );
 });
 
 for (const theme of ["light", "dark"] as const) {
-  for (const route of ["/app/import", "/design"]) {
+  for (const route of ["/app/scan", "/design"]) {
     test(`${route} has no axe violations or horizontal overflow in ${theme}`, async ({ page }) => {
       await page.emulateMedia({ colorScheme: theme, reducedMotion: "reduce" });
       await page.goto(route);
@@ -149,7 +157,7 @@ test("system theme survives unavailable or invalid storage", async ({ page }) =>
       throw new Error("Storage blocked");
     };
   });
-  await page.goto("/app/import");
+  await page.goto("/app/scan");
   await expect(page.locator("html")).toHaveClass(/dark/);
   await page.getByRole("button", { name: "Toggle theme" }).click();
   await expect(page.locator("html")).not.toHaveClass(/dark/);
@@ -158,49 +166,42 @@ test("system theme survives unavailable or invalid storage", async ({ page }) =>
 test("invalid stored theme falls back to system", async ({ page }) => {
   await page.emulateMedia({ colorScheme: "dark" });
   await page.addInitScript(() => localStorage.setItem("stackreplay-theme", "invalid"));
-  await page.goto("/app/import");
+  await page.goto("/app/scan");
   await expect(page.locator("html")).toHaveClass(/dark/);
 });
 
 test("all workspace routes have a matching heading and navigation state", async ({
   page,
 }, info) => {
-  for (const label of ["Import", "Workload", "My Stack", "Replay", "Compare", "Settings"]) {
-    await page.goto(`/app/${label === "My Stack" ? "stack" : label.toLowerCase()}`);
-    await expect(
-      page.getByRole("heading", {
-        name:
-          label === "Compare"
-            ? "Compare replays"
-            : label === "Replay"
-              ? "Start with your recorded work"
-              : label,
-        exact: true,
-      }),
-    ).toBeVisible();
+  for (const [path, label, heading] of [
+    ["/app/stats", "Stats", "Your stats"],
+    ["/app/settings", "Settings", "Settings"],
+  ] as const) {
+    await page.goto(path);
+    await expect(page.getByRole("heading", { name: heading, exact: true })).toBeVisible();
     if (info.project.name === "mobile")
-      await page.getByRole("button", { name: "Open navigation" }).click();
-    await expect(
-      page
-        .getByRole("navigation", { name: "Primary" })
-        .getByRole("link", { name: label, exact: true }),
-    ).toHaveAttribute("aria-current", "page");
+      await page.getByRole("button", { name: "Open menu" }).click();
+    const nav =
+      info.project.name === "mobile"
+        ? page.getByRole("dialog").getByRole("navigation", { name: "Primary" })
+        : page.getByRole("navigation", { name: "Primary" });
+    await expect(nav.getByRole("link", { name: label, exact: true })).toHaveAttribute(
+      "aria-current",
+      "page",
+    );
   }
 });
 
 test("mobile drawer traps focus, dismisses, and adapts to desktop", async ({ page }, info) => {
   test.skip(info.project.name !== "mobile", "mobile viewport only");
-  await page.goto("/app/import");
-  const trigger = page.getByRole("button", { name: "Open navigation" });
+  await page.goto("/app/scan");
+  const trigger = page.getByRole("button", { name: "Open menu" });
   await trigger.click();
-  const dialog = page.getByRole("dialog", { name: "StackReplay" });
+  const dialog = page.getByRole("dialog");
   await expect(dialog).toBeVisible();
-  await expect(
-    dialog.getByRole("link", { name: "StackReplay home" }).locator("img").first(),
-  ).toHaveAttribute("src", /\/brand\/navbar-64-/);
-  for (const route of ["Workload", "My Stack", "Replay", "Compare", "Import", "Settings"]) {
+  await expect(dialog.getByRole("link", { name: "StackReplay home" })).toBeVisible();
+  for (const route of ["Recap", "Stats", "Settings", "Scan my history"])
     await expect(dialog.getByRole("link", { name: route, exact: true })).toBeVisible();
-  }
   // Base UI transfers focus through an offscreen guard asynchronously.
   await expect.poll(() => dialog.evaluate((el) => el.contains(document.activeElement))).toBe(true);
   for (let i = 0; i < 10; i++) {
@@ -217,7 +218,7 @@ test("mobile drawer traps focus, dismisses, and adapts to desktop", async ({ pag
     await page.reload();
     await trigger.click();
     expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
-    await page.getByRole("button", { name: "Close navigation" }).click();
+    await page.getByRole("button", { name: "Close menu" }).click();
     await expect(trigger).toBeFocused();
   }
   await trigger.click();
@@ -230,13 +231,15 @@ test("mobile controls have touch-sized targets and narrow layouts fit", async ({
   test.skip(info.project.name !== "mobile", "touch viewport only");
   await page.setViewportSize({ width: 320, height: 568 });
   await page.goto("/design");
-  for (const control of await page.locator("button:visible, input:visible").all()) {
+  for (const control of await page
+    .locator("button:visible, input:visible:not([aria-hidden=true]):not([type=hidden])")
+    .all()) {
     const box = await control.boundingBox();
     expect(box?.height).toBeGreaterThanOrEqual(44);
     expect(box?.width).toBeGreaterThanOrEqual(44);
   }
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-  await page.getByRole("button", { name: "Open navigation" }).click();
+  await page.getByRole("button", { name: "Open menu" }).click();
   await page.setViewportSize({ width: 568, height: 320 });
   const settings = page.getByRole("dialog").getByRole("link", { name: "Settings" });
   await settings.click();
@@ -248,13 +251,13 @@ test("input labels, error description, keyboard focus and reduced motion work", 
 }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/design");
-  const input = page.getByRole("textbox", { name: "Plan slug" });
+  const input = page.getByRole("textbox", { name: "Plan ID", exact: true });
   await input.fill("example-plan");
   await expect(input).toHaveValue("example-plan");
   await page.keyboard.press("Tab");
   const invalid = page.getByRole("textbox", { name: "Invalid", exact: true });
   await expect(invalid).toBeFocused();
-  await expect(invalid).toHaveAccessibleDescription("No plan matches this slug.");
+  await expect(invalid).toHaveAccessibleDescription("No plan matches this ID.");
   expect(await invalid.evaluate((el) => getComputedStyle(el).boxShadow)).not.toBe("none");
   expect(
     await input.evaluate((el) => parseFloat(getComputedStyle(el).transitionDuration)),

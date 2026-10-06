@@ -224,7 +224,7 @@
   min-height: 24px;
 }
 .bench-table tbody th span {
-  text-transform: uppercase;
+  text-transform: none;
   letter-spacing: 0.04em;
 }
 .bench-table th small {
@@ -237,7 +237,7 @@
   text-align: center;
 }
 .bench-score {
-  font-family: var(--font-mono);
+  font-family: var(--font-sans);
   font-size: 1.2rem;
   font-weight: 500;
   font-variant-numeric: tabular-nums;
@@ -311,7 +311,7 @@
   margin-block: 0.75rem;
 }
 .bench-source-number {
-  font-family: var(--font-mono);
+  font-family: var(--font-sans);
   color: var(--accent);
   margin-right: 0.4rem;
 }
@@ -369,7 +369,7 @@
 }
 .bench-dialog .bench-detail-score {
   font-size: 2rem;
-  font-family: var(--font-mono);
+  font-family: var(--font-sans);
   margin-bottom: 0;
 }
 .bench-evidence {
@@ -429,7 +429,7 @@
   font-size: 0.85rem;
 }
 .bench-model-group dd {
-  font-family: var(--font-mono);
+  font-family: var(--font-sans);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }

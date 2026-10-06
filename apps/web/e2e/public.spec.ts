@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { ENGINE_VERSION, REPLAY_METHODOLOGY_VERSION } from "@stackreplay/replay-engine";
 import { decodeAnyShareToken, encodeShareToken } from "@stackreplay/share";
-import { captureRequests, createShareToken, importDemo, runReplay } from "./helpers";
+import { captureRequests, importDemo } from "./helpers";
 
 /**
  * Public site and sharing (M4).
@@ -18,25 +18,22 @@ const PUBLIC_ROUTES = [
   { path: "/", heading: "Your AI coding, replayed." },
   { path: "/plans", heading: "Find your next stack." },
   { path: "/models", heading: "Know your models." },
-  { path: "/compare", heading: "Compare plans" },
-  { path: "/methodology", heading: "Methodology" },
+  { path: "/compare", heading: "Find the fit." },
+  { path: "/methodology", heading: "Your history. Your browser." },
   { path: "/changelog", heading: "What changed in the AI market." },
 ] as const;
 
 test.describe("public site", () => {
   for (const route of PUBLIC_ROUTES) {
-    test(`${route.path} renders`, async ({ page }) => {
+    test(`${route.path} renders`, async ({ page, isMobile }) => {
       const response = await page.goto(route.path);
       expect(response?.status()).toBe(200);
       await expect(page.getByRole("heading", { level: 1, name: route.heading })).toBeVisible();
-      // The public shell always offers the local application and the repository.
-      await expect(
-        page
-          .getByRole("link", {
-            name: route.path === "/" ? "Replay my history" : "Scan your AI history",
-          })
-          .first(),
-      ).toBeVisible();
+      if (isMobile) await page.getByRole("button", { name: "Open menu" }).click();
+      const context = isMobile ? page.getByRole("dialog") : page.getByRole("banner");
+      const scan = context.getByRole("link", { name: "Scan my history", exact: true });
+      await expect(scan).toBeVisible();
+      await expect(scan).toHaveAttribute("href", "/app/scan");
     });
   }
 
@@ -52,15 +49,18 @@ test.describe("public site", () => {
     expect(ogImage).toContain("/brand/open-graph-1200x630.png");
   });
 
-  test("the catalog brand lockup is served from the site", async ({ page, request }) => {
+  test("the shared brand and Instrument Sans are served from the site", async ({
+    page,
+    request,
+  }) => {
     await page.goto("/models");
-    const logo = page.locator('header img[alt="StackReplay"]').first();
-    await expect(logo).toBeVisible();
-    const src = await logo.getAttribute("src");
-    expect(src).toContain("/brand/navbar-64-");
-    const response = await request.get(src ?? "/brand/navbar-64-dark.png");
+    const brand = page.getByRole("banner").getByRole("link", { name: "StackReplay home" });
+    await expect(brand).toBeVisible();
+    await expect(brand).toContainText("StackReplay");
+    await expect(brand).toHaveAttribute("href", "/");
+    const response = await request.get("/fonts/instrument-sans.ttf");
     expect(response.status()).toBe(200);
-    expect(response.headers()["content-type"]).toContain("image/png");
+    expect((await response.body()).byteLength).toBeGreaterThan(10_000);
   });
 
   test("robots keeps the local application out of search results", async ({ request }) => {
@@ -95,14 +95,12 @@ test.describe("public site", () => {
     await expect(page.getByTestId("qualitative-limits")).toBeVisible();
   });
 
-  test("a plan detail page leads to comparison and local analysis", async ({ page }) => {
+  test("a plan detail page leads to comparison", async ({ page }) => {
     await page.goto("/plans/clinepass");
     await expect(page.getByRole("link", { name: "Compare this plan" })).toHaveAttribute(
       "href",
       "/compare?left=clinepass&right=openai-chatgpt-pro",
     );
-    await page.getByRole("link", { name: "Analyze my workload" }).click();
-    await expect(page.getByTestId("import-dropzone")).toBeVisible();
   });
 
   test("public pages do not overflow horizontally on a narrow screen", async ({ page }) => {
@@ -148,15 +146,13 @@ test.describe("public site", () => {
     await page.setViewportSize({ width: 390, height: 844 });
     for (const route of ["/plans", "/compare"]) {
       await page.goto(route);
-      const action = page
-        .getByRole("link", {
-          name: route === "/plans" ? /Explore plan/u : /Replay (this target|your workload here)/u,
-        })
-        .first();
-      await expect(action).toBeVisible();
-      expect(await action.getAttribute("href")).toMatch(
-        route === "/plans" ? /^\/plans\//u : /^\/app\/import\?target=/u,
-      );
+      if (route === "/plans") {
+        const action = page.getByRole("link", { name: /Explore plan/u }).first();
+        await expect(action).toBeVisible();
+        expect(await action.getAttribute("href")).toMatch(/^\/plans\//u);
+      } else {
+        await expect(page.getByTestId("compare-target").first()).toBeVisible();
+      }
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
         true,
       );
@@ -179,9 +175,6 @@ test.describe("public site", () => {
     await expect(page.getByTestId("compare-row-models")).toContainText("13 models included");
     await expect(page.getByTestId("compare-model-matrix")).toContainText("Claude Opus 5.5");
     await expect(page.getByTestId("compare-row-usage")).toContainText("20× Pro");
-    await expect(page.getByTestId("compare-row-simulation")).toContainText(
-      "not exact capacity replay",
-    );
     // Lineup caveats stay on the plan pages; side by side they read as differences.
     await expect(page.getByTestId("compare-row-models")).not.toContainText("billed separately");
     // Use in other apps is stated for both providers, each with its own terms.
@@ -196,22 +189,12 @@ test.describe("public site", () => {
       page.getByTestId("compare-row-sources").getByText(/^Published terms checked/u),
     ).toHaveCount(2);
     // The primary rows speak plan questions; catalog vocabulary stays under inspect.
-    for (const row of [
-      "models",
-      "model-matrix",
-      "coding-tools",
-      "usage",
-      "simulation",
-      "after-limit",
-    ]) {
+    for (const row of ["models", "model-matrix", "coding-tools", "usage", "after-limit"]) {
       await expect(page.getByTestId(`compare-row-${row}`)).not.toContainText(
         /documented routes|qualitative/iu,
       );
     }
-    await expect(page.getByTestId("compare-with-workload")).toHaveText(
-      "Compare against my workload →",
-    );
-    await expect(page.getByTestId("compare-with-workload")).toHaveAttribute("href", "/app/compare");
+    await expect(page.getByTestId("compare-with-workload")).toHaveCount(0);
     const compactSummary = page.getByTestId("compare-compact-summary").filter({ visible: true });
     const mobile = (await compactSummary.count()) > 0;
     const inspectSummary = mobile
@@ -263,11 +246,11 @@ test.describe("public site", () => {
     await page.setViewportSize({ width: 1366, height: 768 });
     await page.goto("/plans/github-copilot-business");
     const desktopNav = page.getByRole("navigation", { name: "Public" }).first();
-    await expect(desktopNav.getByRole("link", { name: "Plans" })).toHaveAttribute(
+    await expect(desktopNav.getByRole("link", { name: "Models & plans" })).toHaveAttribute(
       "aria-current",
       "page",
     );
-    await expect(desktopNav.getByRole("link", { name: "Models" })).not.toHaveAttribute(
+    await expect(desktopNav.getByRole("link", { name: "Recap" })).not.toHaveAttribute(
       "aria-current",
       "page",
     );
@@ -278,11 +261,11 @@ test.describe("public site", () => {
       await expect(menu).toHaveAttribute("aria-expanded", "true");
     }).toPass();
     const mobileNav = page.getByRole("navigation", { name: "Public" }).last();
-    await expect(mobileNav.getByRole("link", { name: "Plans" })).toHaveAttribute(
+    await expect(mobileNav.getByRole("link", { name: "Models & plans" })).toHaveAttribute(
       "aria-current",
       "page",
     );
-    await expect(mobileNav.getByRole("link", { name: "Models" })).not.toHaveAttribute(
+    await expect(mobileNav.getByRole("link", { name: "Recap" })).not.toHaveAttribute(
       "aria-current",
       "page",
     );
@@ -290,11 +273,13 @@ test.describe("public site", () => {
 
   test("public footer destinations resolve to real sections or routes", async ({ page }) => {
     await page.goto("/plans");
-    const privacy = page.getByRole("link", { name: "Privacy model" });
+    const privacy = page
+      .getByRole("contentinfo")
+      .getByRole("link", { name: "Privacy", exact: true });
     await expect(privacy).toHaveAttribute("href", "/methodology#privacy");
     await privacy.click();
     await expect(page.locator("#privacy")).toBeVisible();
-    const catalog = page.getByRole("link", { name: "Catalog sources" });
+    const catalog = page.getByRole("contentinfo").getByRole("link", { name: "Plans", exact: true });
     await expect(catalog).toHaveAttribute("href", "/plans");
     await catalog.click();
     await page.getByTestId("plan-card").first().getByRole("link", { name: "Explore plan" }).click();
@@ -304,63 +289,7 @@ test.describe("public site", () => {
 });
 
 test.describe("share links", () => {
-  test("plan detail action resolves only for a public catalogued target", async ({ page }) => {
-    const base = {
-      version: 1 as const,
-      workload: { eventCount: 10, modelCount: 1, tokenTotals: {}, rangeIncluded: false },
-      target: {
-        type: "subscription" as const,
-        planId: "anthropic-claude-pro",
-        planVersionId: "anthropic-claude-pro@2026-09-21",
-        planName: "Claude Pro",
-        providerId: "anthropic",
-        providerName: "Anthropic",
-        price: { currency: "USD" as const, amount: "20.00", interval: "month" as const },
-        verificationStatus: "verified" as const,
-        lastVerifiedAt: "2026-09-21",
-        sources: [],
-      },
-      feasibility: {
-        status: "full" as const,
-        coveragePercent: 100,
-        coverageDimension: "requests" as const,
-      },
-      coverage: {
-        requests: { status: "known" as const, percent: 100, covered: 10, total: 10 },
-        usage: { status: "known" as const, percent: 100, covered: 10, total: 10 },
-        models: { status: "known" as const, percent: 100, covered: 1, total: 1 },
-      },
-      constraints: [],
-      violations: [],
-      confidence: { level: "high" as const, factors: [] },
-      versions: {
-        engine: ENGINE_VERSION,
-        schema: 1 as const,
-        catalog: "2026.09.1",
-        methodology: REPLAY_METHODOLOGY_VERSION,
-        rulesAsOf: "2026-09-21",
-        targetReference: "anthropic-claude-pro@2026-09-21",
-      },
-    };
-    const catalogued = await encodeShareToken(base);
-    await page.goto(`/s/${catalogued}`);
-    const details = page.getByRole("link", { name: "Plan details" });
-    await expect(details).toHaveAttribute("href", "/plans/anthropic-claude-pro");
-    expect((await page.request.get("/plans/anthropic-claude-pro")).status()).toBe(200);
-
-    for (const planId of ["example-cloud-pro", "unknown-public-target"]) {
-      const token = await encodeShareToken({
-        ...base,
-        target: { ...base.target, planId, planVersionId: `${planId}@2026-09-21`, planName: planId },
-        versions: { ...base.versions, targetReference: `${planId}@2026-09-21` },
-      });
-      await page.goto(`/s/${token}`);
-      await expect(page.getByTestId("share-card")).toBeVisible();
-      await expect(page.getByRole("link", { name: "Plan details" })).toHaveCount(0);
-    }
-  });
-
-  test("a stateless link renders the aggregate result it carries", async ({ page }) => {
+  test("an older link renders the aggregates it carries", async ({ page }) => {
     const snapshot = {
       version: 1 as const,
       workload: {
@@ -439,33 +368,15 @@ test.describe("share links", () => {
     const token = await encodeShareToken(snapshot);
 
     await page.goto(`/s/${token}`);
-    await expect(page.getByRole("heading", { level: 1 })).toContainText("5,000 events replayed");
-    await expect(page.getByTestId("share-card")).toBeVisible();
+    // An older link opens the shared recap page with only the aggregates it carries.
+    await expect(page.getByTestId("share-card-v2")).toBeVisible();
+    await expect(page.getByRole("heading", { level: 1 })).toContainText("A chapter in AI coding");
+    await expect(page.getByTestId("share-tokens")).toHaveText("24.5M");
+    await expect(page.getByTestId("share-figure")).toHaveText("Value unreported");
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
       true,
     );
-    await expect(page.getByTestId("share-card-plan")).toHaveText("Example Medium");
     await expect(page.getByRole("link", { name: "Plan details" })).toHaveCount(0);
-    await expect(page.getByTestId("share-constraints")).toContainText("600");
-    await expect(page.getByTestId("share-constraints")).toContainText("2 window(s) exceeded");
-    await page.setViewportSize({ width: 390, height: 900 });
-    expect(
-      await page
-        .getByTestId("share-constraints")
-        .locator("table")
-        .evaluate((table) => {
-          const main = document.querySelector("main");
-          if (main === null) return false;
-          const rail = main.getBoundingClientRect();
-          const right = rail.right - Number.parseFloat(getComputedStyle(main).paddingRight);
-          return table.getBoundingClientRect().right <= right + 1;
-        }),
-    ).toBe(true);
-    // The page states the versions a reader would need to audit the result.
-    await expect(page.getByText(REPLAY_METHODOLOGY_VERSION).first()).toBeVisible();
-
-    const canonical = await page.locator('link[rel="canonical"]').getAttribute("href");
-    expect(canonical).toContain(`/s/${token}`);
   });
 
   test("a tampered link is refused rather than rendered", async ({ page }) => {
@@ -510,63 +421,60 @@ test.describe("share links", () => {
     const [version, checksum, payload] = token.split(".") as [string, string, string];
     const tampered = `${version}.${checksum}.${payload.slice(0, -4)}AAAA`;
 
-    await page.goto(`/s/${tampered}`);
-    await expect(page.getByTestId("share-invalid")).toBeVisible();
-    await expect(page.getByRole("heading", { level: 1 })).toContainText("cannot be read");
-    await expect(page.getByTestId("share-card")).toHaveCount(0);
-    await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex/u);
+    const response = await page.goto(`/s/${tampered}`);
+    expect(response?.status()).toBe(404);
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText(
+      "Let’s get you somewhere useful.",
+    );
+    await expect(
+      page.getByRole("link", { name: "Scan my history", exact: true }).first(),
+    ).toHaveAttribute("href", "/app/scan");
+    await expect(page.getByTestId("share-card-v2")).toHaveCount(0);
+    // Next's 404 boundary may add its own policy alongside page metadata.
+    // Every emitted policy must prohibit indexing, with at least one present.
+    await expect
+      .poll(() =>
+        page
+          .locator('meta[name="robots"]')
+          .evaluateAll(
+            (policies) =>
+              policies.length > 0 &&
+              policies.every((policy) => /noindex/u.test(policy.getAttribute("content") ?? "")),
+          ),
+      )
+      .toBe(true);
   });
 
-  test("creating a share link uploads only its aggregate token and re-reads in public", async ({
-    page,
-  }) => {
+  test("creating a recap share link sends nothing and re-reads in public", async ({ page }) => {
     const requests = captureRequests(page);
     await importDemo(page, "moderate");
-    await page.goto("/app/replay?mode=custom");
-    await runReplay(page, "example-cloud-pro");
-
-    await expect(page.getByTestId("share-panel")).toBeVisible();
-    // The preview comes before any link exists.
-    await expect(page.getByTestId("share-preview")).toBeVisible();
-    const token = await createShareToken(page);
+    const id = new URL(page.url()).searchParams.get("import");
+    await page.goto(`/app/recap?import=${id}`);
+    await expect(page.getByTestId("recap-ready")).toBeVisible({ timeout: 60_000 });
+    await page.getByTestId("recap-share-create").click();
+    const href = await page.getByTestId("recap-share-open").getAttribute("href");
+    const token = decodeURIComponent((href ?? "").replace("/s/", ""));
     expect(token.startsWith("2.")).toBe(true);
 
     // The token decodes to a valid V2 snapshot with no forbidden field.
     const decoded = await decodeAnyShareToken(token);
     expect(decoded.ok).toBe(true);
-    if (decoded.ok && decoded.snapshot.version === 2 && decoded.snapshot.kind === "replay") {
-      expect(decoded.snapshot.verdict.calls.total).toBeGreaterThan(0);
+    if (decoded.ok && decoded.snapshot.version === 2 && decoded.snapshot.kind === "workload") {
+      expect(decoded.snapshot.workload.calls).toBeGreaterThan(0);
       expect(JSON.stringify(decoded.snapshot)).not.toMatch(
         /sessionhash|projecthash|eventhash|repository|filepath|prompt/iu,
       );
-    } else throw new Error("expected a V2 replay snapshot");
+    } else throw new Error("expected a V2 recap snapshot");
 
-    // The one upload is the aggregate token itself, to the share store.
-    const uploads = requests.filter(
-      (request) =>
-        request.method !== "GET" && !request.url.includes("_next") && !request.url.includes("/s/"),
-    );
-    expect(uploads.map((request) => `${request.method} ${new URL(request.url).pathname}`)).toEqual([
-      "POST /api/share",
-    ]);
-    expect(JSON.parse(uploads[0]?.body ?? "{}")).toEqual({ token });
+    // The link holds the numbers; creating it posts nothing anywhere.
+    const posts = requests.filter((request) => request.method !== "GET");
+    expect(posts.map((request) => `${request.method} ${request.url}`)).toEqual([]);
 
-    await page.getByTestId("share-open").click();
+    await page.getByTestId("recap-share-open").click();
     await expect(page.getByTestId("share-card-v2")).toBeVisible();
-    // The page leads with the same verdict the app led with.
-    await expect(page.getByRole("heading", { level: 1 })).toContainText("Example");
-
-    // Regression (benchmark F011): the public read model filters the synthetic
-    // `example-` namespace, but a share link carries its target inside the token.
-    // A demo target must therefore reach the page as labelled demo data, never as
-    // a real-world claim.
-    await expect(page.getByTestId("share-synthetic")).toBeVisible();
-    await expect(page.getByRole("link", { name: "Plan details" })).toHaveCount(0);
-    // Regression (benchmark F004): the plan terms in a link are the sharer's
-    // claim, so the page says so instead of borrowing the catalog's "verified"
-    // badge language.
-    await expect(page.getByTestId("share-provenance")).toContainText(
-      /this site has not re-checked the link's claim/u,
-    );
+    await expect(page.getByRole("heading", { level: 1 })).toContainText("A chapter in AI coding");
+    await expect(page.getByTestId("share-tokens")).toBeVisible();
+    // A sample history is labelled as fictional on the public page.
+    await expect(page.locator(".shared-recap-honesty")).toContainText("Fictional");
   });
 });

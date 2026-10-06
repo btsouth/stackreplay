@@ -2,7 +2,12 @@ import type { StackReplayExportV1 } from "@stackreplay/schema";
 import { buildRecap, type RecapPeriod } from "../lib/recap";
 
 self.onmessage = (
-  message: MessageEvent<{ bytes: Uint8Array; period: RecapPeriod; now: string; timeZone: string }>,
+  message: MessageEvent<{
+    bytes: Uint8Array;
+    period: RecapPeriod;
+    now: string;
+    timeZone: string;
+  }>,
 ) => {
   try {
     const data = message.data;
@@ -24,6 +29,6 @@ self.onmessage = (
       }));
     self.postMessage({ recap });
   } catch {
-    self.postMessage({ error: "Could not calculate this recap. Try importing the history again." });
+    self.postMessage({ error: "Could not calculate this recap. Try scanning the history again." });
   }
 };

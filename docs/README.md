@@ -9,15 +9,9 @@ notes in [archive/](archive/README.md) are historical evidence, not current prod
 - [IMPLEMENTATION_STATUS.md](IMPLEMENTATION_STATUS.md): Current capabilities, verification results, blockers and open follow-ups.
 - [ARCHITECTURE_DECISIONS.md](ARCHITECTURE_DECISIONS.md): Authoritative numbered product and architecture decisions.
 
-## Private app
+## Private app (Scan, Recap, Stats, Settings)
 
-- [automatic-workload-overview.md](automatic-workload-overview.md): What the Workload overview shows and how its scope is defined.
-- [workload-narrative.md](workload-narrative.md): The normal import-to-workload flow and its analysis order.
-- [import-handoff.md](import-handoff.md): What happens between a successful import and the Workload overview.
-- [my-stack-decisions.md](my-stack-decisions.md): My Stack plan, account and subscription decision behavior.
-- [capacity-review-experience.md](capacity-review-experience.md): The interruption review and billing-period setup experience.
-- [interruption-session-context.md](interruption-session-context.md): The evidence shown in an interruption episode.
-- [suggested-replays.md](suggested-replays.md): Suggested replay and side-by-side Compare behavior.
+- [import-handoff.md](import-handoff.md): What happens between a successful scan and the recap.
 
 ## Public site and catalog
 

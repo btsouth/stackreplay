@@ -58,7 +58,6 @@ export interface CompareFacts {
   /** Published terms for apps the provider does not make, when reviewed. */
   otherApps?: string;
   usage: { numeric: boolean; lines: readonly { text: string; detail: string }[] };
-  simulation: string;
   afterLimit: {
     lines: readonly string[];
     /** `excerpt` is whole sentences from the start of `text`, for the primary row. */
@@ -72,9 +71,6 @@ export interface CompareFacts {
   publishedTerms?: SubscriptionPublishedTerms;
 }
 
-export const PUBLIC_OFFER_REPLAY_UNAVAILABLE =
-  "Published offer only; workload replay is unavailable.";
-
 export function publicOfferObservationText(plan: DirectoryPublicOffer): string {
   return `Public offer checked ${formatCatalogDate(plan.checkedAt)}; earlier terms and introduction date are not established.`;
 }
@@ -82,11 +78,6 @@ export function publicOfferObservationText(plan: DirectoryPublicOffer): string {
 export const FEATURED_MODEL_COUNT = 4;
 
 export const NO_NUMERIC_ALLOWANCE = "No numeric allowance is recorded in this snapshot.";
-export const CAPACITY_REPLAY = "Numeric capacity replay available.";
-export const COMPATIBILITY_ONLY =
-  "Model compatibility and workload pressure only, not exact capacity replay.";
-export const NO_NAMED_MODEL =
-  "No named model is recorded as selectable on this plan, so a replay cannot attribute usage to a model.";
 
 /**
  * Coding tools a plan can cover, each tied to the provider that sells it and to
@@ -187,7 +178,6 @@ export function buildCompareFacts(
           ? [{ text: terms.allowanceSummary, detail: "Published information only" }]
           : [],
       },
-      simulation: PUBLIC_OFFER_REPLAY_UNAVAILABLE,
       afterLimit: { lines: terms?.afterLimit ? [terms.afterLimit] : [], quotes: [] },
       evidence: `Public offer checked ${formatCatalogDate(plan.checkedAt)}`,
       effective: publicOfferObservationText(plan),
@@ -252,13 +242,6 @@ export function buildCompareFacts(
       ...(limit.sourceUrl === undefined ? {} : { sourceUrl: limit.sourceUrl }),
     }));
 
-  const simulation =
-    replayIncluded.length === 0
-      ? NO_NAMED_MODEL
-      : plan.limits.length > 0
-        ? CAPACITY_REPLAY
-        : COMPATIBILITY_ONLY;
-
   const rules: CompareRule[] = plan.modelRules.map((rule) => {
     const model = modelById(rule.model);
     return {
@@ -294,7 +277,6 @@ export function buildCompareFacts(
       codingToolsFor(plan),
     ...(plan.publishedTerms?.otherApps ? { otherApps: plan.publishedTerms.otherApps } : {}),
     usage: { numeric: plan.limits.length > 0, lines: usageLines },
-    simulation,
     afterLimit: plan.publishedTerms?.afterLimit
       ? { lines: [plan.publishedTerms.afterLimit], quotes: [] }
       : { lines: exceedLines, quotes },

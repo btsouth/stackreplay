@@ -76,7 +76,7 @@ export function PlanPriceCalculator({
         </div>
         <div className="min-w-0 border-t border-border pt-6 lg:border-t-0 lg:border-l lg:border-border-strong lg:pl-8 lg:pt-0">
           <p className="market-kicker">Published formula</p>
-          <p className="mt-3 break-words font-mono text-sm leading-relaxed text-foreground">
+          <p className="mt-3 break-words text-sm leading-relaxed text-foreground">
             {baseDisplay} + {estimate.ok ? estimate.seatsDisplay : "—"} × {seatDisplay}
           </p>
           <p className="market-kicker mt-6">Monthly total</p>
@@ -84,7 +84,7 @@ export function PlanPriceCalculator({
             {estimate.ok ? (
               <p
                 data-testid="seat-estimate-total"
-                className="break-words font-mono text-[clamp(2rem,5vw,3.5rem)] leading-none tracking-[-0.05em] tabular-nums"
+                className="break-words text-[clamp(2rem,5vw,3.5rem)] leading-none tracking-[-0.05em] tabular-nums"
               >
                 {estimate.totalDisplay} <span className="text-sm tracking-normal">/ month</span>
               </p>

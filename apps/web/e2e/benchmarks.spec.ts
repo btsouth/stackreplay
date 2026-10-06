@@ -2,6 +2,7 @@ import { readFile } from "node:fs/promises";
 import AxeBuilder from "@axe-core/playwright";
 import { expect, type Page, test } from "@playwright/test";
 import type { BenchmarkExport } from "../lib/benchmark-export";
+import { selectCatalogOption } from "./public-controls";
 
 const google = "google-deepmind-argon-2026-09-30";
 const sheet = `/benchmarks?source=${google}&models=gemini-4-argon,gpt-6-astra,claude-fable-5-1,claude-opus-5-5&coverage=shared&edition=2026-09-30-v1`;
@@ -91,7 +92,7 @@ test("default Frontier shows verified Sol launch scores and shared benchmark cov
   page,
 }) => {
   await page.goto("/benchmarks");
-  await expect(page.getByRole("heading", { name: "Model Benchmarks", exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Model benchmarks", exact: true })).toBeVisible();
   await expect(page.getByRole("columnheader", { name: "GPT-6.1 Sol OpenAI" })).toBeVisible();
   await expect(page.locator('[data-model-id="gpt-6-1-sol"]')).toHaveCount(22);
   await expect(page.locator("tbody tr").first()).toHaveAttribute(
@@ -127,9 +128,10 @@ test("Sol effort alternatives stay exact, attributed and pinned across reload", 
     "href",
     "https://openai.com/index/introducing-gpt-6-1-sol/",
   );
-  await page
-    .getByLabel("Reported result for GPT-6.1 Sol")
-    .selectOption("openai-sol-2026-09-29-high.deep-swe-v1-1.gpt-6-1-sol");
+  await selectCatalogOption(
+    page.getByLabel("Reported result for GPT-6.1 Sol"),
+    "openai-sol-2026-09-29-high.deep-swe-v1-1.gpt-6-1-sol",
+  );
   await expect(dialog).toContainText("75.22%");
   await expect(dialog).toContainText("High");
   await page.keyboard.press("Escape");
@@ -219,7 +221,7 @@ test("cross-source comparison works and observation alternatives remain pinned",
   await page.goto("/benchmarks?models=claude-opus-5-5");
   await page.getByRole("button", { name: /Chartography, Claude Opus 5.5, 66.3%/ }).click();
   const result = page.getByLabel("Reported result for Claude Opus 5.5");
-  await result.selectOption("anthropic-sonnet-2026-09-28.chartography.claude-opus-5-5");
+  await selectCatalogOption(result, "anthropic-sonnet-2026-09-28.chartography.claude-opus-5-5");
   await expect(page).toHaveURL(/observation=anthropic-sonnet/);
   await expect(page.getByRole("dialog")).toContainText("64.4%");
   await page.keyboard.press("Escape");
@@ -301,7 +303,7 @@ for (const theme of ["dark", "light"] as const)
       await page.getByRole("button", { name: /menu/i }).click();
     await expect(
       page
-        .getByRole("navigation", { name: "Public" })
+        .getByRole("navigation", { name: "Catalog" })
         .getByRole("link", { name: "Benchmarks", exact: true }),
     ).toHaveAttribute("aria-current", "page");
   });
@@ -352,7 +354,7 @@ test("Download JSON matches pinned visible evidence, share URL and native keyboa
   await expectBenchmarkTableLayout(page, { modelCount: 2 });
   await page.getByRole("button", { name: /DeepSWE v1.1, GPT-6.1 Sol, 71.9%/ }).click();
   const pin = "openai-sol-2026-09-29-high.deep-swe-v1-1.gpt-6-1-sol";
-  await page.getByLabel("Reported result for GPT-6.1 Sol").selectOption(pin);
+  await selectCatalogOption(page.getByLabel("Reported result for GPT-6.1 Sol"), pin);
   await page.keyboard.press("Escape");
   await page.getByRole("button", { name: "Coding", exact: true }).click();
   const copy = page.getByRole("button", { name: "Copy comparison link" });

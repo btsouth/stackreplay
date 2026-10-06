@@ -1,7 +1,8 @@
 "use client";
 import Link from "next/link";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { usePathname, useSearchParams } from "next/navigation";
+import { useEffect, useLayoutEffect, useMemo, useState } from "react";
+import { CatalogSelect } from "@/components/public/catalog-select";
 import {
   DEFAULT_PROVIDER_DISCOVERY,
   filterProviderRows,
@@ -23,9 +24,7 @@ export function ProviderExplorer({
   rows: readonly ProviderDiscoveryRow[];
   routedSearch?: string;
 }) {
-  const router = useRouter();
   const pathname = usePathname();
-  const pendingSearch = useRef<string | undefined>(undefined);
   const [hydrated, setHydrated] = useState(false);
   const tools = useMemo(
     () => [...new Set(rows.flatMap((row) => row.planTools.flatMap((plan) => plan.tools)))].sort(),
@@ -40,46 +39,50 @@ export function ProviderExplorer({
     if (routedSearch === undefined) return;
     setHydrated(true);
     const next = readProviderDiscovery(routedSearch, tools);
-    // A previous replace can commit while someone is still typing the next query.
+    // Only reconcile the snapshot that matches the browser's committed URL.
     if (
-      pendingSearch.current !== undefined &&
-      providerDiscoverySearch(next) !== pendingSearch.current
+      providerDiscoverySearch(next) !==
+      providerDiscoverySearch(readProviderDiscovery(window.location.search, tools))
     )
       return;
     setState(next);
   }, [routedSearch, tools]);
   // Reconcile after the router commits: Workers can restore a cached search snapshot.
   useEffect(() => {
-    if (pathname !== "/providers") {
-      pendingSearch.current = undefined;
-      return;
-    }
+    if (pathname !== "/providers") return;
     if (routedSearch === undefined || window.location.pathname !== "/providers") return;
-    if (pendingSearch.current !== undefined && window.location.search !== pendingSearch.current)
-      return;
-    pendingSearch.current = undefined;
     const nextState = readProviderDiscovery(window.location.search, tools);
     setState((current) =>
       JSON.stringify(current) === JSON.stringify(nextState) ? current : nextState,
     );
     const next = `/providers${providerDiscoverySearch(nextState)}${window.location.hash}`;
     if (next !== `${window.location.pathname}${window.location.search}${window.location.hash}`)
-      router.replace(next, { scroll: false });
-  }, [routedSearch, tools, router, pathname]);
+      window.history.replaceState(window.history.state, "", next);
+  }, [routedSearch, tools, pathname]);
+  useEffect(() => {
+    const restore = () => {
+      if (window.location.pathname === "/providers")
+        setState(readProviderDiscovery(window.location.search, tools));
+    };
+    window.addEventListener("popstate", restore);
+    return () => window.removeEventListener("popstate", restore);
+  }, [tools]);
   const select = (next: ProviderDiscoveryState) => {
     setState(next);
     const search = providerDiscoverySearch(next);
-    pendingSearch.current = window.location.search === search ? undefined : search;
-    router.replace(`/providers${search}${window.location.hash}`, {
-      scroll: false,
-    });
+    // These filters use already-loaded rows. Keep focus while updating the shareable URL.
+    window.history.replaceState(
+      window.history.state,
+      "",
+      `/providers${search}${window.location.hash}`,
+    );
   };
   const visible = filterProviderRows(rows, state);
   const displayOnly = routedSearch === undefined || !hydrated;
   return (
     <div>
       <div className="market-section-title">
-        <span>01 / Explore providers</span>
+        <span>Explore providers</span>
         <span>{rows.length} providers recorded</span>
       </div>
       <div className="market-filters">
@@ -93,9 +96,10 @@ export function ProviderExplorer({
             onChange={(event) => select({ ...state, query: event.target.value, scope: "all" })}
           />
         </label>
-        <label>
+        <div className="catalog-control">
           View
-          <select
+          <CatalogSelect
+            label="View"
             value={state.scope}
             disabled={displayOnly}
             onChange={(event) =>
@@ -104,11 +108,12 @@ export function ProviderExplorer({
           >
             <option value="featured">Featured</option>
             <option value="all">All providers</option>
-          </select>
-        </label>
-        <label>
+          </CatalogSelect>
+        </div>
+        <div className="catalog-control">
           Provider role
-          <select
+          <CatalogSelect
+            label="Provider role"
             value={state.role}
             disabled={displayOnly}
             onChange={(event) =>
@@ -123,12 +128,13 @@ export function ProviderExplorer({
             <option value="developer">Developed models</option>
             <option value="api">Recorded API access</option>
             <option value="publisher">Published plans</option>
-          </select>
-        </label>
+          </CatalogSelect>
+        </div>
         {tools.length > 0 && (
-          <label>
+          <div className="catalog-control">
             Works with
-            <select
+            <CatalogSelect
+              label="Works with"
               value={state.tool}
               disabled={displayOnly}
               onChange={(event) => select({ ...state, tool: event.target.value, scope: "all" })}
@@ -137,8 +143,8 @@ export function ProviderExplorer({
               {tools.map((tool) => (
                 <option key={tool}>{tool}</option>
               ))}
-            </select>
-          </label>
+            </CatalogSelect>
+          </div>
         )}
       </div>
       <p className="market-muted mb-4">

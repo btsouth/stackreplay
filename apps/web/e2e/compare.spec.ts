@@ -1,5 +1,6 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, type Page, test } from "@playwright/test";
+import { selectCatalogOption } from "./public-controls";
 
 async function expectNoSeriousViolations(page: Page) {
   const results = await new AxeBuilder({ page })
@@ -35,7 +36,7 @@ for (const theme of ["dark", "light"] as const) {
       await page.getByRole("button", { name: "+ Add a third plan" }).click();
       await expect(targets(page)).toHaveCount(3);
       await expect(page).toHaveURL(/[?&]third=/u);
-      await page.getByLabel("Second plan").selectOption("opencode-go-plus");
+      await selectCatalogOption(page.getByLabel("Second plan"), "opencode-go-plus");
       await expect(page).toHaveURL(/[?&]right=opencode-go-plus(&|$)/u);
       await expect(
         page.evaluate(() => document.documentElement.scrollWidth <= innerWidth),
@@ -44,8 +45,13 @@ for (const theme of ["dark", "light"] as const) {
     });
 
     test("shows matching statements once and links models to their pages", async ({ page }) => {
-      await page.goto("/compare");
-      await expect(page.getByTestId("compare-row-simulation")).toContainText("Same for both plans");
+      await page.goto("/compare?left=anthropic-claude-max-5x&right=anthropic-claude-max-20x");
+      await expect(
+        page
+          .locator('[data-testid^="compare-row-"]')
+          .filter({ hasText: "Same for both plans" })
+          .first(),
+      ).toBeAttached();
       const mobileDisclosure = page.getByTestId("compare-mobile-model-matrix-details");
       const matrix = (await mobileDisclosure.isVisible())
         ? page.getByTestId("compare-mobile-model-matrix")
@@ -59,11 +65,11 @@ for (const theme of ["dark", "light"] as const) {
 
     test("duplicate selections stay explicit and recoverable", async ({ page }) => {
       await page.goto("/compare?left=kiro-pro&right=devin-teams");
-      await page.getByLabel("Second plan").selectOption("kiro-pro");
+      await selectCatalogOption(page.getByLabel("Second plan"), "kiro-pro");
       await expect(page.getByText("Choose different plans to see a comparison.")).toBeVisible();
       await expect(page.getByTestId("compare-table")).toHaveCount(0);
       await expect(page).toHaveURL(/left=kiro-pro&right=kiro-pro/u);
-      await page.getByLabel("Second plan").selectOption("devin-teams");
+      await selectCatalogOption(page.getByLabel("Second plan"), "devin-teams");
       await expect(page.getByTestId("compare-table")).toBeVisible();
     });
   });
@@ -205,7 +211,7 @@ test.describe("compare page on a phone", () => {
 
     const googleAvailability =
       "From September 4, 2026, billing accounts without an active Gemini Code Assist subscription must contact sales. Existing active subscriptions are unaffected.";
-    const googleReplayStatus = "Published offer only; workload replay is unavailable.";
+    const googleReplayStatus = "Published offer only.";
     await expect(
       google.getByTestId("compare-price").getByText("$54", { exact: true }),
     ).toBeVisible();

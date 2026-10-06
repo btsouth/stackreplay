@@ -1,17 +1,49 @@
 /* biome-ignore-all lint/a11y/noNoninteractiveTabindex: The scrolling model timeline needs keyboard focus. */
-import type { CSSProperties, ReactNode } from "react";
+import { type CSSProperties, type ReactNode, useId, useRef, useState } from "react";
 import { familyColors, type Recap, type RecapPeriod } from "@/lib/recap";
 import { compactNumber, recapUsd } from "@/lib/recap-card";
 import { harnessNames, providerNames } from "@/lib/recap-deep";
+import type { PaidFigure } from "@/lib/use-paid-multiplier";
+import { accountsText, monthlyText } from "@/lib/what-you-pay";
 import { CostTrend, Heatmap, Mix, shortDate } from "./recap-charts";
 export function Info({ label, children }: { label: string; children: ReactNode }) {
+  const id = useId();
+  const popup = useRef<HTMLSpanElement>(null);
+  const [open, setOpen] = useState(false);
+  const [position, setPosition] = useState({ left: 16, top: 16 });
   return (
-    <details className="recap-info">
-      <summary aria-label={label}>i</summary>
-      <div>{children}</div>
-    </details>
+    <span className="recap-info">
+      <button
+        type="button"
+        aria-label={label}
+        aria-expanded={open}
+        aria-controls={id}
+        onClick={(event) => {
+          const box = event.currentTarget.getBoundingClientRect();
+          const width = Math.min(320, window.innerWidth - 32);
+          setPosition({
+            left: Math.max(16, Math.min(window.innerWidth - width - 16, box.right - width)),
+            top: Math.max(16, Math.min(box.bottom + 8, window.innerHeight - 280)),
+          });
+          popup.current?.togglePopover();
+        }}
+      >
+        i
+      </button>
+      <span
+        id={id}
+        ref={popup}
+        popover="auto"
+        role="note"
+        style={position}
+        onToggle={(event) => setOpen((event.nativeEvent as ToggleEvent).newState === "open")}
+      >
+        {children}
+      </span>
+    </span>
   );
 }
+
 function Heading({ number, title, note }: { number: string; title: string; note: string }) {
   return (
     <div className="recap-section-heading">
@@ -37,7 +69,7 @@ function Facts({ values }: { values: [string, string][] }) {
                 timezone. Hermes aggregates without per-call timestamps mark the days they were
                 first and last seen. Tokens and costs stay on the recorded end date. Current streak
                 counts back from today, or from yesterday until today's first activity. Longest
-                streak uses all supplied history. The period filter only scopes volume, costs and
+                streak uses all supplied history. The period filter only changes volume, costs and
                 charts.
               </Info>
             )}
@@ -94,12 +126,12 @@ export function RecapStory({
   recap,
   period,
   projects,
-  multiplierText,
+  paid,
 }: {
   recap: Recap;
   period: RecapPeriod;
   projects: { hash: string; label: string }[];
-  multiplierText?: string;
+  paid?: PaidFigure;
 }) {
   const d = recap.deep;
   const total = recap.total;
@@ -142,16 +174,16 @@ export function RecapStory({
             <p className="recap-volume-note">
               Your AI coding, replayed.
               <Info label="About token volume">
-                <p>
+                <span className="recap-info-paragraph">
                   Reported categories only. Input, output and cache are made disjoint using each
                   source's accounting declarations. Output includes separately reported reasoning.
                   Missing categories are excluded.
-                </p>
-                <p>
+                </span>
+                <span className="recap-info-paragraph">
                   {recap.totalKnown.toLocaleString()} of {recap.records.toLocaleString()} records
                   report tokens. This is local logged activity, including agents, not human work
                   time.
-                </p>
+                </span>
               </Info>
             </p>
           </div>
@@ -224,7 +256,7 @@ export function RecapStory({
           <Heading
             number="03 / API EQUIVALENT"
             title="The scale behind the work."
-            note="Current list prices. A scenario, not an invoice."
+            note="Current list prices. An estimate, not an invoice."
           />
           <div className="recap-cost-layout">
             <div>
@@ -232,35 +264,39 @@ export function RecapStory({
               <div className="recap-hero-caption">
                 of AI coding at API prices
                 <Info label="How API-equivalent value is calculated">
-                  <p>
+                  <span className="recap-info-paragraph">
                     Repriced at each model developer's direct API catalog list rates as of{" "}
                     {recap.rulesAsOf}. This is independent of the serving provider and
                     subscriptions.
-                  </p>
-                  <p>
+                  </span>
+                  <span className="recap-info-paragraph">
                     {recap.priced.toLocaleString()} of {recap.records.toLocaleString()} records
                     priced ({Math.round((recap.priced / recap.records) * 100)}%). Unknown prices and
                     incomplete usage are excluded.
-                  </p>
+                  </span>
                   {recap.usdHigh !== recap.usd && (
-                    <p>
+                    <span className="recap-info-paragraph">
                       Unreported cache-write lifetimes yield {recapUsd(recap.usd)} to{" "}
                       {recapUsd(recap.usdHigh)}. The headline uses the lower documented cache-write
-                      scenario.
-                    </p>
+                      assumption.
+                    </span>
                   )}
-                  <p>Not historical spending or money saved.</p>
+                  <span className="recap-info-paragraph">
+                    Not historical spending or money saved.
+                  </span>
                 </Info>
               </div>
-              {multiplierText && (
-                <p className="recap-plan-comparison">
-                  <strong>{multiplierText}</strong>
+              {paid && (
+                <p className="recap-plan-comparison" data-testid="recap-paid">
+                  <strong>{paid.text} what you paid</strong>
                   <Info label="How the payment multiplier is calculated">
-                    <p>
-                      API value divided by confirmed monthly list-price subscriptions ×{" "}
-                      {recap.days.length} / 30.4. A scenario excluding taxes, discounts, plan
-                      changes and separate API charges.
-                    </p>
+                    <span className="recap-info-paragraph">
+                      The API value above, divided by what you pay: {monthlyText(paid.monthlyUsd)}{" "}
+                      across {accountsText(paid.accounts)}, prorated to these {paid.days} days (
+                      {paid.days} / 30.4 of a month). Published list prices, so not your actual
+                      bill. Taxes, discounts, plan changes and separate API charges are not
+                      included.
+                    </span>
                   </Info>
                 </p>
               )}
@@ -279,7 +315,7 @@ export function RecapStory({
                   {recapUsd(topCost.usd)}
                   <Info label="About the model API equivalent">
                     {topCost.priced.toLocaleString()} of {topCost.records.toLocaleString()} records
-                    priced. Unknown prices and incomplete usage are excluded. A scenario, not an
+                    priced. Unknown prices and incomplete usage are excluded. An estimate, not an
                     invoice.
                   </Info>
                 </small>
@@ -293,7 +329,7 @@ export function RecapStory({
                   {recapUsd(peakCost.usd)}
                   <Info label="About the day API equivalent">
                     Only records with established prices and complete usage contribute to this
-                    value. A scenario, not an invoice.
+                    value. An estimate, not an invoice.
                   </Info>
                 </small>
               </div>
@@ -303,12 +339,12 @@ export function RecapStory({
                 <span>
                   Cache read advantage{" "}
                   <Info label="About cache savings">
-                    <p>
+                    <span className="recap-info-paragraph">
                       List-price difference between recorded cache reads and the same input
                       uncached, using the same engine rate conditions. Only{" "}
                       {d.cacheSavingsRecords.toLocaleString()} records with both prices established.
                       Not subscription savings.
-                    </p>
+                    </span>
                   </Info>
                 </span>
                 <strong>{recapUsd(d.cacheSavings)}</strong>
@@ -377,7 +413,9 @@ export function RecapStory({
                 <Info label="About the model timeline">
                   Only catalog-resolved models appear, using their catalog display names.
                   {!!d.omittedFirstSeen && (
-                    <p>{d.omittedFirstSeen} internal or unresolved model IDs omitted.</p>
+                    <span className="recap-info-paragraph">
+                      {d.omittedFirstSeen} internal or unresolved model IDs omitted.
+                    </span>
                   )}
                 </Info>
               </p>
@@ -405,17 +443,17 @@ export function RecapStory({
           <p className="recap-speed-method">
             Median output tokens/s. Lines show p25 to p75.
             <Info label="How response speed is measured">
-              <p>
+              <span className="recap-info-paragraph">
                 Final Claude streamed response with the same message ID minus its preceding user or
                 tool-result timestamp. Codex uses the last user message or function-call output
                 before the model response, ending at its token-count event. Tool execution before
                 the last output is excluded.
-              </p>
-              <p>
+              </span>
+              <span className="recap-info-paragraph">
                 Includes time to first token, thinking and local scheduling. Known subagents and
                 sidechains excluded. Positive output; 0.25 to 600 seconds; at most 500 tokens/s; at
                 least 50 samples per model. A personal latency proxy, not a provider benchmark.
-              </p>
+              </span>
             </Info>
           </p>
           <div className="recap-speed-scale">
@@ -455,7 +493,7 @@ export function RecapStory({
           <Heading
             number="06 / RHYTHM"
             title="Your hours have a signature."
-            note={`Usage records · ${recap.timeZone}`}
+            note="Requests · your local time"
           />
           <div
             className="recap-hour-heatmap"

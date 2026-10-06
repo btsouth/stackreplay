@@ -70,7 +70,7 @@ export function ApiTokenEstimate({ rate }: { rate: ApiTokenEstimateRate }) {
             <>
               <p
                 data-testid="api-estimate-total"
-                className="font-mono text-[clamp(2rem,5vw,3.5rem)] leading-none tracking-[-0.05em] tabular-nums"
+                className="text-[clamp(2rem,5vw,3.5rem)] leading-none tracking-[-0.05em] tabular-nums"
               >
                 {formatTokenEstimateUsd(result.total)}{" "}
                 <span className="text-sm tracking-normal">USD</span>
@@ -92,7 +92,7 @@ export function ApiTokenEstimate({ rate }: { rate: ApiTokenEstimateRate }) {
                         {formatTokenEstimateUsd(unitRate)} / 1M tokens
                       </span>
                     </dt>
-                    <dd className="min-w-0 font-mono tabular-nums sm:text-right">
+                    <dd className="min-w-0 tabular-nums sm:text-right">
                       {formatTokenEstimateUsd(cost)}
                     </dd>
                   </div>
@@ -112,7 +112,7 @@ export function ApiTokenEstimate({ rate }: { rate: ApiTokenEstimateRate }) {
           )}
         </div>
         <p className="mt-5 text-xs leading-relaxed text-muted-foreground">
-          A scenario, not an invoice or measured workload. Excludes taxes, discounts, caching, media
+          An estimate, not an invoice or measured usage. Excludes taxes, discounts, caching, media
           and other charges.
         </p>
       </div>

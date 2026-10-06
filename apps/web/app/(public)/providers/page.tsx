@@ -22,7 +22,7 @@ export default function ProvidersPage() {
     <div>
       <MarketHeader
         compact
-        eyebrow="Providers / Follow the source"
+        eyebrow="The people behind the tools"
         title="Explore the providers."
         description="See who develops the models, where API access is recorded and who publishes the plans. Coverage reflects sourced records, not the whole market."
       />

@@ -18,7 +18,7 @@ export function RecapShareCard({
     >
       <div className="replay-card-top">
         <span>↺ StackReplay</span>
-        <span>{sample ? "Alex’s replay" : "My coding recap"}</span>
+        <span>{sample ? "Alex’s recap" : "My coding recap"}</span>
       </div>
       <div className="replay-card-period">
         {recap.start} → {recap.end}

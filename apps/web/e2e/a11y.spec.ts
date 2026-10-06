@@ -1,7 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, type Page, test } from "@playwright/test";
 import { encodeShareToken } from "@stackreplay/share";
-import { importDemo, runReplay, waitForWorkload } from "./helpers";
+import { gotoImport, importDemo } from "./helpers";
 
 /**
  * Accessibility (M3 brief): WCAG 2.2 AA target on the new surfaces, in both
@@ -12,29 +12,36 @@ import { importDemo, runReplay, waitForWorkload } from "./helpers";
 async function expectNoSeriousViolations(page: Page) {
   // App Router metadata may finish streaming after the result is visible.
   await expect(page).toHaveTitle(/StackReplay/u);
+  await page.evaluate(() => document.fonts.ready);
   const results = await new AxeBuilder({ page })
     .withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"])
     .analyze();
   const serious = results.violations.filter(
     (violation) => violation.impact === "serious" || violation.impact === "critical",
   );
-  expect(serious.map((violation) => `${violation.id}: ${violation.nodes.length} node(s)`)).toEqual(
-    [],
-  );
+  expect(
+    serious.map((violation) => ({
+      id: violation.id,
+      nodes: violation.nodes.map((node) => ({
+        target: node.target,
+        html: node.html,
+        summary: node.failureSummary,
+      })),
+    })),
+  ).toEqual([]);
 }
 
 test.describe("import surface accessibility", () => {
   for (const theme of ["dark", "light"] as const) {
     test(`passes axe in ${theme} mode`, async ({ page }) => {
       await page.emulateMedia({ colorScheme: theme, reducedMotion: "reduce" });
-      await page.goto("/app/import");
+      await page.goto("/app/scan");
       await expectNoSeriousViolations(page);
     });
   }
 
   test("is operable with the keyboard alone", async ({ page }) => {
-    await page.goto("/app/import");
-    await expect(page.getByTestId("intake-surface")).toHaveAttribute("data-ready", "true");
+    await gotoImport(page);
     const input = page.getByTestId("import-file-input");
     await input.focus();
     await expect(input).toBeFocused();
@@ -43,11 +50,17 @@ test.describe("import surface accessibility", () => {
     await demo.focus();
     await expect(demo).toBeFocused();
     await page.keyboard.press("Enter");
-    await waitForWorkload(page);
+    await expect(page.getByTestId("recap-ready")).toBeVisible({ timeout: 60_000 });
+    await page.getByRole("radio", { name: "All time", exact: true }).focus();
+    await page.keyboard.press("Space");
+    await expect(page.getByTestId("recap-ready")).toHaveAttribute("data-period", "all");
+    await page.getByRole("link", { name: "Explore your stats" }).focus();
+    await page.keyboard.press("Enter");
+    await expect(page.getByTestId("stats-ready")).toBeVisible();
   });
 
   test("import errors are announced", async ({ page }) => {
-    await page.goto("/app/import");
+    await page.goto("/app/scan");
     await expect(page.getByTestId("intake-surface")).toHaveAttribute("data-ready", "true");
     await page.getByTestId("import-file-input").setInputFiles({
       name: "broken.json",
@@ -58,80 +71,59 @@ test.describe("import surface accessibility", () => {
   });
 });
 
-test.describe("replay surface accessibility", () => {
-  test("passes axe for a served workload in dark mode", async ({ page }) => {
-    await page.emulateMedia({ colorScheme: "dark", reducedMotion: "reduce" });
-    await importDemo(page, "heavy");
-    await page.goto("/app/replay?mode=custom");
-    await runReplay(page, "example-cloud-pro");
-    await expectNoSeriousViolations(page);
-  });
-
-  test("passes axe for exceeded constraints in light mode", async ({ page }) => {
-    await page.emulateMedia({ colorScheme: "light", reducedMotion: "reduce" });
-    await importDemo(page, "heavy");
-    await page.goto("/app/replay?mode=custom");
-    await runReplay(page, "example-cloud-pro");
-    await expectNoSeriousViolations(page);
-  });
-
-  test("passes axe for unknown coverage", async ({ page }) => {
-    await page.emulateMedia({ colorScheme: "dark", reducedMotion: "reduce" });
-    await importDemo(page, "multistack");
-    await page.goto("/app/replay?mode=custom");
-    await runReplay(page, "example-cloud-starter");
-    await expectNoSeriousViolations(page);
-  });
-
-  test("status meaning is never carried by color alone", async ({ page }) => {
-    await importDemo(page, "heavy");
-    await page.goto("/app/replay?mode=custom");
-    await runReplay(page, "example-cloud-pro");
-    const trace = page.getByTestId("constraint-trace");
-    // Status is a word, not a colour, so every state reads without contrast.
-    await expect(trace).toContainText("within limits");
-    await expect(trace).toContainText("exceeded");
-  });
-
-  test("the timeline exposes a text alternative", async ({ page }) => {
-    await importDemo(page, "heavy");
-    await page.goto("/app/replay?mode=custom");
-    await runReplay(page, "example-cloud-pro");
-    const chart = page.getByTestId("timeline-chart");
-    await expect(chart).toHaveAttribute("role", "img");
-    const label = await chart.getAttribute("aria-label");
-    expect(label).toContain("Replay timeline");
-    expect(label?.length ?? 0).toBeGreaterThan(40);
-  });
-
-  test("violation detail is reachable with the keyboard", async ({ page }) => {
-    await importDemo(page, "heavy");
-    await page.goto("/app/replay?mode=custom");
-    await runReplay(page, "example-cloud-pro");
-    const summary = page.getByTestId("violations").locator("summary").first();
-    await summary.focus();
-    await page.keyboard.press("Enter");
-    await expect(page.getByTestId("violations")).toContainText("Attempted demand");
-  });
-
-  test("interactive rows are big enough to aim at", async ({ page }) => {
-    await importDemo(page, "heavy");
-    await page.goto("/app/replay?mode=custom");
-    await runReplay(page, "example-cloud-pro");
-    // 44px is the familiar minimum for a touch target, and a disclosure row that
-    // is any shorter is hard to hit with a thumb or a shaky pointer.
-    const heights = await page.evaluate(() => {
-      const round = (node: Element) => Math.round(node.getBoundingClientRect().height);
-      return {
-        planRows: [...document.querySelectorAll("[data-plan-option]")].map(round),
-        summaries: [...document.querySelectorAll("[data-testid='violations'] summary")].map(round),
-      };
-    });
-    expect(heights.planRows.length).toBeGreaterThan(0);
-    expect(heights.summaries.length).toBeGreaterThan(0);
-    for (const height of [...heights.planRows, ...heights.summaries]) {
-      expect(height).toBeGreaterThanOrEqual(44);
+test.describe("app surface accessibility", () => {
+  for (const theme of ["dark", "light"] as const) {
+    for (const route of ["recap", "stats", "settings"] as const) {
+      test(`${route} passes axe in ${theme} mode`, async ({ page }) => {
+        await page.emulateMedia({ colorScheme: theme, reducedMotion: "reduce" });
+        await importDemo(page, "heavy");
+        const id = new URL(page.url()).searchParams.get("import");
+        await page.goto(`/app/${route}?import=${id}`);
+        await expect(
+          route === "settings"
+            ? page.getByTestId("settings-saved")
+            : page.getByTestId(`${route}-ready`),
+        ).toBeVisible({ timeout: 60_000 });
+        await expectNoSeriousViolations(page);
+      });
     }
+  }
+
+  test("what you pay quantities are operable with the keyboard and pass axe", async ({
+    page,
+  }, testInfo) => {
+    test.skip(testInfo.project.name !== "desktop", "keyboard path is a desktop path");
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await page.goto("/app/settings");
+    const trigger = page.getByRole("combobox", { name: "Add a plan" });
+    await trigger.click();
+    await page
+      .getByRole("option", { name: /^Claude Max 5x ·/u })
+      .first()
+      .click();
+    const more = page.getByRole("button", { name: "More Claude Max 5x accounts" });
+    await more.focus();
+    await page.keyboard.press("Space");
+    await expect(page.getByTestId("what-you-pay-total")).toHaveText(
+      "2 accounts · $200/month total",
+    );
+    await expectNoSeriousViolations(page);
+  });
+
+  test("interactive controls are big enough to aim at on a phone", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== "mobile", "touch viewport only");
+    await page.goto("/app/settings");
+    await page.getByRole("combobox", { name: "Add a plan" }).click();
+    await page
+      .getByRole("option", { name: /^Claude Max 5x ·/u })
+      .first()
+      .click();
+    const heights = await page
+      .getByTestId("what-you-pay")
+      .locator("button")
+      .evaluateAll((nodes) => nodes.map((node) => Math.round(node.getBoundingClientRect().height)));
+    expect(heights.length).toBeGreaterThan(0);
+    for (const height of heights) expect(height).toBeGreaterThanOrEqual(44);
   });
 });
 
@@ -143,13 +135,14 @@ test.describe("public site accessibility", () => {
   const routes = ["/", "/plans", "/models", "/compare", "/methodology", "/changelog"] as const;
 
   for (const theme of ["dark", "light"] as const) {
-    test(`passes axe across the public site in ${theme} mode`, async ({ page }) => {
-      await page.emulateMedia({ colorScheme: theme, reducedMotion: "reduce" });
-      for (const route of routes) {
+    for (const route of routes) {
+      test(`passes axe on ${route} in ${theme} mode`, async ({ page }) => {
+        await page.emulateMedia({ colorScheme: theme, reducedMotion: "reduce" });
         await page.goto(route);
+        await expect(page.getByRole("button", { name: "Toggle theme" })).toBeEnabled();
         await expectNoSeriousViolations(page);
-      }
-    });
+      });
+    }
   }
 
   test("the public site is reachable with the keyboard alone", async ({ page }, testInfo) => {
@@ -159,44 +152,42 @@ test.describe("public site accessibility", () => {
     await expect(skipLink).toBeFocused();
     await page.keyboard.press("Enter");
     await expect(page.locator("#main-content")).toBeFocused();
-    const homepageNav = page.getByRole("navigation", { name: "Main navigation" });
+    if (testInfo.project.name === "mobile") {
+      const trigger = page.getByRole("button", { name: "Open menu" });
+      await trigger.focus();
+      await page.keyboard.press("Enter");
+      await expect(page.getByRole("dialog")).toBeVisible();
+    }
+    const homepageNav =
+      testInfo.project.name === "mobile"
+        ? page.getByRole("dialog").getByRole("navigation", { name: "Public" })
+        : page.getByRole("navigation", { name: "Public" });
     for (const [label, href] of [
-      ["Models & plans", "/models"],
-      [testInfo.project.name === "mobile" ? "Replay my history" : "Get my recap", "/app/import"],
-      [
-        testInfo.project.name === "mobile" ? "Source code" : "GitHub",
-        "https://github.com/btsouth/stackreplay",
-      ],
+      ["Recap", "/app/recap"],
+      ["Models & plans", "/catalog"],
+      ["Privacy", "/methodology#privacy"],
     ] as const) {
-      const link = page.getByRole("link", { name: label }).first();
+      const link = homepageNav.getByRole("link", { name: label, exact: true });
       await expect(link).toBeVisible();
       await expect(link).toHaveAttribute("href", href);
       await link.focus();
       await expect(link).toBeFocused();
     }
-    await homepageNav.getByRole("link", { name: "Models & plans" }).focus();
+    await homepageNav.getByRole("link", { name: "Models & plans", exact: true }).focus();
     await page.keyboard.press("Enter");
-    await expect(page).toHaveURL(/\/models$/u);
-    // Every primary destination is reachable and labelled. Wide viewports show the
-    // header navigation; narrow ones reach the same destinations through the menu
-    // button's panel, and the footer lists them at every width.
-    const footerDestinations = ["Plans", "Models", "Compare", "Methodology", "AI updates"];
-    for (const label of footerDestinations) {
-      await expect(page.getByRole("link", { name: label, exact: true }).first()).toBeVisible();
-    }
-
+    await expect(page).toHaveURL(/\/catalog$/u);
+    for (const label of ["Plans", "Models", "Compare", "Methodology", "Updates"])
+      await expect(
+        page.getByRole("contentinfo").getByRole("link", { name: label, exact: true }),
+      ).toBeVisible();
     if (testInfo.project.name === "mobile") {
-      const menu = page.getByTestId("public-nav-menu");
-      await expect(menu).toBeVisible();
-      await menu.focus();
+      const trigger = page.getByRole("button", { name: "Open menu" });
+      await trigger.focus();
       await page.keyboard.press("Enter");
-      await expect(menu).toHaveAttribute("aria-expanded", "true");
-      for (const label of ["Models", "Compare", "Plans", "Updates", "Workload", "My Stack"]) {
-        await expect(page.getByRole("link", { name: label, exact: true }).first()).toBeVisible();
-      }
-      await menu.focus();
-      await page.keyboard.press("Enter");
-      await expect(menu).toHaveAttribute("aria-expanded", "false");
+      await expect(page.getByRole("dialog")).toBeVisible();
+      await page.keyboard.press("Escape");
+      await expect(page.getByRole("dialog")).toBeHidden();
+      await expect(trigger).toBeFocused();
     }
   });
 
@@ -257,7 +248,7 @@ test.describe("public site accessibility", () => {
     for (const theme of ["dark", "light"] as const) {
       await page.emulateMedia({ colorScheme: theme, reducedMotion: "reduce" });
       await page.goto(`/s/${token}`);
-      await expect(page.getByTestId("share-card")).toBeVisible();
+      await expect(page.getByTestId("share-card-v2")).toBeVisible();
       await expectNoSeriousViolations(page);
     }
   });
