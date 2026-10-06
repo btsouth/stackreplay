@@ -11,13 +11,13 @@ test("Back and Forward return to the same period on Stats", async ({ page }) => 
   await importDemo(page, "multistack");
   await page.getByRole("radio", { name: "90 days", exact: true }).check();
   await expect(page).toHaveURL(/period=90/u);
-  await expect(page.getByTestId("stats-ready")).toHaveAttribute("data-period", "90");
+  await expect(page.getByTestId("recap-ready")).toHaveAttribute("data-period", "90");
 
   await page.goto("/app/settings");
   await expect(page.getByTestId("settings-saved")).toBeVisible();
   await page.goBack();
   await expect(page).toHaveURL(/\/app\/stats\?.*period=90/u);
-  await expect(page.getByTestId("stats-ready")).toHaveAttribute("data-period", "90");
+  await expect(page.getByTestId("recap-ready")).toHaveAttribute("data-period", "90");
 
   await page.goForward();
   await expect(page.getByTestId("settings-saved")).toBeVisible();

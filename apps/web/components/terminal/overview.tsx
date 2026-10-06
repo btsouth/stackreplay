@@ -16,6 +16,7 @@ import {
 import { combinedActivity } from "@/lib/github-activity";
 import { useGitHubActivity } from "@/lib/use-github-activity";
 import type { PaidFigure } from "@/lib/use-paid-multiplier";
+import { isSyntheticWorkload } from "@/lib/workload-kind";
 import type { ImportRecord } from "@/lib/worker-protocol";
 import { DailyChart } from "./daily-chart";
 import { BarList, Readout, Section } from "./primitives";
@@ -92,7 +93,7 @@ export function Overview({
           action={<Link href="/app/scan">Scan again</Link>}
         />
       )}
-      {record?.id.startsWith("demo") && (
+      {record && isSyntheticWorkload(record) && (
         <p className="demo-note">Fictional demo. Scan your own history for your numbers.</p>
       )}
       <div className="grid12 hero">
@@ -147,7 +148,7 @@ export function Overview({
             <Readout
               label="vs. what you paid"
               value={paid.text}
-              note={`${dollars((Number(paid.monthlyUsd) * paid.days) / 30)} PAID OVER ${paid.days} DAYS`}
+              note={`${dollars((Number(paid.monthlyUsd) * paid.days) / 30.4)} PAID OVER ${paid.days} DAYS`}
               testId="recap-paid"
             />
           ) : (
@@ -559,12 +560,10 @@ export function Overview({
           />
           <BarList
             label="Projects · private"
-            rows={(r.deep?.projects ?? [])
-              .slice(0, 8)
-              .map((t, i) => ({
-                name: labels.get(t.hash) ?? `Local project ${i + 1}`,
-                total: t.total,
-              }))}
+            rows={(r.deep?.projects ?? []).slice(0, 8).map((t, i) => ({
+              name: labels.get(t.hash) ?? `Local project ${i + 1}`,
+              total: t.total,
+            }))}
           />
         </div>
       </Section>
@@ -596,7 +595,7 @@ export function Overview({
           recap={r}
           paid={paid}
           github={activity?.contributions}
-          synthetic={record?.id.startsWith("demo")}
+          synthetic={record && isSyntheticWorkload(record)}
         />
       </Section>
     </div>

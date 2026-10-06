@@ -46,12 +46,12 @@ test("Moderate week leads with a sourced list-price value and stays labelled dem
   page,
 }) => {
   await importDemo(page, "moderate");
-  await expect(page.getByTestId("stats-ready")).toContainText("Fictional demo");
+  await expect(page.getByTestId("recap-ready")).toContainText("Fictional demo");
   const id = new URL(page.url()).searchParams.get("import");
   await page.goto(`/app/recap?import=${id}`);
   await expect(page.getByTestId("recap-ready")).toBeVisible({ timeout: 60_000 });
-  await expect(page.locator(".recap-cost-number")).toBeVisible();
-  await expect(page.locator(".recap-hero-caption")).toContainText("API prices");
+  await expect(page.getByTestId("recap-value").locator(".v")).toBeVisible();
+  await expect(page.getByTestId("recap-value")).toContainText("AT LIST PRICES");
 });
 
 test("plan names wrap inside What you pay at 390px", async ({ page }) => {

@@ -54,9 +54,9 @@ test.describe("import surface accessibility", () => {
     await page.getByRole("radio", { name: "All time", exact: true }).focus();
     await page.keyboard.press("Space");
     await expect(page.getByTestId("recap-ready")).toHaveAttribute("data-period", "all");
-    await page.getByRole("link", { name: "Explore your stats" }).focus();
+    await page.getByRole("link", { name: "SHARE", exact: true }).focus();
     await page.keyboard.press("Enter");
-    await expect(page.getByTestId("stats-ready")).toBeVisible();
+    await expect(page.getByTestId("recap-ready")).toBeVisible();
   });
 
   test("import errors are announced", async ({ page }) => {
@@ -82,7 +82,7 @@ test.describe("app surface accessibility", () => {
         await expect(
           route === "settings"
             ? page.getByTestId("settings-saved")
-            : page.getByTestId(`${route}-ready`),
+            : page.getByTestId("recap-ready"),
         ).toBeVisible({ timeout: 60_000 });
         await expectNoSeriousViolations(page);
       });

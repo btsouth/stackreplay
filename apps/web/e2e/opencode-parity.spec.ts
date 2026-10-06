@@ -65,7 +65,7 @@ for (const archive of [false, true]) {
       "OpenCode",
     );
     await page.reload();
-    await expect(page.getByTestId("stats-ready")).toBeVisible({ timeout: 60_000 });
+    await expect(page.getByTestId("recap-ready")).toBeVisible({ timeout: 60_000 });
     // Nothing is assumed about what the person pays.
     expect(await page.evaluate(() => localStorage.getItem("stackreplay.current-stack"))).toBeNull();
     expect(
@@ -117,7 +117,7 @@ test("individual OpenCode and Command Code connection controls remain accessible
   await page.getByTestId("connect-opencode").click();
   await (await chooser).setFiles(root);
   await waitForWorkload(page);
-  await expect(page.getByTestId("stats-ready")).toBeVisible();
+  await expect(page.getByTestId("recap-ready")).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   expect(
     (

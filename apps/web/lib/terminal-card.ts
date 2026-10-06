@@ -118,8 +118,9 @@ export function drawCard(
   const [w, h] = CARD_SIZES[format];
   canvas.width = w;
   canvas.height = h;
-  const ctx = canvas.getContext("2d");
-  if (!ctx) throw Error("Canvas unavailable");
+  const context = canvas.getContext("2d");
+  if (!context) throw Error("Canvas unavailable");
+  const ctx: CanvasRenderingContext2D = context;
   const dark = card.theme === "dark",
     bg = dark ? "#08090a" : "#f3f2ed",
     fg = dark ? "#eceee9" : "#121413",

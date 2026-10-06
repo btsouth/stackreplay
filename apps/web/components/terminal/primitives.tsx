@@ -33,7 +33,7 @@ export function Readout({
 }: {
   label: string;
   value: ReactNode;
-  unit?: string;
+  unit?: string | undefined;
   note?: ReactNode;
   signal?: boolean;
   testId?: string;

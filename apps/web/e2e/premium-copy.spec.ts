@@ -32,7 +32,7 @@ test("recap, stats, settings, scan and share use plain copy and one API total", 
   });
   await expect(page.getByTestId("recap-ready")).toBeVisible({ timeout: 60000 });
   const id = new URL(page.url()).searchParams.get("import");
-  const amount = await page.locator(".recap-cost-number").innerText();
+  const amount = await page.getByTestId("recap-value").locator(".v").innerText();
   expect(amount).toMatch(/^\$[\d,]+$/);
   expect(languageMatches(await page.locator("body").innerText()), "recap").toEqual([]);
 
@@ -50,12 +50,10 @@ test("recap, stats, settings, scan and share use plain copy and one API total", 
   expect(languageMatches(await page.locator("body").innerText()), "recap with plans").toEqual([]);
 
   await page.goto(`/app/stats?import=${id}`);
-  await expect(page.getByTestId("stats-ready")).toBeVisible({ timeout: 60000 });
-  await expect(page.getByTestId("overview-api-total")).toHaveText(amount);
-  for (const tab of ["Models", "Tools", "Providers", "Projects", "Days", "Hours"]) {
-    await page.getByRole("tab", { name: tab, exact: true }).click();
-    expect(languageMatches(await page.locator("body").innerText()), `stats ${tab}`).toEqual([]);
-  }
+  await expect(page.getByTestId("recap-ready")).toBeVisible({ timeout: 60000 });
+  await expect(page.getByTestId("recap-value").locator(".v")).toHaveText(amount);
+  await expect(page.getByRole("tab")).toHaveCount(0);
+  expect(languageMatches(await page.locator("body").innerText()), "overview").toEqual([]);
 
   await page.goto(`/app/scan?import=${id}`);
   await expect(page.getByTestId("intake-surface")).toHaveAttribute("data-ready", "true");
@@ -67,5 +65,5 @@ test("recap, stats, settings, scan and share use plain copy and one API total", 
   await page.getByTestId("recap-share-open").click();
   await expect(page.getByTestId("share-card-v2")).toBeVisible();
   expect(languageMatches(await page.locator("body").innerText()), "share").toEqual([]);
-  await expect(page.getByTestId("share-figure")).toHaveText(amount);
+  await expect(page.getByTestId("share-figure")).toHaveText(`${amount} API value`);
 });

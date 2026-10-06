@@ -370,7 +370,7 @@ test.describe("share links", () => {
     await page.goto(`/s/${token}`);
     // An older link opens the shared recap page with only the aggregates it carries.
     await expect(page.getByTestId("share-card-v2")).toBeVisible();
-    await expect(page.getByRole("heading", { level: 1 })).toContainText("A chapter in AI coding");
+    await expect(page.getByRole("heading", { level: 1 })).toContainText("AI coding, in numbers");
     await expect(page.getByTestId("share-tokens")).toHaveText("24.5M");
     await expect(page.getByTestId("share-figure")).toHaveText("Value unreported");
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
@@ -445,34 +445,39 @@ test.describe("share links", () => {
       .toBe(true);
   });
 
-  test("creating a recap share link sends nothing and re-reads in public", async ({ page }) => {
+  test("creating a recap share link sends selected aggregates and re-reads in public", async ({
+    page,
+  }) => {
     const requests = captureRequests(page);
     await importDemo(page, "moderate");
     const id = new URL(page.url()).searchParams.get("import");
     await page.goto(`/app/recap?import=${id}`);
     await expect(page.getByTestId("recap-ready")).toBeVisible({ timeout: 60_000 });
+    const posted = page.waitForRequest(
+      (r) => r.url().endsWith("/api/share") && r.method() === "POST",
+    );
     await page.getByTestId("recap-share-create").click();
-    const href = await page.getByTestId("recap-share-open").getAttribute("href");
-    const token = decodeURIComponent((href ?? "").replace("/s/", ""));
-    expect(token.startsWith("2.")).toBe(true);
+    const token = JSON.parse((await posted).postData()!).token;
+    await expect(page.getByTestId("recap-share-open")).toBeVisible();
 
     // The token decodes to a valid V2 snapshot with no forbidden field.
     const decoded = await decodeAnyShareToken(token);
     expect(decoded.ok).toBe(true);
     if (decoded.ok && decoded.snapshot.version === 2 && decoded.snapshot.kind === "workload") {
-      expect(decoded.snapshot.workload.calls).toBeGreaterThan(0);
+      expect(decoded.snapshot.card?.tokens).toBeGreaterThan(0);
       expect(JSON.stringify(decoded.snapshot)).not.toMatch(
         /sessionhash|projecthash|eventhash|repository|filepath|prompt/iu,
       );
     } else throw new Error("expected a V2 recap snapshot");
 
-    // The link holds the numbers; creating it posts nothing anywhere.
+    // The explicit action uploads only its aggregate token.
     const posts = requests.filter((request) => request.method !== "GET");
-    expect(posts.map((request) => `${request.method} ${request.url}`)).toEqual([]);
+    expect(posts).toHaveLength(1);
+    expect(posts[0]?.url).toContain("/api/share");
 
     await page.getByTestId("recap-share-open").click();
     await expect(page.getByTestId("share-card-v2")).toBeVisible();
-    await expect(page.getByRole("heading", { level: 1 })).toContainText("A chapter in AI coding");
+    await expect(page.getByRole("heading", { level: 1 })).toContainText("AI coding, in numbers");
     await expect(page.getByTestId("share-tokens")).toBeVisible();
     // A sample history is labelled as fictional on the public page.
     await expect(page.locator(".shared-recap-honesty")).toContainText("Fictional");

@@ -68,7 +68,7 @@ export async function waitForWorkload(page: Page): Promise<void> {
       .evaluate((link: HTMLAnchorElement) => link.click());
   }
   await expect(page).toHaveURL(/\/app\/stats\?import=/u);
-  await expect(page.getByTestId("stats-ready")).toBeVisible({ timeout: 60_000 });
+  await expect(page.getByTestId("recap-ready")).toBeVisible({ timeout: 60_000 });
 }
 
 /** Client navigation preserves intentionally temporary workloads in the worker. */

@@ -57,7 +57,7 @@ test("saved and temporary scans keep a path through recap, Stats and Settings", 
   await expect(page.getByTestId("recap-ready")).toBeVisible({ timeout: 60000 });
   await page.getByRole("link", { name: "Explore your stats" }).click();
   await expect(page).toHaveURL(/\/app\/stats\?import=/u);
-  await expect(page.getByTestId("stats-ready")).toBeVisible();
+  await expect(page.getByTestId("recap-ready")).toBeVisible();
   // Client links retain the in-memory import. A full page navigation would intentionally discard it.
   if (
     !(await page

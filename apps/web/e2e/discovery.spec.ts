@@ -154,7 +154,7 @@ test("the happy path opens a recap after scanning and can reopen its details", a
     .first()
     .click();
   await expect(page).toHaveURL(/\/app\/stats\?import=/u);
-  await expect(page.getByTestId("stats-ready")).toBeVisible();
+  await expect(page.getByTestId("recap-ready")).toBeVisible();
 });
 
 test("a linked history needs additional access and connects without disturbing the others", async ({

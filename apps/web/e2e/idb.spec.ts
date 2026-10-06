@@ -90,7 +90,7 @@ test("a delayed storage lookup never appears empty or sends the recap through Sc
   await page.goto((workloadHref ?? "/app/recap").replace("/app/recap", "/app/stats"));
   await expect(page.getByTestId("workload-restoring")).toBeVisible();
   await expect(page.getByTestId("workload-empty")).toHaveCount(0);
-  await expect(page.getByTestId("stats-ready")).toBeVisible({ timeout: 60_000 });
+  await expect(page.getByTestId("recap-ready")).toBeVisible({ timeout: 60_000 });
 });
 
 test("deleting a workload removes it from storage, not just from the view", async ({ page }) => {
@@ -150,7 +150,7 @@ test("two imports coexist without overwriting each other", async ({ page }) => {
 test("a corrupted payload is rejected when opened and then removed", async ({ page }) => {
   await importDemo(page, "moderate");
   // Corrupt after the import has finished and the page has read the payload.
-  await expect(page.getByTestId("stats-ready")).toBeVisible();
+  await expect(page.getByTestId("recap-ready")).toBeVisible();
 
   // Replace the stored payload with something incompatible, as an older or
   // broken writer would have left behind.

@@ -44,10 +44,10 @@ for (const theme of ["dark", "light"] as const) {
     await expect(page).toHaveURL(/\/app\/scan$/u);
     await page.clock.resume();
     await waitForWorkload(page);
-    await expect(page.getByTestId("overview-api-total")).toHaveText(/^\$[\d,]+$/u);
+    await expect(page.getByTestId("recap-value").locator(".v")).toHaveText(/^\$[\d,]+$/u);
     expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
     await page.reload();
-    await expect(page.getByTestId("stats-ready")).toContainText("Total tokens");
+    await expect(page.getByTestId("recap-ready")).toContainText("Total tokens");
     await visitImportManager(page);
     await expect(page.getByTestId("stored-imports").locator(":scope > li")).toHaveCount(1);
     await expect(page.getByTestId("import-details")).not.toHaveAttribute("open");
@@ -71,7 +71,7 @@ test("harmless ignored files stay in Import details after native automatic hando
   ]);
   await waitForWorkload(page);
   await expect(page.getByTestId("partial-scan")).toHaveCount(0);
-  await expect(page.getByTestId("stats-ready")).not.toContainText(/skipped|README/u);
+  await expect(page.getByTestId("recap-ready")).not.toContainText(/skipped|README/u);
   await visitImportManager(page);
   await expect(page.getByText("README.txt", { exact: true })).toBeHidden();
   await page.getByTestId("import-details").locator(":scope > summary").click();
@@ -102,7 +102,7 @@ test("temporary workloads survive client-side handoff without being persisted", 
   await page.getByRole("checkbox", { name: "Save this scan in this browser" }).uncheck();
   await page.getByTestId("import-file-input").setInputFiles(portable);
   await waitForWorkload(page);
-  await expect(page.getByTestId("overview-api-total")).toHaveText(/^\$[\d,]+$/u);
+  await expect(page.getByTestId("recap-value").locator(".v")).toHaveText(/^\$[\d,]+$/u);
   await page.reload();
-  await expect(page.getByTestId("workload-missing")).toContainText("no longer stored");
+  await expect(page.getByRole("alert")).toContainText("no longer stored");
 });
