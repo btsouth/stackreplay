@@ -345,20 +345,16 @@ export function cardLayout(card: PublicCard, format: CardFormat, options: CardRe
       : 514;
   const metricStep = story ? (dense ? 112 : 140) : 0;
   const metricSize = story ? (dense ? 60 : 72) : square ? (metrics.length > 3 ? 36 : 54) : 34;
+  let statsBottom = 0;
   metrics.forEach((m, i) => {
     const x = pad + ((i % columns) * width) / columns,
       y = metricY + Math.floor(i / columns) * metricStep;
     const cellWidth = width / columns - 20;
+    const labelY = y + metricSize + (story ? 12 : 10);
+    const labelSize = story ? 22 : square ? 16 : 13;
     add(`stat-${i}`, m.value, x, y, metricSize, cellWidth, { tight: true });
-    add(
-      `label-${i}`,
-      m.label,
-      x,
-      y + metricSize + (story ? 12 : 10),
-      story ? 22 : square ? 16 : 13,
-      cellWidth,
-      { dim: true },
-    );
+    add(`label-${i}`, m.label, x, labelY, labelSize, cellWidth, { dim: true });
+    statsBottom = Math.max(statsBottom, labelY + labelSize);
   });
   if (speeds.length) {
     const headingY = story ? (hasHeadline ? 1330 : 1412) : square ? 634 : 300;
@@ -398,13 +394,16 @@ export function cardLayout(card: PublicCard, format: CardFormat, options: CardRe
     githubSeries = card.github !== undefined ? (card.githubSpark ?? []) : [];
   const connected = githubSeries.length > 0;
   const activityY = story
-    ? hasHeadline
-      ? speeds.length
-        ? 1550
-        : 1560
-      : speeds.length
-        ? 1630
-        : 1560
+    ? Math.max(
+        hasHeadline
+          ? speeds.length
+            ? 1550
+            : 1560
+          : speeds.length
+            ? 1630
+            : 1560,
+        statsBottom + 24,
+      )
     : square
       ? speeds.length
         ? 800

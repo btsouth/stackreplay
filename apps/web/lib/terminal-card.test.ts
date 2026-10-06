@@ -289,6 +289,28 @@ describe("poster composition", () => {
               expect(headlineText.lines?.join(" ")).toBe(headline);
             }
           });
+  it("keeps clear space between the story stats grid and the chart header with default toggles", () => {
+    for (const connected of [false, true])
+      for (const withHeadline of [false, true]) {
+        const card = makeCard(
+          recap,
+          DEFAULT_SELECTIONS,
+          "dark",
+          undefined,
+          connected ? 6228 : undefined,
+          connected ? githubDays : undefined,
+        );
+        const layout = cardLayout(card, "story", withHeadline ? { headline } : {});
+        const stats = layout.texts.filter(
+          (t) => t.id.startsWith("stat-") || t.id.startsWith("label-"),
+        );
+        expect(stats.length).toBeGreaterThan(0);
+        const bottom = Math.max(...stats.map((t) => t.y + cardTextHeight(t)));
+        const heading = layout.texts.find((t) => t.id === "activity-heading");
+        expect(heading, `heading missing (GitHub ${connected})`).toBeDefined();
+        expect(heading!.y - bottom, `gap (GitHub ${connected}, headline ${withHeadline})`).toBeGreaterThanOrEqual(24);
+      }
+  });
   it("measures horizontal gaps after merging overlapping regions and including canvas edges", () => {
     expect(
       largestEmptyHorizontalBand(

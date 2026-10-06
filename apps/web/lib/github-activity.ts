@@ -82,7 +82,10 @@ export interface CombinedActivity {
 
 /**
  * The calendar and token history over the range AI history covers. A joint day
- * needs both a token and a contribution.
+ * needs both a token and a contribution. GitHub contributions only count from
+ * the first AI-active date on: contribution days before the AI history began
+ * are not alongside anything, and counting them would make a wider period look
+ * like it had more shared activity than a narrower one over the same history.
  */
 export function combinedActivity(calendar: GitHubCalendar, aiDays: AiDay[]): CombinedActivity {
   const sorted = [...aiDays].sort((a, b) => a.date.localeCompare(b.date));
@@ -91,6 +94,8 @@ export function combinedActivity(calendar: GitHubCalendar, aiDays: AiDay[]): Com
     tokens: total,
     contributions: calendar.days[date] ?? 0,
   }));
+  const firstActive = days.findIndex((day) => day.tokens > 0);
+  const spanning = firstActive < 0 ? [] : days.slice(firstActive);
 
   let tokens = 0;
   let contributions = 0;
@@ -98,7 +103,7 @@ export function combinedActivity(calendar: GitHubCalendar, aiDays: AiDay[]): Com
   let bestDay: { date: string; count: number } | undefined;
   let longestJointStreak = 0;
   let run = 0;
-  for (const day of days) {
+  for (const day of spanning) {
     tokens += day.tokens;
     contributions += day.contributions;
     if (day.tokens > 0 && day.contributions > 0) {
@@ -121,7 +126,7 @@ export function combinedActivity(calendar: GitHubCalendar, aiDays: AiDay[]): Com
     index -= 1;
   }
   let jointStreak = 0;
-  while (index >= 0) {
+  while (index >= firstActive) {
     const day = days[index];
     if (day === undefined || day.tokens <= 0 || day.contributions <= 0) break;
     jointStreak += 1;

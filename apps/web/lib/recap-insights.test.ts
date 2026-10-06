@@ -109,6 +109,37 @@ describe("period insight facts", () => {
       detail: "USUAL = MEDIAN OF 3 ACTIVE WEEKS",
     });
   });
+  it("gives a 90-day period and all time the same ratio over one history", () => {
+    const days = Array.from({ length: 47 }, (_, i) => ({
+      date: nextDay("2026-08-21", i),
+      records: 1,
+      output: 0,
+    }));
+    const weeks = [
+      { date: "2026-08-17", families: { openai: 5 } },
+      { date: "2026-08-24", families: { openai: 100 } },
+      { date: "2026-08-31", families: { openai: 150 } },
+      { date: "2026-09-07", families: { openai: 200 } },
+      { date: "2026-09-14", families: { openai: 300 } },
+      { date: "2026-09-21", families: { openai: 400 } },
+      { date: "2026-09-28", families: { openai: 620 } },
+    ];
+    const all: Recap = {
+      ...recap(),
+      period: "all",
+      start: "2026-08-21",
+      end: "2026-10-06",
+      days,
+      weeks,
+    };
+    const ninety: Recap = { ...all, period: "90", start: "2026-07-09" };
+    const allPeak = find(all, "week:peak");
+    const ninetyPeak = find(ninety, "week:peak");
+    // The week of Aug 17 starts before the history, so it must not change the
+    // median for the wider period.
+    expect(allPeak?.figure).toBe("2.4×");
+    expect(ninetyPeak).toEqual(allPeak);
+  });
   it("counts midnight through 5 AM exclusively in half-hour zones, skips aggregates", () => {
     for (const timeZone of ["Asia/Kolkata", "Australia/Adelaide"]) {
       const at = timeZone === "Asia/Kolkata" ? "2026-09-01T18:30:00Z" : "2026-09-01T14:30:00Z";
@@ -203,6 +234,67 @@ describe("period insight facts", () => {
     expect(recapInsightCandidates(r).some((i) => i.id.startsWith("github:"))).toBe(false);
     gh.days[0]!.tokens++;
     expect(recapInsightCandidates(r, gh).some((i) => i.id.startsWith("github:"))).toBe(false);
+  });
+  it("counts GitHub only from the first AI-active date", () => {
+    const calendar = {
+      login: "test",
+      fetchedAt: "2026-10-06",
+      total: 0,
+      days: {
+        "2026-08-20": 7,
+        "2026-08-21": 3,
+        "2026-08-22": 9,
+        "2026-08-23": 11,
+      },
+    };
+    const activity = combinedActivity(calendar, [
+      { date: "2026-08-20", total: 0 },
+      { date: "2026-08-21", total: 100 },
+      { date: "2026-08-22", total: 50 },
+      { date: "2026-08-23", total: 0 },
+    ]);
+    // 7 sits before any AI work and is not "alongside" tokens.
+    expect(activity.contributions).toBe(23);
+    expect(activity.longestJointStreak).toBe(2);
+    expect(activity.bestDay).toEqual({ date: "2026-08-23", count: 11 });
+    expect(activity.days).toHaveLength(4);
+  });
+  it("reports the same GitHub alongside figure for 90 days and all time", () => {
+    const calendar = {
+      login: "test",
+      fetchedAt: "2026-10-06",
+      total: 0,
+      days: {
+        "2026-07-10": 5,
+        "2026-08-20": 7,
+        "2026-08-21": 3,
+        "2026-09-01": 9,
+        "2026-10-04": 11,
+      },
+    };
+    const build = (period: "90" | "all", start: string, dates: string[]) => {
+      const days = dates.map((date) => ({
+        date,
+        records: date >= "2026-08-21" ? 1 : 0,
+        output: 0,
+      }));
+      const explorerDays = days.map((d) => ({ ...d, total: d.records ? 100 : 0, usd: "0" }));
+      const r: Recap = {
+        ...recap(),
+        period,
+        start,
+        end: "2026-10-06",
+        days,
+        explorer: { modelSessions: {}, days: explorerDays },
+      };
+      const github = combinedActivity(calendar, explorerDays);
+      return recapInsightCandidates(r, github).find((i) => i.id === "github:alongside");
+    };
+    const allDates = ["2026-07-10", "2026-08-20", "2026-08-21", "2026-09-01", "2026-10-04"];
+    const ninety = build("90", "2026-07-09", allDates);
+    const all = build("all", "2026-08-21", allDates.filter((d) => d >= "2026-08-21"));
+    expect(ninety?.figure).toBe("23");
+    expect(all?.figure).toBe(ninety?.figure);
   });
   it("ranks deterministically, chooses distinct families, and obeys the copy contract", () => {
     expect(sampleInsights).toHaveLength(4);

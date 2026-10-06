@@ -121,11 +121,13 @@ export function recapInsightCandidates(
       70 + Math.min(first.size, 10),
     );
 
-  // Monday-Sunday weeks only, and only complete weeks that saw activity. A
-  // run of empty weeks before the history starts must not drag the usual week
-  // down and inflate the ratio.
+  // Monday-Sunday weeks only. A week must lie fully inside both the selected
+  // period and the AI history span (first active local date to the period end)
+  // and must have seen activity. The same set feeds the busiest week and the
+  // usual week, so a 90-day period and all time over one history agree.
+  const firstActive = days.find((d) => d.records > 0)?.date;
   const weeks = r.weeks
-    .filter((w) => w.date >= r.start && nextDay(w.date, 6) <= r.end)
+    .filter((w) => w.date >= (firstActive ?? r.start) && nextDay(w.date, 6) <= r.end)
     .map((w) => ({ date: w.date, total: Object.values(w.families).reduce((a, b) => a + b, 0) }))
     .filter((week) => week.total > 0);
   if (weeks.length >= 3 && weeks.every((week) => Number.isSafeInteger(week.total))) {
@@ -174,7 +176,11 @@ export function recapInsightCandidates(
         d.tokens === r.explorer?.days.find((a) => a.date === d.date)?.total,
     )
   ) {
-    const contributions = github.days.reduce((sum, d) => sum + d.contributions, 0);
+    const contributions = github.contributions;
+    // The helper counts only from the first AI-active date, so a wider period
+    // over the same history cannot report more GitHub activity than a narrower
+    // one. Candidates reuse those aggregates rather than re-summing the raw
+    // days, which still include the pre-history calendar cells.
     if (contributions > 0 && r.total > 0)
       add(
         "github:alongside",
@@ -183,28 +189,21 @@ export function recapInsightCandidates(
         "SAME DATES · ACTIVITY, NOT CAUSATION",
         99,
       );
-    let joint = 0,
-      longestJoint = 0;
-    for (const d of github.days) {
-      joint = d.tokens > 0 && d.contributions > 0 ? joint + 1 : 0;
-      longestJoint = Math.max(joint, longestJoint);
-    }
-    if (longestJoint >= 7)
+    if (github.longestJointStreak >= 7)
       add(
         "github:streak",
-        `AI tokens and GitHub contributions overlapped for ${integer(longestJoint)} days in a row`,
-        `${integer(longestJoint)} days`,
+        `AI tokens and GitHub contributions overlapped for ${integer(github.longestJointStreak)} days in a row`,
+        `${integer(github.longestJointStreak)} days`,
         "LONGEST JOINT RUN THIS PERIOD",
         88,
       );
-    const best = [...github.days].sort(
-      (a, b) => b.contributions - a.contributions || order(a.date, b.date),
-    )[0];
-    if (best && best.contributions >= 10 && best.tokens > 0)
+    const best = github.bestDay;
+    const bestTokens = best ? (github.days.find((d) => d.date === best.date)?.tokens ?? 0) : 0;
+    if (best && best.count >= 10 && bestTokens > 0)
       add(
         "github:day",
-        `${integer(best.contributions)} GitHub contributions on ${dateLabel(best.date)}, with AI activity too`,
-        integer(best.contributions),
+        `${integer(best.count)} GitHub contributions on ${dateLabel(best.date)}, with AI activity too`,
+        integer(best.count),
         "MOST CONTRIBUTIONS IN THIS PERIOD",
         84,
       );
