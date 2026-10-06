@@ -6,7 +6,7 @@
   "description": "StackReplay web application.",
   "scripts": {
     "dev": "node scripts/build-worker.mjs && next dev",
-    "build": "node scripts/build-worker.mjs && next build",
+    "build": "node scripts/build-worker.mjs && next build --webpack",
     "start": "next start",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
