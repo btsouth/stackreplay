@@ -7,12 +7,14 @@
 StackReplay is an early-stage, local-first tool for a question that static plan comparisons cannot
 answer: **would another AI coding subscription actually handle the way I work?**
 
-> **Status: live at [stackreplay.com](https://stackreplay.com), updated October 1, 2026.** The browser app reads local agent histories,
-> analyzes workloads, tracks multiple local history accounts and confirmed subscriptions, and
-> replays against sourced plan and Direct API targets. The public site includes a market feed and
-> benchmark comparisons. There are no hosted accounts or cloud sync. What
-> exists, what is verified and what is still open is tracked in
-> [docs/IMPLEMENTATION_STATUS.md](docs/IMPLEMENTATION_STATUS.md).
+> **Status: live at [stackreplay.com](https://stackreplay.com).** The browser app is **Scan,
+> Recap, Stats and Share**: it reads local agent histories on your device, tells the story of your
+> AI coding, lets you explore the numbers and makes cards you can share. An optional "What you pay"
+> setting adds one figure, how many times what you paid your usage is worth at API prices. The
+> public site is a catalog of models, providers, benchmarks, plans and market updates. There are no
+> hosted accounts or cloud sync. What exists, what is verified and what is still open is tracked in
+> [docs/IMPLEMENTATION_STATUS.md](docs/IMPLEMENTATION_STATUS.md). The sections below describe the
+> engine and CLI, which still replay workloads against plan and Direct API targets.
 
 ## Why plan comparisons are not enough
 

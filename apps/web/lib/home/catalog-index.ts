@@ -1,6 +1,6 @@
 import { bundledPublicApiProviders } from "@stackreplay/catalog/bundled";
 import { type PublicCatalog, planDisplayName } from "../public-catalog";
-import { DISCOVERY_FAMILIES } from "../stack-discovery";
+import { PLAN_FAMILIES } from "./plan-families";
 import type { HomeCatalogIndex } from "./personal";
 
 /**
@@ -22,7 +22,7 @@ export function homeCatalogIndex(catalog: PublicCatalog): HomeCatalogIndex {
     ),
     plans: Object.fromEntries(
       catalog.plans.map((plan) => {
-        const family = DISCOVERY_FAMILIES.find(
+        const family = PLAN_FAMILIES.find(
           (entry) =>
             (entry.planIds as readonly string[]).includes(plan.id) ||
             (entry.otherPlanIds as readonly string[]).includes(plan.id),
