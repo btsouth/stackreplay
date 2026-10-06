@@ -38,7 +38,7 @@ export function TerminalLandscape({
       }}
     >
       <div style={absolute(56, 35, { fontSize: 20, color: dim, gap: 14 })}>
-        <span style={{ color: signal }}>■</span>
+        <span style={{ width: 18, height: 18, marginTop: 4, background: signal }} />
         <span>STACKREPLAY</span>
       </div>
       <div

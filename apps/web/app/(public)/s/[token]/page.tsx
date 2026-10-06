@@ -16,6 +16,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     description: "AI coding in numbers. Shared by its creator.",
     robots: { index: false, follow: false },
     openGraph: { images: [{ url: `${r.path}/image`, width: 1200, height: 630 }] },
+    twitter: { card: "summary_large_image", images: [`${r.path}/image`] },
   };
 }
 export default async function SharePage({ params }: Props) {

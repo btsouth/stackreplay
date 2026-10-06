@@ -54,7 +54,7 @@ test.describe("import surface accessibility", () => {
     await page.getByRole("radio", { name: "All time", exact: true }).focus();
     await page.keyboard.press("Space");
     await expect(page.getByTestId("recap-ready")).toHaveAttribute("data-period", "all");
-    await page.getByRole("link", { name: "SHARE", exact: true }).focus();
+    await page.getByRole("link", { name: "SHARE ↗", exact: true }).focus();
     await page.keyboard.press("Enter");
     await expect(page.getByTestId("recap-ready")).toBeVisible();
   });

@@ -105,7 +105,7 @@ export function Overview({
           </div>
           {buckets && (
             <div className="anat">
-              <div className="abar" aria-label="Token composition">
+              <div className="abar" role="img" aria-label="Token composition">
                 {(["read", "input", "write", "output"] as const).map((k) => (
                   <div
                     key={k}

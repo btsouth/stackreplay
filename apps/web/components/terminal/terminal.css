@@ -8,6 +8,7 @@
   --dim: #8d9691;
   --faint: #8d9691;
   --signal: #ff6a1f;
+  --signal-text: #ff6a1f;
   --signal-soft: rgba(255, 106, 31, 0.14);
   --gh: #3ddc84;
   --c-read: #ff6a1f;
@@ -28,6 +29,7 @@
   --dim: #5c625e;
   --faint: #5c625e;
   --signal: #e24e00;
+  --signal-text: #b83d00;
   --signal-soft: rgba(226, 78, 0, 0.1);
   --gh: #1a9f55;
   --c-read: #e24e00;
@@ -38,8 +40,6 @@
 }
 .terminal * {
   box-sizing: border-box;
-  margin: 0;
-  padding: 0;
 }
 .terminal {
   background: var(--bg);
@@ -940,7 +940,7 @@
   --muted-foreground: var(--dim);
   --border: var(--line);
   --border-strong: var(--line2);
-  --accent: var(--signal);
+  --accent: var(--signal-text);
   --accent-solid: var(--signal);
   --accent-foreground: #120800;
   --ring: var(--signal);
@@ -1019,7 +1019,7 @@
   grid-template-rows: auto auto auto auto;
 }
 .terminal .speed {
-  align-self: start;
+  align-self: stretch;
 }
 .terminal .chart {
   width: 100%;
@@ -1586,4 +1586,89 @@
   color: var(--dim);
   font: 12px / 1.7 var(--mono);
   margin-top: 16px;
+}
+
+/* Small orange captions use a darker ink in the paper theme. Signal fills stay exact. */
+.terminal .sh > .label,
+.terminal .path b,
+.terminal .tg.on {
+  color: var(--signal-text);
+}
+.terminal .app-scan [data-testid="intake-surface"] {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding-bottom: 32px;
+}
+.terminal .app-scan .sr-find,
+.terminal .app-scan [data-testid="privacy-boundary"],
+.terminal .app-scan [data-testid="import-dropzone"] {
+  border: 1px solid var(--line2);
+  border-radius: 3px;
+  padding: 24px;
+  background: var(--panel);
+  box-shadow: none;
+}
+.terminal .app-scan .sr-find {
+  --sr-signal: var(--signal);
+  --sr-rule: var(--line2);
+  font-family: var(--mono);
+}
+.terminal .app-scan .sr-find-kicker,
+.terminal .app-scan .sr-find-machine-body .sr-micro {
+  color: var(--signal-text);
+}
+.terminal .app-scan .sr-find-title,
+.terminal .app-scan .sr-find-machine-drop,
+.terminal .app-scan [data-testid="privacy-boundary"] h2 {
+  font-family: var(--sans);
+  font-size: 22px;
+  line-height: 1.3;
+  letter-spacing: -0.025em;
+}
+.terminal .app-scan .sr-find-rule,
+.terminal .app-scan .sr-find-fine,
+.terminal .app-scan .sr-find-lede,
+.terminal .app-scan .sr-micro,
+.terminal .app-scan [data-testid="privacy-boundary"] {
+  font-family: var(--mono);
+  font-size: 12px;
+  line-height: 1.7;
+}
+.terminal .app-scan .sr-find-machine-body {
+  border-radius: 3px;
+  padding: 16px;
+  background: var(--bg);
+}
+.terminal .app-scan .sr-find-actions {
+  flex-wrap: wrap;
+}
+.terminal .app-scan [data-testid="find-histories"] {
+  background: transparent;
+  border: 1px solid var(--control-border);
+  color: var(--fg);
+}
+.terminal .app-scan .sr-find-link {
+  color: var(--signal-text);
+}
+.terminal .app-scan .sr-scan {
+  --sr-signal: var(--signal-text);
+}
+.terminal .app-scan .sr-find-knot,
+.terminal .app-scan .sr-scan-knot {
+  width: 12px;
+  height: 12px;
+}
+.terminal .app-setting p,
+.terminal .app-setting label,
+.terminal .app-setting [data-testid="what-you-pay-total"] {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+}
+@media (max-width: 800px) {
+  .terminal .app-scan .sr-find,
+  .terminal .app-scan [data-testid="privacy-boundary"],
+  .terminal .app-scan [data-testid="import-dropzone"] {
+    padding: 20px;
+  }
 }
