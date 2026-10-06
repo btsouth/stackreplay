@@ -112,6 +112,9 @@ for (const theme of ["dark", "light"] as const) {
     for (const path of ["/", "/catalog", "/design", "/app/plans", "/app/scan"]) {
       await page.goto(path);
       await expect(page.getByRole("heading", { level: 1 }), path).toBeVisible();
+      await expect(page.getByRole("button", { name: "Toggle theme", exact: true })).toBeEnabled();
+      if (path === "/app/scan")
+        await expect(page.getByTestId("intake-surface")).toHaveAttribute("data-ready", "true");
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
         true,
       );
