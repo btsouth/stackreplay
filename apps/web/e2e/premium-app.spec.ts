@@ -84,6 +84,13 @@ test("recap keeps the chosen period on reload and aligns with the shared shell",
   await expect(page.locator(".recap-info:has(:popover-open)")).toContainText("local timezone");
   await page.keyboard.press("Escape");
   await expect(page.locator(".recap-info:has(:popover-open)")).toHaveCount(0);
+
+});
+
+test("Stats and Plans share the recap period and exact API value", async ({ page }) => {
+  await load(page);
+  await page.getByRole("radio", { name: "All time", exact: true }).check();
+  await expect(page.getByTestId("recap-ready")).toHaveAttribute("data-period", "all");
   const allTimeValue = await page.locator(".recap-cost-number").innerText();
   await navigate(page, "Stats");
   await expect(page.getByTestId("stats-ready")).toHaveAttribute("data-period", "all");

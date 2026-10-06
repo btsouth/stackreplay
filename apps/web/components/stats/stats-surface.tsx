@@ -17,7 +17,7 @@ type Row = {
   name: string;
   developer?: string;
   total: number;
-  usd?: string;
+  usd?: string | undefined;
   sessions?: number;
   requests?: number;
   color?: string | undefined;
@@ -56,7 +56,7 @@ export function StatsSurface({ initialImportId }: { initialImportId?: string | u
     name: m.name,
     developer: developerNames[m.family] ?? m.family,
     total: m.total,
-    usd: m.usd,
+    usd: m.priced > 0 ? m.usd : undefined,
     sessions: explorer?.modelSessions[m.id] ?? 0,
     color: familyColors[m.family] ?? familyColors.other,
   }));
@@ -141,8 +141,8 @@ export function StatsSurface({ initialImportId }: { initialImportId?: string | u
             key: "usd",
             label: "Value at API prices",
             numeric: true,
-            render: (r: Row) => recapUsd(r.usd ?? "0"),
-            compare: (a: Row, b: Row) => Number(a.usd) - Number(b.usd),
+            render: (r: Row) => (r.usd === undefined ? "Unreported" : recapUsd(r.usd)),
+            compare: (a: Row, b: Row) => Number(a.usd ?? "-1") - Number(b.usd ?? "-1"),
           },
         ]
       : []),

@@ -23,7 +23,7 @@ export interface Recap {
   period: RecapPeriod;
   explorer?: {
     modelSessions: Record<string, number>;
-    days: { date: string; total: number; records: number; usd: string }[];
+    days: { date: string; total: number; records: number; usd: string | undefined }[];
   };
   deep?: RecapDeep;
   sourceCoverage?: { name: string; role: string; status: string }[];
@@ -385,7 +385,7 @@ export function buildRecap(
         date: d.date,
         records: d.records,
         total: dayTokens.get(d.date) ?? 0,
-        usd: costDays.get(d.date)?.toString() ?? "0",
+        usd: costDays.get(d.date)?.toString() ?? (d.records === 0 ? "0" : undefined),
       })),
     },
     start,
