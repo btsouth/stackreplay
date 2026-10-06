@@ -66,11 +66,11 @@ describe("public offer routes and prices", () => {
       for (const html of [detail, directory, compare]) {
         expect(html).toContain(price.amount);
         expect(html).toContain(price.unit);
-        expect(html).toContain("Published offer only.");
         expect(html).not.toContain(`/app/scan?target=${id}`);
         expect(html).not.toContain("replay");
         expect(html).not.toContain("0 models included");
       }
+      expect(compare).toContain("Published offer only.");
       expect(detail).not.toContain('data-testid="version-table"');
       expect(detail).not.toContain("Catalog record");
       expect(detail).not.toContain("Rules in effect since");
@@ -162,15 +162,15 @@ describe("public offer routes and prices", () => {
       expect(headings[0]?.[1]).toContain(`>${catalog.planById(id)?.name}</a>`);
     }
   });
-  it("retains the existing catalog target CTA and does not change normal price labels", () => {
+  it("keeps normal price labels and links nothing into the removed app pages", () => {
     const html = renderToStaticMarkup(
       createElement(CompareExplorer, {
         ...compareProps,
         routedSearch: "left=anthropic-claude-max-20x&right=openai-chatgpt-pro",
       }),
     );
-    expect(html).toContain("/app/scan?target=anthropic-claude-max-20x");
-    expect(html).toContain("/app/scan?target=openai-chatgpt-pro");
+    expect(html).not.toContain("/app/scan?target=");
+    expect(html).not.toMatch(/\/app\/(plans|replay|compare|stack|workload)/u);
     expect(html).toContain("$200");
   });
 });
