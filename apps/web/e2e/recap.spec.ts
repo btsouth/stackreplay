@@ -106,7 +106,9 @@ test("what you pay in Settings drives Nx what you paid in the recap and Stats", 
     return ratio >= 9.95 ? `${Math.round(ratio)}×` : `${ratio.toFixed(1)}×`;
   };
   await page.goto(`/app/recap?import=${id}`);
-  await expect(page.getByTestId("recap-paid")).toHaveText(`${expected(30)} what you paid`);
+  await expect(page.getByTestId("recap-paid").locator("strong")).toHaveText(
+    `${expected(30)} what you paid`,
+  );
   await page.getByRole("radio", { name: "90 days", exact: true }).check();
   await expect(page.getByTestId("recap-ready")).toHaveAttribute("data-period", "90");
   await expect(page.getByTestId("recap-paid")).toContainText("what you paid");

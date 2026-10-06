@@ -120,6 +120,8 @@ test("imports a ~100k-event export without blocking the interface", async ({ pag
   // first: the visible summary is the newest request, never the stale one.
   await waitForWorkload(page);
   await visitImportManager(page);
+  await page.getByText("Use files or an export instead", { exact: true }).click();
+  await page.getByText("Try a sample recap", { exact: true }).click();
   await page.getByTestId("demo-moderate").click();
   await waitForWorkload(page);
   await expect(page.getByTestId("stats-ready")).toBeVisible();

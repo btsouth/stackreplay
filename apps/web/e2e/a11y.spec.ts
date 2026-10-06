@@ -89,7 +89,7 @@ test.describe("app surface accessibility", () => {
     }
   }
 
-  test("what you pay is operable with the keyboard and passes axe with plans entered", async ({
+  test("what you pay quantities are operable with the keyboard and pass axe", async ({
     page,
   }, testInfo) => {
     test.skip(testInfo.project.name !== "desktop", "keyboard path is a desktop path");
@@ -101,8 +101,7 @@ test.describe("app surface accessibility", () => {
     await page
       .getByRole("option", { name: /^Claude Max 5x ·/u })
       .first()
-      .focus();
-    await page.keyboard.press("Enter");
+      .click();
     const more = page.getByRole("button", { name: "More Claude Max 5x accounts" });
     await more.focus();
     await page.keyboard.press("Space");

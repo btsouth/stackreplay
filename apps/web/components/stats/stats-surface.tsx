@@ -1,5 +1,6 @@
 "use client";
 import { type DataColumn, DataTable } from "@stackreplay/ui";
+import Link from "next/link";
 import { useState } from "react";
 import { AppPageSkeleton, ScanEmptyState } from "@/components/app/app-page-state";
 import { PartialScanNotice } from "@/components/import/evidence";
@@ -189,9 +190,9 @@ export function StatsSurface({ initialImportId }: { initialImportId?: string | u
         <PartialScanNotice
           record={data.record}
           action={
-            <a className="text-sm text-accent" href="/app/scan" data-testid="stats-rescan">
+            <Link className="text-sm text-accent" href="/app/scan" data-testid="stats-rescan">
               Scan again
-            </a>
+            </Link>
           }
         />
       )}
@@ -348,9 +349,9 @@ export function StatsSurface({ initialImportId }: { initialImportId?: string | u
       <CalculationNote recap={recap} />
       <footer className="recap-footer">
         <span>Calculated on this device. Your logs stay here.</span>
-        <a href="/app/scan" data-testid="stats-scan-again">
+        <Link href="/app/scan" data-testid="stats-scan-again">
           Scan again →
-        </a>
+        </Link>
       </footer>
     </div>
   );

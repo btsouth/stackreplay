@@ -184,9 +184,9 @@ export function RecapSurface({ initialImportId }: { initialImportId?: string | u
                 record={imports.find((r) => r.id === id) as ImportRecord}
                 briefing
                 action={
-                  <a className="text-sm text-accent" href="/app/scan">
+                  <Link className="text-sm text-accent" href="/app/scan">
                     Scan again
-                  </a>
+                  </Link>
                 }
               />
             )}

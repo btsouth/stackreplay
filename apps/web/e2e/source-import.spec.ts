@@ -129,7 +129,7 @@ test("Claude assistant content blocks count usage once in the browser import", a
   await inspectLatestImport(page);
   await expect(page.getByTestId("stored-imports")).toContainText("1 call");
   await expect(page.getByTestId("saved-import-summary").first()).toContainText(
-    "Exact known tokens: 110",
+    "Reported tokens: 110",
   );
   await expect(page.getByTestId("saved-import-summary").first()).toContainText(
     "Reused context read from cache: 100",

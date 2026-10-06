@@ -343,7 +343,7 @@ test("Cancel scan stops the scan and leaves saved workloads alone", async ({ pag
   const cancel = page.getByTestId("cancel-scan");
   await cancel.focus();
   await page.keyboard.press("Enter");
-  await expect(page.getByTestId("scan-canceled")).toContainText("saved workloads are unchanged");
+  await expect(page.getByTestId("scan-canceled")).toContainText("saved scans are unchanged");
   await expect(page.getByTestId("scan-instrument")).toHaveCount(0);
   // The sources are back, still selected, ready to build again.
   await expect(page.getByTestId("select-claude-code")).toBeChecked();
@@ -508,7 +508,7 @@ test("discovery states pass axe and selection works from the keyboard", async ({
   await expect(codex).not.toBeChecked();
   await page.getByTestId("select-opencode").uncheck();
   await expect(page.getByTestId("selection-count")).toContainText("1 selected");
-  const build = page.getByRole("button", { name: "Build my workload from 1 selected history" });
+  const build = page.getByRole("button", { name: "Make my recap from 1 selected history" });
   await build.focus();
   await page.keyboard.press("Enter");
   await waitForWorkload(page);
