@@ -134,7 +134,7 @@ const terminalCss = readFileSync(
 );
 for (const [theme, selector] of [
   ["dark", ".dark .terminal"],
-  ["light", ".terminal {\n  --bg:"],
+  ["light", "\n.terminal {\n  --bg:"],
 ]) {
   const open = terminalCss.indexOf("{", terminalCss.indexOf(selector));
   const body = terminalCss.slice(open, terminalCss.indexOf("}", open));
