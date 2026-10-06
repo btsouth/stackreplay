@@ -18,10 +18,12 @@ const field = "mt-1 min-h-11 w-full min-w-0 border border-border bg-background p
 export function BillingSetup({
   local,
   accounts,
+  accountsState,
   onSaved,
 }: {
   local: ReturnType<typeof useReview>;
   accounts: ReviewHistory["accounts"];
+  accountsState: "pending" | "ready" | "error";
   onSaved: () => void;
 }) {
   const { choice, billing, selected } = local;
@@ -94,6 +96,10 @@ export function BillingSetup({
         className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
         onSubmit={(e) => {
           e.preventDefault();
+          if (accountsState !== "ready") {
+            setError("Wait for the local account details before comparing this billing cycle.");
+            return;
+          }
           if (accounts?.length && !choice.resourceInstanceId) {
             setError("Choose the local account this subscription paid for.");
             return;
@@ -188,11 +194,19 @@ export function BillingSetup({
         </label>
         <button
           type="submit"
-          className="min-h-11 self-end bg-accent px-4 py-3 text-sm font-medium text-accent-foreground"
+          disabled={accountsState !== "ready"}
+          className="min-h-11 self-end bg-accent px-4 py-3 text-sm font-medium text-accent-foreground disabled:opacity-60"
         >
           Compare this billing cycle →
         </button>
       </form>
+      {accountsState !== "ready" ? (
+        <p role="status" className="text-sm text-muted-foreground">
+          {accountsState === "error"
+            ? "Account details could not load. Reload to retry."
+            : "Account details are still loading. You can enter your dates and payment now."}
+        </p>
+      ) : null}
       <div className="flex flex-wrap justify-between gap-2 text-xs text-muted-foreground">
         <span>Dates use UTC. The renewal date starts the next cycle and is excluded.</span>
         <span>Saved only in this browser.</span>

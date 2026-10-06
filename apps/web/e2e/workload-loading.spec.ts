@@ -102,6 +102,11 @@ test("billing controls stay usable while full-history pricing is pending", async
   await page.getByTestId("billing-action").click();
   await expect(page.getByTestId("review-period")).toBeVisible();
   await expect(page.getByTestId("overview-price-loading")).toBeVisible();
+  await page.getByLabel("Amount you paid", { exact: true }).fill("12.34");
+  await page.getByLabel("Billing cycle start", { exact: true }).fill("2026-09-01");
+  await expect(
+    page.getByRole("button", { name: "Compare this billing cycle →", exact: true }),
+  ).toBeDisabled();
   // The editor can render its saved period without interrupting the overview job.
   expect(
     await page.evaluate(
@@ -113,6 +118,11 @@ test("billing controls stay usable while full-history pricing is pending", async
   );
   await pricingDone(page);
   await expect(page.getByTestId("review-period")).toBeVisible();
+  await expect(page.getByLabel("Amount you paid", { exact: true })).toHaveValue("12.34");
+  await expect(page.getByLabel("Billing cycle start", { exact: true })).toHaveValue("2026-09-01");
+  await expect(
+    page.getByRole("button", { name: "Compare this billing cycle →", exact: true }),
+  ).toBeEnabled();
 });
 
 test("failed overview pricing does not trap the billing editor in a loading state", async ({

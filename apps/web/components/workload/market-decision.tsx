@@ -424,6 +424,9 @@ export function MarketDecisionSurface({
           key={`${choice.resourceInstanceId ?? "all"}:${selected.join(",")}`}
           local={local}
           accounts={accounts}
+          accountsState={
+            computed?.key.startsWith(`${importId}:`) ? "ready" : error ? "error" : "pending"
+          }
           onSaved={() => setEditing(false)}
         />
         {!needsPeriod && review ? (
