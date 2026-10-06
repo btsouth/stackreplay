@@ -66,7 +66,7 @@ export function recapInsightCandidates(
         : current === longest
           ? "CURRENT AND LONGEST RUN THIS PERIOD"
           : `LONGEST RUN · CURRENT ${integer(current)} DAYS`,
-      wholePeriod ? 100 : 85 + Math.min(longest, 30) / 10,
+      wholePeriod ? 100 : 95 + Math.min(longest, 30) / 10,
     );
 
   const models = r.models
@@ -160,7 +160,7 @@ export function recapInsightCandidates(
         `${integer(contributions)} GitHub contributions alongside ${compact(r.total)} AI tokens`,
         integer(contributions),
         "SAME DATES · ACTIVITY, NOT CAUSATION",
-        96,
+        99,
       );
     let joint = 0,
       longestJoint = 0;
@@ -174,7 +174,7 @@ export function recapInsightCandidates(
         `AI tokens and GitHub contributions overlapped for ${longestJoint} days in a row`,
         `${longestJoint} days`,
         "LONGEST JOINT RUN THIS PERIOD",
-        97,
+        88,
       );
     const best = [...github.days].sort(
       (a, b) => b.contributions - a.contributions || order(a.date, b.date),

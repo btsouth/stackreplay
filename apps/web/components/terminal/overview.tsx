@@ -183,7 +183,15 @@ export function Overview({
           />
         </div>
       </div>
-      <InsightStrip insights={recapInsights(r, activity, paid)} />
+      <InsightStrip
+        insights={recapInsights(
+          r,
+          gh.calendar && p.days.every((d) => Object.hasOwn(gh.calendar!.days, d.date))
+            ? activity
+            : undefined,
+          paid,
+        )}
+      />
       <Section
         number="01"
         title="Tokens in, code out"
