@@ -174,9 +174,8 @@ test("homepage keeps catalog and keyboard routes reachable", async ({ page, isMo
   await expect(page.locator("#main-content")).toBeFocused();
   if (isMobile) await page.getByRole("button", { name: "Open menu" }).click();
   const context = isMobile ? page.getByRole("dialog") : page.getByRole("banner");
-  // The phone menu lists Models once, in its full catalog list.
   const catalog = context
-    .getByRole("navigation", { name: isMobile ? "Catalog" : "Public" })
+    .getByRole("navigation", { name: "Public" })
     .getByRole("link", { name: "Models", exact: true });
   await expect(catalog).toBeInViewport();
   await catalog.click();

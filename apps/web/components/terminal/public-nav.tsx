@@ -33,22 +33,19 @@ export function TerminalPublicNav() {
           (item) => pathname === item.href || pathname.startsWith(`${item.href}/`),
         ) || pathname === "/catalog"
       : pathname === href;
-  // The menu lists the catalog in full below, so its top links skip Models.
-  const links = (inMenu = false) =>
-    items
-      .filter((item) => !inMenu || !catalogNavItems.some((c) => c.href === item.href))
-      .map((item) => (
-        <Link
-          prefetch={false}
-          key={item.href}
-          href={item.href}
-          className={active(item.href) ? "on" : undefined}
-          aria-current={active(item.href) ? "page" : undefined}
-          onClick={() => setOpen(false)}
-        >
-          {item.label}
-        </Link>
-      ));
+  const links = () =>
+    items.map((item) => (
+      <Link
+        prefetch={false}
+        key={item.href}
+        href={item.href}
+        className={active(item.href) ? "on" : undefined}
+        aria-current={active(item.href) ? "page" : undefined}
+        onClick={() => setOpen(false)}
+      >
+        {item.label}
+      </Link>
+    ));
   return (
     <>
       <TerminalBrand href="/" />
@@ -74,25 +71,28 @@ export function TerminalPublicNav() {
               </Dialog.Close>
             </div>
             <Dialog.Title className="label">STACKREPLAY</Dialog.Title>
-            <nav aria-label="Public">{links(true)}</nav>
+            <nav aria-label="Public">{links()}</nav>
             <LocalWorkloadAction variant="header" className="btn primary" />
             <p className="label terminal-menu-catalog-title">Catalog</p>
             <nav aria-label="Catalog" className="terminal-menu-catalog">
-              {catalogNavItems.map((item) => (
-                <Link
-                  prefetch={false}
-                  key={item.href}
-                  href={item.href}
-                  aria-current={
-                    pathname === item.href || pathname.startsWith(`${item.href}/`)
-                      ? "page"
-                      : undefined
-                  }
-                  onClick={() => setOpen(false)}
-                >
-                  {item.label}
-                </Link>
-              ))}
+              {/* Models already leads the menu above, so the catalog list skips it. */}
+              {catalogNavItems
+                .filter((item) => !items.some((primary) => primary.href === item.href))
+                .map((item) => (
+                  <Link
+                    prefetch={false}
+                    key={item.href}
+                    href={item.href}
+                    aria-current={
+                      pathname === item.href || pathname.startsWith(`${item.href}/`)
+                        ? "page"
+                        : undefined
+                    }
+                    onClick={() => setOpen(false)}
+                  >
+                    {item.label}
+                  </Link>
+                ))}
             </nav>
             <Dialog.Description className="dim">Your logs stay on your device.</Dialog.Description>
           </Dialog.Popup>
