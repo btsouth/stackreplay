@@ -23,6 +23,7 @@ import { catalogPlansAt } from "@/lib/public-catalog";
 import { compactNumber, recapUsd } from "@/lib/recap-card";
 import { paidMultiplier, recapPlans } from "@/lib/recap-plans";
 import type { TargetKey } from "@/lib/routes";
+import { parseStackParam } from "@/lib/stack-analysis";
 import { type DiscoveryAnswer, discoverStack, initialDiscoveryAnswer } from "@/lib/stack-discovery";
 import { useRecapData } from "@/lib/use-recap-data";
 import { isSyntheticWorkload } from "@/lib/workload-kind";
@@ -41,12 +42,20 @@ export function PlansSurface({ initialImportId }: { initialImportId?: string | u
   const [selected, setSelected] = useState<string[]>([]);
   const [saveError, setSaveError] = useState<string>();
   const counts = useMemo(() => stackCounts(stack), [stack]);
+  const proposal = parseStackParam(query.get("stack") ?? undefined) ?? [];
+  const proposalCounts = stackCounts(proposal);
   const requested = [
     query.get("target")?.replace(/^plan:/, ""),
     query.get("detail"),
+    ...(query.get("api") ? [`api:${query.get("api")}`] : []),
+    ...proposal.map((s) => s.plan.slice(5)),
     ...(query.get("options")?.split(",") ?? []),
   ].filter((id): id is string => Boolean(id));
-  const data = useRecapData(initialImportId, counts, requested);
+  const data = useRecapData(
+    initialImportId,
+    query.get("stack") ? { ...counts, ...proposalCounts } : counts,
+    requested,
+  );
   useEffect(() => {
     const refresh = () => {
       const saved = readStackSubscriptions();
@@ -162,21 +171,32 @@ export function PlansSurface({ initialImportId }: { initialImportId?: string | u
     return <AppPageSkeleton label="Finding plans for your history" />;
   const recap = data.recap;
   const options = data.options;
-  const detailId = query.get("target")?.replace(/^plan:/, "") ?? query.get("detail");
+  const detailId =
+    query.get("target")?.replace(/^plan:/, "") ??
+    query.get("detail") ??
+    (query.get("api") ? `api:${query.get("api")}` : undefined);
   const detail = options.find((o) => o.id === detailId);
   const compareIds = query.get("options")?.split(",") ?? [];
-  const comparisons = options.filter((o) => compareIds.includes(o.id)).slice(0, 3);
-  const comparing = query.get("section") === "compare";
+  const comparisons = options
+    .filter((o) => compareIds.includes(o.id) || proposal.some((s) => s.plan === `plan:${o.id}`))
+    .slice(0, query.get("stack") ? 20 : 3);
+  const comparing = query.get("section") === "compare" || proposal.length > 0;
   const multiplier =
     confirmed && monthly ? paidMultiplier(recap.usd, monthly, recap.days.length) : undefined;
-  const alternatives = options.filter((o) => !counts[`plan:${o.id}`]).slice(0, 6);
+  const alternatives = options
+    .filter((o) => o.kind !== "api" && !counts[`plan:${o.id}`])
+    .slice(0, 6);
   const href = (params: Record<string, string>) =>
     `/app/plans?${new URLSearchParams({ ...Object.fromEntries([...query].filter(([key]) => !["detail", "target", "api", "section", "options"].includes(key))), import: data.id ?? "", period: data.period, ...params })}`;
   const Card = ({ option }: { option: PlanOption }) => (
     <article className="plan-alternative" data-testid={`alternative-${option.id}`}>
       <h3>{option.name}</h3>
       <p className="plan-price">
-        {option.monthly ? recapUsd(option.monthly) : "Price unreported"}
+        {option.kind === "api"
+          ? "Pay as you go"
+          : option.monthly
+            ? recapUsd(option.monthly)
+            : "Price unreported"}
         {option.monthly && <small> / month</small>}
       </p>
       <dl>
@@ -258,9 +278,40 @@ export function PlansSurface({ initialImportId }: { initialImportId?: string | u
             </div>
             <Usage option={detail} />
           </section>
+          {detail.windows.length > 0 && (
+            <div className="explorer-panel">
+              <div className="explorer-section-title">
+                <h2>When the limits matter</h2>
+                <p>Days when your recorded activity would exceed an included allowance.</p>
+              </div>
+              <DataTable
+                label="Days beyond included limits"
+                rows={detail.windows}
+                rowKey={(r) => r.id}
+                columns={[
+                  {
+                    key: "date",
+                    label: "Day",
+                    render: (r) => r.date,
+                    compare: (a, b) => a.date.localeCompare(b.date),
+                  },
+                  { key: "limit", label: "Limit", render: (r) => r.limit },
+                  {
+                    key: "stopped",
+                    label: "Requests that would stop",
+                    numeric: true,
+                    render: (r) => r.stopped.toLocaleString(),
+                    compare: (a, b) => a.stopped - b.stopped,
+                  },
+                ]}
+              />
+            </div>
+          )}
           <div className="explorer-panel">
             <div className="explorer-section-title">
-              <h2>Your models on this plan</h2>
+              <h2>
+                {detail.kind === "api" ? "Your models with this API" : "Your models on this plan"}
+              </h2>
             </div>
             <DataTable
               label="Model access on this plan"
@@ -291,7 +342,7 @@ export function PlansSurface({ initialImportId }: { initialImportId?: string | u
         </section>
       ) : comparing ? (
         <section className="plan-section plan-compare" data-testid="plans-comparison">
-          {comparisons.length >= 2 ? (
+          {comparisons.length >= (proposal.length ? 1 : 2) ? (
             <div className="plan-alternatives">
               {comparisons.map((option) => (
                 <Card key={option.id} option={option} />
@@ -471,15 +522,19 @@ function Usage({ option }: { option: PlanOption }) {
             <p key={`${option.id}-${limit.name}`}>
               {limit.uncertain
                 ? "Some usage needed for this limit wasn’t recorded."
-                : `Would reach the ${limit.name.toLowerCase()} limit on ${limit.days} ${limit.days === 1 ? "day" : "days"}.`}
+                : `Would reach the ${limit.name.toLowerCase()} limit on ${limit.days} ${limit.days === 1 ? "day" : "days"}.${limit.continues ? " Work can continue beyond this allowance under the plan’s terms." : ""}`}
             </p>
           ))}
-          {option.daysOut === undefined && (
-            <p>
-              {option.limits.some((limit) => limit.uncertain)
-                ? "The available evidence cannot tell us when this plan would run out."
-                : "Limits aren’t published, so we can’t say when this plan would run out."}
-            </p>
+          {option.kind === "api" ? (
+            <p>Pay per request. Subscription limits do not apply.</p>
+          ) : (
+            option.daysOut === undefined && (
+              <p>
+                {option.limits.some((limit) => limit.uncertain)
+                  ? "The available evidence cannot tell us when this plan would run out."
+                  : "Limits aren’t published, so we can’t say when this plan would run out."}
+              </p>
+            )
           )}
           {option.peak && (
             <p>

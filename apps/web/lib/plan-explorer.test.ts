@@ -25,4 +25,17 @@ describe("plan explorer", () => {
       "Claude Max 20x",
     );
   });
+  it("preserves a Direct API deep link and selected tools", () => {
+    const events = buildDemoExport("billing").events;
+    const recap = buildRecap(events, "all", "2026-10-05T12:00:00Z", "UTC");
+    const result = buildPlanExplorer(events, recap, {}, ["api:anthropic"], "2026-10-05T12:00:00Z", [
+      "claude-code",
+    ]);
+    const api = result.find((row) => row.id === "api:anthropic");
+    expect(api?.kind).toBe("api");
+    expect(api?.name).toBe("Anthropic API");
+    expect(api?.error).not.toBe(true);
+    expect(api?.monthly).toBeUndefined();
+    expect(api?.limits).toEqual([]);
+  });
 });

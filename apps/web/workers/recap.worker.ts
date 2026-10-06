@@ -10,6 +10,7 @@ self.onmessage = (
     timeZone: string;
     counts?: Record<string, number>;
     requested?: string[];
+    sources?: string[];
   }>,
 ) => {
   try {
@@ -40,6 +41,7 @@ self.onmessage = (
               data.counts,
               data.requested,
               data.now,
+              data.sources,
             ),
           }
         : {}),

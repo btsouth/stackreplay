@@ -15,7 +15,8 @@ test("recap, explorer, plans, settings, scan and share use plain copy and one AP
   });
   await expect(page.getByTestId("recap-ready")).toBeVisible({ timeout: 60000 });
   const id = new URL(page.url()).searchParams.get("import");
-  const amount = await page.locator(".recap-hero-number").allTextContents();
+  const amount = await page.locator(".recap-cost-number").innerText();
+  expect(amount).toMatch(/^\$[\d,]+$/);
   for (const route of ["recap", "stats", "plans", "settings", "scan"]) {
     await page.goto(`/app/${route}?import=${id}`);
     if (route === "recap" || route === "stats" || route === "plans")
@@ -24,9 +25,9 @@ test("recap, explorer, plans, settings, scan and share use plain copy and one AP
       await expect(page.getByTestId("intake-surface")).toHaveAttribute("data-ready", "true");
     else await expect(page.getByTestId("settings-saved")).toBeVisible();
     expect(languageMatches(await page.locator("body").innerText()), route).toEqual([]);
+    if (route === "plans") await expect(page.locator(".plan-headline strong")).toHaveText(amount);
     if (route === "stats") {
-      await expect(page.getByTestId("overview-api-total")).toHaveText(/\$[\d,]+$/);
-      expect(amount.length).toBeGreaterThan(0);
+      await expect(page.getByTestId("overview-api-total")).toHaveText(amount ?? "missing");
     }
   }
   await page.goto(`/app/recap?import=${id}`);
@@ -35,5 +36,5 @@ test("recap, explorer, plans, settings, scan and share use plain copy and one AP
   await page.getByTestId("recap-share-open").click();
   await expect(page.getByTestId("share-card-v2")).toBeVisible();
   expect(languageMatches(await page.locator("body").innerText())).toEqual([]);
-  await expect(page.getByTestId("share-figure")).toHaveText(/\$[\d,]+$/);
+  await expect(page.getByTestId("share-figure")).toHaveText(amount ?? "missing");
 });

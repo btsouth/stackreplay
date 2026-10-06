@@ -22,6 +22,7 @@ export function useRecapData(
   const [options, setOptions] = useState<PlanOption[]>();
   const countsKey = counts ? JSON.stringify(counts) : undefined;
   const requestedKey = JSON.stringify(requested);
+  const sources = query.get("scope") ?? "";
   const [error, setError] = useState<string>();
   const now = useMemo(() => new Date().toISOString(), []);
   const timeZone = useMemo(() => Intl.DateTimeFormat().resolvedOptions().timeZone, []);
@@ -82,7 +83,11 @@ export function useRecapData(
               now,
               timeZone,
               ...(countsKey
-                ? { counts: JSON.parse(countsKey), requested: JSON.parse(requestedKey) }
+                ? {
+                    counts: JSON.parse(countsKey),
+                    requested: JSON.parse(requestedKey),
+                    sources: sources.split(",").filter(Boolean),
+                  }
                 : {}),
             },
             [bytes.buffer],
@@ -95,7 +100,7 @@ export function useRecapData(
       active = false;
       worker.terminate();
     };
-  }, [id, period, now, timeZone, countsKey, requestedKey]);
+  }, [id, period, now, timeZone, countsKey, requestedKey, sources]);
   function selectPeriod(value: RecapPeriod) {
     setPeriod(value);
     try {

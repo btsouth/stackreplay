@@ -9,12 +9,14 @@ import { isOrganizationPlan, targetCoverages } from "./routes";
 
 export interface PlanOption {
   id: string;
+  kind?: "api" | undefined;
   name: string;
   monthly?: string | undefined;
   quantity: number;
   share: number;
   daysOut?: number | undefined;
-  limits: { name: string; days: number; uncertain: boolean }[];
+  limits: { name: string; days: number; uncertain: boolean; continues: boolean }[];
+  windows: { id: string; date: string; limit: string; stopped: number }[];
   models: { id: string; name: string; tokens: number; requests: number; included: boolean }[];
   peak?: { date: string; tokens: number } | undefined;
   error?: boolean;
@@ -26,6 +28,7 @@ export function buildPlanExplorer(
   counts: Record<string, number>,
   requested: readonly string[] = [],
   now?: string,
+  sources: readonly string[] = [],
 ) {
   const catalog = loadBundledCatalog();
   const mapper = createModelMapper(catalog);
@@ -45,6 +48,12 @@ export function buildPlanExplorer(
         (!now || Date.parse(e.occurredAt) <= Date.parse(now))
       );
     })
+    .filter(
+      (e) =>
+        !sources.length ||
+        sources.includes(e.source.adapterId) ||
+        Boolean(e.harness && sources.includes(e.harness.id)),
+    )
     .map((e) =>
       e.model.canonicalId
         ? e
@@ -78,11 +87,16 @@ export function buildPlanExplorer(
         .filter((k) => k.startsWith("plan:"))
         .map((k) => k.slice(5)),
       ...ranked.slice(0, 9).map((c) => c.id),
-      ...requested.filter((id) => catalogPlansAt(recap.rulesAsOf).some((p) => p.id === id)),
+      ...requested.filter((id) =>
+        id.startsWith("api:")
+          ? Boolean(catalog.providers[id.slice(4)])
+          : catalogPlansAt(recap.rulesAsOf).some((p) => p.id === id),
+      ),
     ]),
   ];
   const plans = catalogPlansAt(recap.rulesAsOf);
   return ids.map((id) => {
+    const api = id.startsWith("api:");
     const plan = plans.find((p) => p.id === id);
     const quantity = counts[`plan:${id}`] ?? 1;
     const monthly =
@@ -100,18 +114,24 @@ export function buildPlanExplorer(
     }));
     const base: PlanOption = {
       id,
-      name: plan?.name ?? "Unavailable plan",
+      kind: api ? "api" : undefined,
+      name: api
+        ? `${catalog.providers[id.slice(4)]?.name ?? id.slice(4)} API`
+        : (plan?.name ?? "Unavailable plan"),
       quantity,
       monthly,
       share: 0,
       limits: [],
+      windows: [],
       models: modelRows,
     };
     try {
       const result = replay({
         events: selected,
         catalog,
-        target: { type: "subscription", planId: id, quantity },
+        target: api
+          ? { type: "api", providerId: id.slice(4) }
+          : { type: "subscription", planId: id, quantity },
         context: { rulesAsOf: recap.rulesAsOf },
       });
       const unsupported = new Set(result.unsupportedModels.map((m) => m.canonicalId));
@@ -127,10 +147,15 @@ export function buildPlanExplorer(
             .map((v) => local(v.exceededAt ?? v.startedAt)),
         ).size,
         uncertain: c.status === "unknown" || c.indeterminateEvents > 0,
+        continues: c.exceed === "allow_overage" || c.exceed === "record_only",
       }));
       const daysOut =
         limits.length && limits.every((c) => !c.uncertain)
-          ? new Set(result.violations.map((v) => local(v.exceededAt ?? v.startedAt))).size
+          ? new Set(
+              result.violations
+                .filter((v) => v.affectedEvents > 0)
+                .map((v) => local(v.exceededAt ?? v.startedAt)),
+            ).size
           : undefined;
       const daily = new Map<string, number>();
       for (const e of selected)
@@ -144,6 +169,14 @@ export function buildPlanExplorer(
         share: total ? included / total : 0,
         daysOut,
         limits,
+        windows: result.violations.map((v, index) => ({
+          id: `${v.constraintId}-${v.startedAt}-${index}`,
+          date: local(v.exceededAt ?? v.startedAt),
+          limit:
+            result.constraints.find((c) => c.id === v.constraintId)?.window.description ??
+            "Included limit",
+          stopped: v.affectedEvents,
+        })),
         models: modelRows.map((m) => ({ ...m, included: !unsupported.has(m.id) })),
         peak: peak ? { date: peak[0], tokens: peak[1] } : undefined,
       };
