@@ -825,53 +825,6 @@
   opacity: 0.6;
   cursor: default;
 }
-.recap-payment {
-  border-top: 1px solid var(--border);
-  padding: 22px 0;
-}
-.recap-paid-toggle {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-  font-size: 14px;
-  cursor: pointer;
-}
-.recap-plans {
-  margin-top: 18px;
-}
-.recap-plans > summary {
-  cursor: pointer;
-}
-.recap-plans > p {
-  font-size: 13px;
-  margin: 16px 0;
-  color: var(--muted-foreground);
-}
-.recap-plans > div {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
-  max-height: 350px;
-  overflow-y: auto;
-  padding: 12px 0;
-}
-.recap-plans label {
-  display: flex;
-  gap: 10px;
-  align-items: start;
-  font-size: 12px;
-}
-.recap-plans small {
-  display: block;
-  color: var(--muted-foreground);
-}
-.recap-payment-total {
-  padding: 16px 0;
-  font-size: 13px;
-}
-.recap-payment .recap-button {
-  width: fit-content;
-}
 .recap-footer {
   display: flex;
   gap: 20px;
@@ -1122,9 +1075,6 @@
   .recap-footer {
     flex-direction: column;
     gap: 12px;
-  }
-  .recap-plans > div {
-    grid-template-columns: 1fr 1fr;
   }
 }
 @media (prefers-reduced-motion: no-preference) {

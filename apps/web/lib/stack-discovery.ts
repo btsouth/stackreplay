@@ -1,6 +1,6 @@
 import type { BillingContextV1 } from "@stackreplay/schema";
+import type { TargetKey } from "./current-stack";
 import { catalogPlansAt } from "./public-catalog";
-import type { TargetKey } from "./routes";
 import {
   includedAccessModels,
   publishedAccessModelCount,

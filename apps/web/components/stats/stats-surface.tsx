@@ -1,7 +1,7 @@
 "use client";
 import { type DataColumn, DataTable } from "@stackreplay/ui";
 import { useState } from "react";
-import { AppPageSkeleton, ScanEmptyState } from "@/components/plans/app-page-state";
+import { AppPageSkeleton, ScanEmptyState } from "@/components/app/app-page-state";
 import { CalculationNote } from "@/components/recap/calculation-note";
 import { PeriodControl } from "@/components/recap/period-control";
 import { familyColors } from "@/lib/recap";
@@ -10,7 +10,7 @@ import { developerNames, harnessNames, providerNames } from "@/lib/recap-deep";
 import { useRecapData } from "@/lib/use-recap-data";
 import { isSyntheticWorkload } from "@/lib/workload-kind";
 import "@/components/recap/recap.css";
-import "@/components/plans/explorer.css";
+import "@/components/app/explorer.css";
 
 type Row = {
   id: string;

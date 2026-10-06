@@ -1,7 +1,11 @@
 import { useEffect, useSyncExternalStore } from "react";
-import { readStackSubscriptions, stackKeys, subscribeCurrentStack } from "./current-stack";
+import {
+  readStackSubscriptions,
+  stackKeys,
+  subscribeCurrentStack,
+  type TargetKey,
+} from "./current-stack";
 import { IMPORTS_STORE, LOCAL_DATABASE_NAME } from "./local-database";
-import type { TargetKey } from "./routes";
 import type { ImportRecord } from "./worker-protocol";
 
 /**

@@ -1,17 +1,12 @@
 "use client";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { PlanOption } from "./plan-explorer";
 import type { Recap, RecapPeriod } from "./recap";
 import { getWorkerClient } from "./worker-client";
 import type { ImportRecord } from "./worker-protocol";
 
-/** The recap, Stats and Plans read the same local history and persisted calendar period. */
-export function useRecapData(
-  initialImportId?: string | undefined,
-  counts?: Record<string, number>,
-  requested: string[] = [],
-) {
+/** The recap and Stats read the same local history and persisted calendar period. */
+export function useRecapData(initialImportId?: string | undefined) {
   const router = useRouter();
   const pathname = usePathname();
   const query = useSearchParams();
@@ -19,13 +14,7 @@ export function useRecapData(
   const [id, setId] = useState(initialImportId);
   const [period, setPeriod] = useState<RecapPeriod>("30");
   const [recap, setRecap] = useState<Recap>();
-  const [options, setOptions] = useState<PlanOption[]>();
-  const computed = useRef<{ key: string; recap: Recap; options?: PlanOption[] | undefined }>(
-    undefined,
-  );
-  const countsKey = counts ? JSON.stringify(counts) : undefined;
-  const requestedKey = JSON.stringify(requested);
-  const sources = query.get("scope") ?? "";
+  const computed = useRef<{ key: string; recap: Recap }>(undefined);
   const [error, setError] = useState<string>();
   const now = useMemo(() => new Date().toISOString(), []);
   const timeZone = useMemo(() => Intl.DateTimeFormat().resolvedOptions().timeZone, []);
@@ -58,34 +47,24 @@ export function useRecapData(
   }, []);
   useEffect(() => {
     if (!id) return;
-    const key = JSON.stringify([id, period, now, timeZone, countsKey, sources]);
+    const key = JSON.stringify([id, period, now, timeZone]);
     const previous = computed.current;
     // Opening an already-calculated alternative changes the URL, not the data.
     // Keep the controls mounted rather than flashing a second calculation.
-    if (
-      previous?.key === key &&
-      JSON.parse(requestedKey).every((target: string) =>
-        previous.options?.some((option) => option.id === target),
-      )
-    ) {
+    if (previous?.key === key) {
       setError(undefined);
       setRecap(previous.recap);
-      setOptions(previous.options);
       return;
     }
     let active = true;
     const worker = new Worker("/stackreplay-recap-worker.js", { type: "module" });
     setRecap(undefined);
-    setOptions(undefined);
     setError(undefined);
-    worker.onmessage = (
-      event: MessageEvent<{ recap?: Recap; options?: PlanOption[]; error?: string }>,
-    ) => {
+    worker.onmessage = (event: MessageEvent<{ recap?: Recap; error?: string }>) => {
       if (active) {
         if (event.data.recap && !event.data.error)
-          computed.current = { key, recap: event.data.recap, options: event.data.options };
+          computed.current = { key, recap: event.data.recap };
         setRecap(event.data.recap);
-        setOptions(event.data.options);
         setError(event.data.error);
       }
     };
@@ -95,23 +74,7 @@ export function useRecapData(
     getWorkerClient()
       .exportImport(id)
       .then((bytes) => {
-        if (active)
-          worker.postMessage(
-            {
-              bytes,
-              period,
-              now,
-              timeZone,
-              ...(countsKey
-                ? {
-                    counts: JSON.parse(countsKey),
-                    requested: JSON.parse(requestedKey),
-                    sources: sources.split(",").filter(Boolean),
-                  }
-                : {}),
-            },
-            [bytes.buffer],
-          );
+        if (active) worker.postMessage({ bytes, period, now, timeZone }, [bytes.buffer]);
       })
       .catch(() => {
         if (active) setError("This history is no longer stored here. Scan your files again.");
@@ -120,7 +83,7 @@ export function useRecapData(
       active = false;
       worker.terminate();
     };
-  }, [id, period, now, timeZone, countsKey, requestedKey, sources]);
+  }, [id, period, now, timeZone]);
   function selectPeriod(value: RecapPeriod) {
     setPeriod(value);
     try {
@@ -138,7 +101,6 @@ export function useRecapData(
     period,
     selectPeriod,
     recap,
-    options,
     error,
     now,
     timeZone,

@@ -6,7 +6,7 @@ import {
 import { DECISION_MARKET } from "@stackreplay/catalog/market";
 import { buildDemoExport } from "@stackreplay/test-fixtures";
 import { describe, expect, it } from "vitest";
-import type { TargetKey } from "./routes";
+import type { TargetKey } from "./current-stack";
 import {
   applyDiscoveryAnswers,
   DISCOVERY_FAMILIES,

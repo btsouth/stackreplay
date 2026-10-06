@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
-import { legacyAppDestination, type RouteQuery } from "@/lib/app-routes";
-export default async function LegacyPage({ searchParams }: { searchParams: Promise<RouteQuery> }) {
-  redirect(legacyAppDestination("/app/stats", await searchParams));
+import { type RouteQuery, removedAppDestination } from "@/lib/app-routes";
+
+export default async function RemovedPage({ searchParams }: { searchParams: Promise<RouteQuery> }) {
+  redirect(removedAppDestination("workload", await searchParams));
 }

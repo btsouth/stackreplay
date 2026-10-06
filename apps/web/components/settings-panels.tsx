@@ -1,101 +1,13 @@
 "use client";
 
-import { DECISION_MARKET } from "@stackreplay/catalog/market";
-import { formatUsd, isSyntheticCatalogId } from "@stackreplay/share";
 import { Button, buttonVariants, Notice } from "@stackreplay/ui";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
+import { AppPageSkeleton } from "@/components/app/app-page-state";
 import { formatBytes } from "@/components/import/large-history-note";
-import { AppPageSkeleton } from "@/components/plans/app-page-state";
-import { readCurrentStack, subscribeCurrentStack, writeCurrentStack } from "@/lib/current-stack";
-import type { TargetKey } from "@/lib/routes";
-import { discoveryPlansAt } from "@/lib/stack-discovery";
 import { themeStorageKey } from "@/lib/theme";
 import { getWorkerClient } from "@/lib/worker-client";
 import type { ImportRecord } from "@/lib/worker-protocol";
-
-/**
- * Current Stack stays authoritative. Completed workloads narrow confirmation;
- * the catalog picker remains an advanced escape hatch for other plans.
- */
-export function PlansYouPayFor({ plansHref = "/app/plans" }: { plansHref?: string }) {
-  const [stack, setStack] = useState<TargetKey[] | undefined>(undefined);
-  const [saveFailed, setSaveFailed] = useState(false);
-  useEffect(() => {
-    const refresh = () => setStack(readCurrentStack());
-    refresh();
-    if (window.location.hash === "#manual-plans")
-      document.getElementById("manual-plans")?.setAttribute("open", "");
-    return subscribeCurrentStack(refresh);
-  }, []);
-  const plans = useMemo(
-    () =>
-      discoveryPlansAt(DECISION_MARKET.rulesAt).filter((plan) => !isSyntheticCatalogId(plan.id)),
-    [],
-  );
-  const chosen = stack ?? [];
-  const toggle = (key: TargetKey) => {
-    const latest = readCurrentStack();
-    const next = latest.includes(key) ? latest.filter((entry) => entry !== key) : [...latest, key];
-    setSaveFailed(!writeCurrentStack(next));
-  };
-  const names = chosen.map((key) => plans.find((plan) => `plan:${plan.id}` === key)?.name ?? key);
-  return (
-    <div className="flex min-w-0 flex-col gap-3" data-testid="settings-plans">
-      <p className="text-sm text-foreground" data-testid="settings-plans-summary">
-        {stack === undefined
-          ? "Reading your saved plans…"
-          : names.length === 0
-            ? "No plans confirmed yet."
-            : names.join(" + ")}
-      </p>
-      <Link
-        href={plansHref}
-        className="inline-flex min-h-11 items-center self-start text-sm text-accent"
-      >
-        Manage your plans →
-      </Link>
-      <p className="text-xs text-muted-foreground">
-        Confirm or edit the plans you currently pay for in Plans. Published prices are not your
-        actual bill.
-      </p>
-      <details id="manual-plans" data-testid="settings-manual-plans">
-        <summary className="min-h-11 cursor-pointer content-center text-sm text-accent">
-          Advanced / choose manually
-        </summary>
-        <fieldset className="grid max-h-72 min-w-0 gap-x-5 overflow-y-auto border-y border-border py-2 sm:grid-cols-2">
-          <legend className="sr-only">Plans you currently pay for</legend>
-          {plans.map((plan) => {
-            const key: TargetKey = `plan:${plan.id}`;
-            const checked = chosen.includes(key);
-            return (
-              <label key={plan.id} className="flex min-h-11 min-w-0 items-center gap-2 text-sm">
-                <input
-                  type="checkbox"
-                  className="h-4 w-4 shrink-0"
-                  checked={checked}
-                  disabled={stack === undefined}
-                  onChange={() => toggle(key)}
-                  data-testid={`settings-plan-${plan.id}`}
-                />
-                <span className="min-w-0 flex-1 break-words">{plan.name}</span>
-                <span className="shrink-0 text-xs text-muted-foreground">
-                  {formatUsd(plan.price.amount)}/{plan.price.interval}
-                </span>
-              </label>
-            );
-          })}
-        </fieldset>
-      </details>
-      {saveFailed ? (
-        <p role="alert" className="text-sm text-warning">
-          Could not save this selection. Browser storage is unavailable.
-        </p>
-      ) : null}
-      <p className="text-xs text-muted-foreground">Kept in this browser.</p>
-    </div>
-  );
-}
 
 /** Export preserves the worker's exact serialized bytes; deletion is per scan. */
 export function SavedWorkloads() {

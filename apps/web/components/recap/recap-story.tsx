@@ -3,6 +3,8 @@ import { type CSSProperties, type ReactNode, useId, useRef, useState } from "rea
 import { familyColors, type Recap, type RecapPeriod } from "@/lib/recap";
 import { compactNumber, recapUsd } from "@/lib/recap-card";
 import { harnessNames, providerNames } from "@/lib/recap-deep";
+import type { PaidFigure } from "@/lib/use-paid-multiplier";
+import { accountsText, monthlyText } from "@/lib/what-you-pay";
 import { CostTrend, Heatmap, Mix, shortDate } from "./recap-charts";
 export function Info({ label, children }: { label: string; children: ReactNode }) {
   const id = useId();
@@ -124,12 +126,12 @@ export function RecapStory({
   recap,
   period,
   projects,
-  multiplierText,
+  paid,
 }: {
   recap: Recap;
   period: RecapPeriod;
   projects: { hash: string; label: string }[];
-  multiplierText?: string;
+  paid?: PaidFigure;
 }) {
   const d = recap.deep;
   const total = recap.total;
@@ -284,14 +286,16 @@ export function RecapStory({
                   </span>
                 </Info>
               </div>
-              {multiplierText && (
-                <p className="recap-plan-comparison">
-                  <strong>{multiplierText}</strong>
+              {paid && (
+                <p className="recap-plan-comparison" data-testid="recap-paid">
+                  <strong>{paid.text} what you paid</strong>
                   <Info label="How the payment multiplier is calculated">
                     <span className="recap-info-paragraph">
-                      API value divided by confirmed monthly list-price subscriptions ×{" "}
-                      {recap.days.length} / 30.4. A scenario excluding taxes, discounts, plan
-                      changes and separate API charges.
+                      The API value above, divided by what you pay: {monthlyText(paid.monthlyUsd)}{" "}
+                      across {accountsText(paid.accounts)}, prorated to these {paid.days} days (
+                      {paid.days} / 30.4 of a month). Published list prices, so not your actual
+                      bill. Taxes, discounts, plan changes and separate API charges are not
+                      included.
                     </span>
                   </Info>
                 </p>

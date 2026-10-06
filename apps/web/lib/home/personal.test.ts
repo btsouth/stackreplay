@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { TargetKey } from "../routes";
+import type { TargetKey } from "../current-stack";
 import type { ImportRecord, ModelSummary, WorkloadSummary } from "../worker-protocol";
 import {
   addCents,

@@ -1,5 +1,4 @@
 import type { StackReplayExportV1 } from "@stackreplay/schema";
-import { buildPlanExplorer } from "../lib/plan-explorer";
 import { buildRecap, type RecapPeriod } from "../lib/recap";
 
 self.onmessage = (
@@ -8,9 +7,6 @@ self.onmessage = (
     period: RecapPeriod;
     now: string;
     timeZone: string;
-    counts?: Record<string, number>;
-    requested?: string[];
-    sources?: string[];
   }>,
 ) => {
   try {
@@ -31,22 +27,8 @@ self.onmessage = (
                 ? "No collected tokens in this period"
                 : "Detected, not collected",
       }));
-    self.postMessage({
-      recap,
-      ...(data.counts
-        ? {
-            options: buildPlanExplorer(
-              payload.events,
-              recap,
-              data.counts,
-              data.requested,
-              data.now,
-              data.sources,
-            ),
-          }
-        : {}),
-    });
+    self.postMessage({ recap });
   } catch {
-    self.postMessage({ error: "Could not calculate this recap. Try importing the history again." });
+    self.postMessage({ error: "Could not calculate this recap. Try scanning the history again." });
   }
 };

@@ -10,17 +10,15 @@ import { Button, buttonVariants, Card, CardContent, Metric } from "@stackreplay/
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useId, useRef, useState } from "react";
-import { HistoryDiscovery } from "@/components/import/history-discovery";
-import { LARGE_HISTORY_BYTES } from "@/components/import/large-history-note";
-import { ScanInstrument, type ScanStage } from "@/components/import/scan-instrument";
-import { formatTokens } from "@/components/instrument/format";
 import {
   IntakeFileReview,
   PartialScanNotice,
   skippedOutcomesOf,
-} from "@/components/workload/evidence";
-import { plainRange } from "@/components/workload/format";
-import { learnAccountIdentities } from "@/lib/account-identity-read";
+} from "@/components/import/evidence";
+import { formatTokens, plainRange } from "@/components/import/format";
+import { HistoryDiscovery } from "@/components/import/history-discovery";
+import { LARGE_HISTORY_BYTES } from "@/components/import/large-history-note";
+import { ScanInstrument, type ScanStage } from "@/components/import/scan-instrument";
 import type { HistorySelection } from "@/lib/discovery-list";
 import { forgetConnections, rememberConnections } from "@/lib/history-discovery";
 import { createLocalImportId } from "@/lib/idb";
@@ -83,13 +81,6 @@ const SOURCE_CHOICES: { kind: string; name: string; action: string; path: string
   },
 ];
 
-/** Replay link for an import, carrying a preselected target when there is one. */
-function replayHref(importId: string, target?: string | undefined): string {
-  return target === undefined
-    ? `/app/plans?section=replay&import=${importId}`
-    : `/app/plans?section=replay&import=${importId}&target=${encodeURIComponent(target)}`;
-}
-
 function savedDateRange(entry: ImportRecord): string | undefined {
   const { firstEventAt, lastEventAt } = entry.summary;
   if (firstEventAt === undefined || lastEventAt === undefined) return undefined;
@@ -99,11 +90,9 @@ function savedDateRange(entry: ImportRecord): string | undefined {
 
 export function ImportSurface({
   initialImports,
-  initialTarget,
 }: {
   initialImports: ImportRecord[];
   /** Plan id chosen on a public plan page; forwarded to the replay surface. */
-  initialTarget?: string | undefined;
 }) {
   const client = getWorkerClient();
   const router = useRouter();
@@ -249,13 +238,13 @@ export function ImportSurface({
   useEffect(() => {
     if (record === undefined || phase !== "ready") return;
     const request = generation.current;
-    const href = `/app/recap?import=${encodeURIComponent(record.id)}${initialTarget === undefined ? "" : `&target=${encodeURIComponent(initialTarget)}`}`;
+    const href = `/app/recap?import=${encodeURIComponent(record.id)}`;
     router.prefetch(href);
     const timer = window.setTimeout(() => {
       if (generation.current === request) router.replace(href);
     }, 800);
     return () => window.clearTimeout(timer);
-  }, [record, phase, router, initialTarget]);
+  }, [record, phase, router]);
 
   /**
    * A file larger than the browser can realistically parse is refused here with a
@@ -383,10 +372,6 @@ export function ImportSurface({
       );
       if (imported !== undefined && selection.remembered.length > 0)
         rememberConnections(selection.remembered, new Date().toISOString());
-      // Who each Claude account is, for a saved workload only: its local
-      // account keys use this browser's lasting salt, a temporary one's do not.
-      if (imported !== undefined && saveLocal)
-        void learnAccountIdentities(selection.profiles).catch(() => undefined);
     },
     [client, runImport, saveLocal],
   );
@@ -989,18 +974,18 @@ export function ImportSurface({
                       data-testid="stored-import-actions"
                     >
                       <Link
-                        href={`/app/stats?import=${entry.id}`}
+                        href={`/app/recap?import=${entry.id}`}
                         data-testid={`open-import-${entry.id}`}
+                        aria-label={`Open ${entry.label}${imports.length > 1 ? `, scan ${index + 1} of ${imports.length}` : ""}`}
                         className={`${buttonVariants({ size: "sm" })} min-h-11 sm:min-h-0`}
                       >
                         Open my recap
                       </Link>
                       <Link
-                        href={replayHref(entry.id, initialTarget)}
-                        aria-label={`Open ${entry.label}${imports.length > 1 ? `, scan ${index + 1} of ${imports.length}` : ""}`}
+                        href={`/app/stats?import=${entry.id}`}
                         className={`${buttonVariants({ variant: "secondary", size: "sm" })} min-h-11 justify-center sm:min-h-0`}
                       >
-                        Replay
+                        Explore my stats
                       </Link>
                       <Button
                         type="button"

@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 export default async function StatsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ import?: string; target?: string }>;
+  searchParams: Promise<{ import?: string }>;
 }) {
   const params = await searchParams;
   const importId = typeof params.import === "string" ? params.import : undefined;

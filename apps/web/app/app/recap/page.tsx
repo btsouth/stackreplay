@@ -7,8 +7,8 @@ export const metadata: Metadata = {
 export default async function RecapPage({
   searchParams,
 }: {
-  searchParams: Promise<{ import?: string; target?: string }>;
+  searchParams: Promise<{ import?: string }>;
 }) {
   const params = await searchParams;
-  return <RecapSurface initialImportId={params.import} initialTarget={params.target} />;
+  return <RecapSurface initialImportId={params.import} />;
 }

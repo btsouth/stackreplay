@@ -1,19 +1,5 @@
 import type { CandidateOutcome } from "@stackreplay/adapters/browser";
-import type {
-  ApiPriceabilityCountsV1,
-  ExactOptimizationInput,
-  PriceReceiptV1,
-  ProjectedReplayV1,
-} from "@stackreplay/replay-engine";
-import type { ExecutionReplayResultV1, ExecutionTargetV1 } from "@stackreplay/schema";
 import type { DemoWorkloadPresetId } from "@stackreplay/test-fixtures";
-import type { CapacityBurden } from "./capacity-episodes";
-import type { MarketDecision } from "./market-decision";
-import type { OptimizerDetail, OptimizerPhase, OptimizerSummary } from "./optimizer-runtime";
-import type { ReplayScope, ResolvedScopeReplay } from "./scoped-replay";
-import type { WindowFact, WorkloadProfile } from "./workload-profile";
-
-export type { ReplayScope, ResolvedScopeReplay };
 
 /**
  * Internal Worker protocol (spec point 12, M3 brief).
@@ -32,7 +18,6 @@ export type { ReplayScope, ResolvedScopeReplay };
 export const WORKER_PROTOCOL_VERSION = 1;
 
 export type ImportPhase = "reading" | "validating" | "preparing";
-export type ReplayPhase = "loading" | "replaying";
 
 export type SafeErrorCode =
   | "FILE_UNREADABLE"
@@ -202,74 +187,7 @@ export interface ImportRecord {
   localProjects?: { hash: string; label: string }[];
 }
 
-/**
- * One activity bucket for the replay timeline. Aggregate only, no identities.
- *
- * `tokens` counts events whose token total is fully known. `partialTokens` is the
- * reported part of events whose total is *unknown* (a lower bound), kept apart on
- * purpose: adding it to `tokens` would present a lower bound as an exact total
- * (benchmark finding F031). `partialEvents` says how many events contributed to it.
- */
-export interface TimelinePoint {
-  /** The bucket's calendar date (YYYY-MM-DD) in the viewer's timezone. */
-  day: string;
-  events: number;
-  /** Sum of the events whose token total is fully known. */
-  tokens: number;
-  /** Lower-bound tokens from events whose total is unknown (buckets, never totals). */
-  partialTokens: number;
-  /** How many of this bucket's events have an unknown token total. */
-  partialEvents: number;
-}
-
-export type OptimizerConfiguration = Omit<ExactOptimizationInput, "events" | "catalog">;
 export type WorkerRequest =
-  | {
-      protocol: typeof WORKER_PROTOCOL_VERSION;
-      type: "CAPACITY_EPISODES";
-      requestId: number;
-      importId: string;
-      resourceInstanceId: string;
-      planId: string | undefined;
-      period: import("./review-period").ReviewPeriod;
-      contextImportIds: string[];
-    }
-  | {
-      protocol: typeof WORKER_PROTOCOL_VERSION;
-      type: "API_MARKET";
-      resourceInstanceId?: string;
-      period?: import("./review-period").ReviewPeriod;
-      /**
-       * Recording tools to keep, by adapter id; absent or empty keeps every
-       * tool. My Stack prices each tool's slice with the same calculation.
-       */
-      sources?: string[];
-      /**
-       * Local accounts to keep, by account key (see `accounts.ts`); absent or
-       * empty keeps every account. My Stack prices each subscription's own
-       * accounts with the same calculation.
-       */
-      accounts?: string[];
-      requestId: number;
-      importId: string;
-    }
-  | {
-      protocol: typeof WORKER_PROTOCOL_VERSION;
-      type: "OPTIMIZE";
-      requestId: number;
-      importId: string;
-      configuration: OptimizerConfiguration;
-      sources?: string[];
-    }
-  | { protocol: typeof WORKER_PROTOCOL_VERSION; type: "CANCEL_OPTIMIZER"; requestId: number }
-  | {
-      protocol: typeof WORKER_PROTOCOL_VERSION;
-      type: "OPTIMIZER_DETAIL";
-      requestId: number;
-      generation: number;
-      offset: number;
-      limit: number;
-    }
   | {
       protocol: typeof WORKER_PROTOCOL_VERSION;
       type: "IMPORT_SOURCES";
@@ -313,45 +231,6 @@ export type WorkerRequest =
       preset: DemoWorkloadPresetId;
       now: string;
     }
-  | {
-      protocol: typeof WORKER_PROTOCOL_VERSION;
-      type: "RUN_REPLAY";
-      requestId: number;
-      importId: string;
-      target: ExecutionTargetV1;
-      rulesAsOf: string;
-      /**
-       * Explicit user scope: replay only events whose model identity resolves.
-       * The response reports how many were left out.
-       */
-      excludeUnresolved?: boolean;
-      /**
-       * Explicit user scope: replay only the calls these recording tools made,
-       * by adapter id. The response states the slice.
-       */
-      sources?: string[];
-      /** IANA timezone the timeline's calendar days are read in. */
-      timeZone?: string;
-    }
-  | {
-      protocol: typeof WORKER_PROTOCOL_VERSION;
-      type: "ANALYZE_WORKLOAD";
-      requestId: number;
-      importId: string;
-      /** IANA timezone the clock positions are read in. */
-      timeZone: string;
-      /** When given, the profile carries the workload's published-rate value at this date. */
-      rulesAsOf?: string;
-    }
-  | {
-      protocol: typeof WORKER_PROTOCOL_VERSION;
-      type: "INSPECT_WINDOW";
-      requestId: number;
-      importId: string;
-      startMs: number;
-      endMs: number;
-      timeZone: string;
-    }
   | { protocol: typeof WORKER_PROTOCOL_VERSION; type: "LIST_LOCAL_IMPORTS"; requestId: number }
   | {
       protocol: typeof WORKER_PROTOCOL_VERSION;
@@ -386,19 +265,14 @@ export interface ScanProgress {
 }
 
 export type WorkerResponse =
-  | { type: "CAPACITY_EPISODES_OK"; requestId: number; burden: CapacityBurden }
-  | { type: "API_MARKET_OK"; requestId: number; decision: MarketDecision }
-  | { type: "OPTIMIZER_OK"; requestId: number; summary: OptimizerSummary }
-  | { type: "OPTIMIZER_PHASE"; requestId: number; phase: OptimizerPhase }
-  | { type: "OPTIMIZER_DETAIL_OK"; requestId: number; detail: OptimizerDetail }
   | { type: "READY"; protocol: typeof WORKER_PROTOCOL_VERSION }
   | { type: "PONG"; requestId: number; protocol: typeof WORKER_PROTOCOL_VERSION }
   | { type: "CANCELLED"; requestId: number }
   | {
       type: "PROGRESS";
       requestId: number;
-      operation: "import" | "replay";
-      phase: ImportPhase | ReplayPhase;
+      operation: "import";
+      phase: ImportPhase;
       /** Bounded, human-readable and content-free. */
       detail?: string;
       /** Running totals of a local source scan, when the operation is one. */
@@ -406,41 +280,6 @@ export type WorkerResponse =
     }
   | { type: "IMPORT_OK"; requestId: number; record: ImportRecord; replacedExisting: boolean }
   | { type: "EXPORTED"; requestId: number; bytes: Uint8Array }
-  | {
-      type: "REPLAY_OK";
-      requestId: number;
-      result: ExecutionReplayResultV1;
-      /** Aggregate activity buckets for the timeline; no identities. */
-      timeline: TimelinePoint[];
-      /**
-       * The same result as the display contract every surface reads (M4D).
-       * Projected in the worker so the app and the homepage cannot disagree
-       * about the facts of one replay.
-       */
-      projection: ProjectedReplayV1;
-      /** Present when the replay ran under an explicit scope. */
-      scope?: ReplayScope;
-      /**
-       * The model × category arithmetic behind the result's money: a Direct API
-       * list price, or a plan's credit demand. Collected in the same pass as the
-       * result, so it adds up to the engine's own figure.
-       */
-      receipt?: PriceReceiptV1;
-      /** Direct API only: how many events fared each way in that pass. */
-      priceability?: ApiPriceabilityCountsV1;
-      /**
-       * Direct API only, and only when unrecognized model IDs are the one thing
-       * standing between the workload and a complete price: the same replay
-       * over the calls whose identity resolves (decision 49's explicit scope),
-       * complete on its own terms. The interface states that scope wherever it
-       * shows this figure.
-       */
-      resolvedScope?: ResolvedScopeReplay;
-      /** Subscription targets: when each undecided call occurred, epoch ms. */
-      undecidedAtMs?: number[];
-    }
-  | { type: "PROFILE_OK"; requestId: number; profile: WorkloadProfile }
-  | { type: "WINDOW_OK"; requestId: number; window: WindowFact }
   | { type: "IMPORTS"; requestId: number; imports: ImportRecord[] }
   | { type: "DELETED"; requestId: number; importId: string }
   | { type: "CLEARED"; requestId: number }

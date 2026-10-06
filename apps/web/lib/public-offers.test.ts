@@ -1,5 +1,4 @@
-import { bundledModelIdentity, bundledPlanModelsAt } from "@stackreplay/catalog/bundled";
-import { buildDemoExport } from "@stackreplay/test-fixtures";
+import { bundledPlanModelsAt } from "@stackreplay/catalog/bundled";
 import { describe, expect, it } from "vitest";
 import { buildCompareFacts, PUBLIC_OFFER_REPLAY_UNAVAILABLE } from "./compare-facts";
 import { marketDiscovery } from "./market-discovery";
@@ -8,8 +7,6 @@ import { loadPublicDirectory } from "./public-directory";
 import { publicOfferObservations, validatePublicOffers } from "./public-offers";
 import data from "./public-offers-data.json";
 import { comparePublicPlanPrices, publicPlanPriceText } from "./public-plan-price";
-import { targetCoverages, type WorkloadSlice } from "./routes";
-import { runScopedReplay } from "./scoped-replay";
 import { subscriptionPublishedTerms } from "./subscription-published-terms";
 
 const date = "2026-10-03";
@@ -24,13 +21,6 @@ interface MutableOffer {
   providerId: string;
   observations: [MutableObservation, ...MutableObservation[]];
 }
-const slice: WorkloadSlice = {
-  sources: [],
-  label: "Test workload",
-  events: 1,
-  unresolvedEvents: 0,
-  models: new Map([["claude-sonnet-5-5", 1]]),
-};
 
 describe("public-only offer registry", () => {
   it("enumerates six sourced identities only from their first observation", () => {
@@ -183,27 +173,11 @@ describe("directory isolation from accepted plans", () => {
         .map(({ kind: _kind, publicPrice: _price, ...plan }) => plan),
     ).toEqual(base.plans);
   });
-  it.each(ids)("%s never becomes a picker, coverage or execution target", (id) => {
+  it.each(ids)("%s never becomes a picker or execution target", (id) => {
     expect(loadCatalog().plans[id]).toBeUndefined();
     expect(loadPublicCatalog(date).planById(id)).toBeUndefined();
     expect(catalogPlansAt(date).some((plan) => plan.id === id)).toBe(false);
-    expect(
-      targetCoverages(slice, date, { synthetic: false }).some((target) => target.id === id),
-    ).toBe(false);
     expect(bundledPlanModelsAt(id, date)).toBeUndefined();
-    const exported = buildDemoExport("moderate");
-    expect(() =>
-      runScopedReplay({
-        events: exported.events.slice(0, 1),
-        target: { type: "subscription", planId: id },
-        catalog: loadCatalog(),
-        identity: bundledModelIdentity(),
-        rulesAsOf: date,
-        timeZone: "UTC",
-        sources: [],
-        sourceNames: new Map(),
-      }),
-    ).toThrow("No plan version for this plan is in effect");
   });
 });
 

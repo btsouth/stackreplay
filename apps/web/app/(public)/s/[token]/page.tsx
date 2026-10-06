@@ -7,7 +7,7 @@ import { compactNumber, recapUsd } from "@/lib/recap-card";
 import { resolveShareParam } from "@/lib/share-link-store";
 import { sharedRecap } from "@/lib/shared-recap";
 import "@/components/recap/recap.css";
-import "@/components/plans/explorer.css";
+import "@/components/app/explorer.css";
 import "@/components/share/shared-recap.css";
 
 interface Props {

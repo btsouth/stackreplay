@@ -853,16 +853,8 @@ export function CompareExplorer({
       ) : null}
       <p className="max-w-[70ch] text-xs leading-relaxed text-muted-foreground">
         Published usage values can use different model rates and multipliers. They are not cash
-        balances or interchangeable request quotas. Replay your history where exact plan mechanics
-        are supported.
+        balances or interchangeable request quotas.
       </p>
-      <Link
-        className="inline-flex min-h-11 items-center self-start text-sm text-accent underline underline-offset-4"
-        href="/app/plans?section=compare"
-        data-testid="compare-with-workload"
-      >
-        Compare against my workload →
-      </Link>
     </div>
   );
 }
