@@ -157,7 +157,7 @@ export function cardLayout(
     story ? pad : w - pad,
     story ? 112 : 38,
     story ? 24 : 18,
-    story ? width : 660,
+    story ? width : width - 380,
     { dim: true, align: story ? "left" : "right" },
   );
   const board = square && card.speed && speeds?.length;

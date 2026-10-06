@@ -2131,3 +2131,19 @@
 .public-chrome .terminal-header {
   position: static;
 }
+
+.terminal .strack {
+  background: none;
+}
+.terminal .sgrid {
+  position: absolute;
+  width: 1px;
+  height: 100%;
+  top: 0;
+  background: var(--line);
+}
+@media (max-width: 800px) {
+  .terminal .sgrid {
+    display: none;
+  }
+}

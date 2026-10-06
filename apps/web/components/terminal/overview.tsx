@@ -302,6 +302,13 @@ export function Overview({
                   className="strack"
                   aria-label={`${s.p25.toFixed(1)} to ${s.p75.toFixed(1)} tokens per second`}
                 >
+                  {[0, 1, 2, 3, 4].map((i) => (
+                    <i
+                      key={i}
+                      className="sgrid"
+                      style={i === 4 ? { right: 0 } : { left: `${i * 25}%` }}
+                    />
+                  ))}
                   <div
                     className="sband"
                     style={{
