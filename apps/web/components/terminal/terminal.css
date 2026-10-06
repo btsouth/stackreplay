@@ -1446,7 +1446,7 @@
     color: var(--dim);
     padding: 8px 0;
   }
-  .terminal .tablecell table,
+  .terminal .tablecell table:not(.desktop-models),
   .terminal .tablecell tbody {
     display: block;
   }

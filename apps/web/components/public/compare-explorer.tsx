@@ -626,15 +626,9 @@ export function CompareExplorer({
   asOf: string;
 }) {
   const router = useRouter();
-  const [ids, setIds] = useState<string[]>(() =>
-    routedSearch === undefined
-      ? [...defaultPair]
-      : readComparePlans(
-          routedSearch,
-          plans.map((plan) => plan.id),
-          defaultPair,
-        ),
-  );
+  // Both runtimes render the same no-script fallback. The layout effect applies
+  // the routed selection before revealing a shared comparison.
+  const [ids, setIds] = useState<string[]>(() => [...defaultPair]);
   const planIds = useMemo(() => plans.map((plan) => plan.id), [plans]);
   // Select from router data before paint, without touching the previous page's history.
   useLayoutEffect(() => {

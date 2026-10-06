@@ -46,6 +46,7 @@ for (const theme of ["dark", "light"] as const) {
 
     test("shows matching statements once and links models to their pages", async ({ page }) => {
       await page.goto("/compare?left=anthropic-claude-max-5x&right=anthropic-claude-max-20x");
+      await expect(page.getByRole("combobox", { name: "First plan", exact: true })).toBeEnabled();
       await expect(
         page
           .locator('[data-testid^="compare-row-"]')

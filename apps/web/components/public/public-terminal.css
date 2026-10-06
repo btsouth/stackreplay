@@ -749,3 +749,9 @@
   background: transparent;
   backdrop-filter: none;
 }
+
+.public-terminal .bench-text-button,
+.public-terminal .bench-source-views button {
+  color: var(--signal-text);
+  transition: none;
+}
