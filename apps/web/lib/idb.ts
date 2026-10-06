@@ -11,10 +11,16 @@ import { decodeLocalPayload, encodeLocalPayloadWithMetadata, isBlobPayload } fro
 import type { RecapIndex } from "./recap-index";
 import type { ImportRecord } from "./worker-protocol";
 
-/** Load the validation dependency before its dynamically split schema module. */
-async function localRecordSchemas() {
-  await import("zod");
-  return import("./local-record-schema");
+let recordSchemas: Promise<typeof import("./local-record-schema")> | undefined;
+/** Listing and recap reads share one ordered load of the split validation modules. */
+function localRecordSchemas() {
+  recordSchemas ??= import("zod")
+    .then(() => import("./local-record-schema"))
+    .catch((error) => {
+      recordSchemas = undefined;
+      throw error;
+    });
+  return recordSchemas;
 }
 
 /**

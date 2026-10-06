@@ -175,7 +175,7 @@ test("a new import replaces the cached selection and persists its own index", as
   await expect(page.getByTestId("recap-ready")).toBeVisible();
 });
 
-test("cold scan routes load metadata validation without module errors", async ({
+test("cold scan and recap routes load metadata validation without module errors", async ({
   browser,
   baseURL,
 }) => {
@@ -191,6 +191,10 @@ test("cold scan routes load metadata validation without module errors", async ({
     await expect(page.getByTestId("intake-surface")).toHaveAttribute("data-ready", "true");
     await page.getByText("Use files or an export instead", { exact: true }).click();
     await expect(page.getByTestId("source-file-input")).toBeEnabled();
+    await page.getByText("Try a sample recap", { exact: true }).click();
+    await page.getByTestId("demo-moderate").click();
+    await expect(page.getByTestId("recap-ready")).toBeVisible();
+    await expect(page.getByRole("heading", { name: "History unavailable" })).toHaveCount(0);
     expect(errors).toEqual([]);
     await context.close();
   }
