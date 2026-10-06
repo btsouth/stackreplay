@@ -1674,6 +1674,16 @@
   }
 }
 @media (max-width: 360px) {
+  .terminal .hero .side,
+  .terminal .actside,
+  .terminal .sins,
+  .terminal .costside,
+  .terminal .rside {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .terminal .sins .cell:last-child {
+    grid-column: 1;
+  }
   .terminal .shead,
   .terminal .srow {
     grid-template-columns: minmax(0, 1fr) 64px 44px 50px;
@@ -1687,4 +1697,10 @@
   .terminal .terminal-header .btn {
     flex-shrink: 0;
   }
+}
+
+/* The shared card keeps its public navigation, with the same small chrome. */
+body:has(.shared-terminal) header svg {
+  width: 16px;
+  height: 16px;
 }

@@ -56,9 +56,31 @@ for (const theme of ["dark", "light"] as const)
         await expect(page.getByRole("main").getByRole("heading", { level: 1 })).toBeVisible();
         if (route === "recap")
           await expect(page.getByTestId("recap-ready")).toBeVisible({ timeout: 60000 });
-        expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
-          true,
-        );
+        const geometry = await page.evaluate(() => ({
+          fits: document.documentElement.scrollWidth <= innerWidth,
+          width: innerWidth,
+          scrollWidth: document.documentElement.scrollWidth,
+          clipped: [...document.querySelectorAll("*")]
+            .filter((e) => e.scrollWidth > e.clientWidth + 2)
+            .map((e) => ({
+              tag: e.tagName,
+              class: e.className,
+              text: e.textContent?.slice(0, 60),
+              client: e.clientWidth,
+              scroll: e.scrollWidth,
+              right: e.getBoundingClientRect().right,
+              overflow: getComputedStyle(e).overflowX,
+            })),
+          outside: [...document.querySelectorAll("*")]
+            .filter((e) => e.getBoundingClientRect().right > innerWidth + 1)
+            .map((e) => ({
+              tag: e.tagName,
+              class: e.className,
+              text: e.textContent?.slice(0, 80),
+              right: e.getBoundingClientRect().right,
+            })),
+        }));
+        expect(geometry.fits, `${route}: ${JSON.stringify(geometry)}`).toBe(true);
         const violations = (await new AxeBuilder({ page }).analyze()).violations.filter(
           (v) => v.impact === "serious" || v.impact === "critical",
         );

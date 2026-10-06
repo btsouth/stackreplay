@@ -88,11 +88,15 @@ export function TerminalLandscape({
         </div>
       ))}
       {card.models && (
-        <div style={absolute(56, 565, { fontSize: 14, color: dim, gap: 16 })}>
+        <div style={absolute(56, 565, { fontSize: 14, color: dim, gap: 24 })}>
           {card.models.slice(0, 3).map((m) => (
-            <span key={m.id}>
-              {cardName(m.id)} {compact(m.tokenCount)}
-            </span>
+            <div
+              key={m.id}
+              style={{ display: "flex", width: 338, justifyContent: "space-between" }}
+            >
+              <span>{cardName(m.id)}</span>
+              <span>{compact(m.tokenCount)}</span>
+            </div>
           ))}
         </div>
       )}

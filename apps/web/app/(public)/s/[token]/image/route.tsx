@@ -35,7 +35,12 @@ export async function GET(
           Scan your AI coding history at stackreplay.com
         </div>
       </div>,
-      { width: 1200, height: 630, fonts: terminalImageFonts() },
+      {
+        width: 1200,
+        height: 630,
+        fonts: terminalImageFonts(),
+        status: resolved.kind === "missing" ? 404 : 200,
+      },
     );
   const old = sharedRecap(decoded.snapshot),
     supplied =

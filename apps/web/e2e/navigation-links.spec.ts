@@ -33,6 +33,7 @@ function pathOf(href: string): string {
 for (const route of PAGES) {
   test(`navigation and footer links on ${route} reach live pages`, async ({ page, request }) => {
     await page.goto(route);
+    if (route === "/app/stats") await expect(page).toHaveURL(/\/app\/recap(?:\?|$)/u);
     await expect(page.locator("main, [role=main], body").first()).toBeVisible();
     const hrefs = await page
       .locator("header a[href], nav a[href], footer a[href]")
