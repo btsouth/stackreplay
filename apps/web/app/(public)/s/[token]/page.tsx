@@ -56,12 +56,9 @@ export default async function SharePage({ params }: Props) {
         height={630}
         alt={`StackReplay card${tokens !== undefined ? `: ${compact(tokens)} tokens` : ""}${usd !== undefined ? `, ${dollars(usd)} API value` : ""}`}
       />
-      <p className="shared-recap-honesty">
-        {decoded.snapshot.version === 2 && decoded.snapshot.synthetic
-          ? "Fictional sample data. "
-          : ""}
-        Reported usage at list prices. An estimate, not a bill.
-      </p>
+      {decoded.snapshot.version === 2 && decoded.snapshot.synthetic && (
+        <p className="shared-recap-honesty">Fictional sample data.</p>
+      )}
       <p className="share-note">
         These numbers come from the creator's history. Missing usage and unknown rates are excluded.
         Logs and project names stay on their device.
