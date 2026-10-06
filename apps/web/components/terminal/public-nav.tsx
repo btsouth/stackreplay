@@ -1,5 +1,5 @@
 "use client";
-import { Dialog } from "@base-ui-components/react/dialog";
+import { Dialog } from "@stackreplay/ui/components/dialog";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
