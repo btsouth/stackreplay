@@ -266,6 +266,13 @@ describe("alternate Claude config folders", () => {
     });
   });
 
+  it("does not call an absent default folder unreadable", async () => {
+    const { ".claude": _default, ...withoutDefault } = home;
+    const { status } = await discover(withoutDefault, { platform: "linux" });
+    expect(status["Claude Code"]).toMatchObject({ status: "found", fileCount: 2 });
+    expect(status["Claude Code"]?.unreadable).toBeUndefined();
+  });
+
   it("does not list the chosen folder when the tool is not installed there", async () => {
     const unrelated: Tree = {
       Documents: { "tax.pdf": 1 },

@@ -501,10 +501,15 @@ export async function discoverHistories<F extends DiscoveryFile>(
     // browser cannot follow) is flagged, so it is never a silent omission even
     // when another config folder was found. Only a home-like root can hide it:
     // a chosen tool folder is recognized directly and has no default location.
+    // Its parent folder must exist, so a tool used only from `.claude2` is not
+    // told its absent `.claude/projects` is a link.
     const unreadable: (readonly string[])[] = [];
     if (scanningFamilies && installed && match === undefined) {
       for (const location of source.history) {
-        if (!readable.has(location.path.join("\u0000"))) unreadable.push(location.path);
+        if (readable.has(location.path.join("\u0000"))) continue;
+        const parent = location.path.slice(0, -1);
+        if (parent.length === 0 || (await prober.exists("directory", parent)))
+          unreadable.push(location.path);
       }
     }
 
