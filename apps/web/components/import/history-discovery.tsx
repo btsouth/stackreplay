@@ -42,6 +42,7 @@ import {
   FOLDER_PICKER_NOTE,
   FOLDER_TOO_LARGE_NOTE,
   forgetConnections,
+  pickedFolderOpens,
   pickerCancelled,
   pickHistoryDirectory,
   platformHint,
@@ -126,32 +127,72 @@ function missingMessage(row: HistoryRow): string {
     return `${row.name} isn't included yet. This folder only has the name of its history folder, so StackReplay did not look inside.`;
   if (whollyMissing(row))
     return row.adapterId === "claude-code"
-      ? `${row.name} isn't included yet. Its history folder is a link your browser can't follow from a drag.`
+      ? `${row.name} isn't included yet. Its history folder is a link, and your browser can't open links.`
       : `${row.name} isn't included yet. Its history folder isn't visible from here.`;
-  return `${row.name}'s ${(row.unreadable ?? []).join(" · ")} isn't included yet. It is a link your browser can't follow from a drag.`;
+  return `${row.name}'s ${(row.unreadable ?? []).join(" · ")} isn't included yet. It is a link, and your browser can't open links.`;
+}
+
+/** The linked folder to name in the hint: the unreadable one, else the tool's usual one. */
+function linkedPath(row: HistoryRow): string | undefined {
+  return row.unreadable?.[0] ?? HIDDEN_FOLDERS[row.adapterId ?? row.key];
+}
+
+/**
+ * How to find where a linked folder points and open it in the chooser. A
+ * browser never follows a link, even one picked in the chooser, so the folder
+ * it points to is the one to choose. On a folder that is not a link the same
+ * command prints the folder itself, so the advice holds either way.
+ */
+function linkTargetHelp(path: string, platform: DiscoveryPlatform | undefined): string {
+  if (platform === "windows")
+    return `To find it, run (Get-Item ${path.replaceAll("/", "\\")}).Target in PowerShell, then paste that path into the chooser's address bar.`;
+  if (platform === "macos")
+    return `To find it, run readlink -f ${path} in Terminal, then press ⌘⇧G in the chooser and paste that path.`;
+  if (platform === "linux")
+    return `To find it, run readlink -f ${path} in a terminal, then press Ctrl+L in the chooser and paste that path.`;
+  return `To find it, look up where ${path} points, then choose that folder.`;
 }
 
 /** How to connect it, naming the exact folder to choose. */
-function missingHint(row: HistoryRow): string {
+function missingHint(row: HistoryRow, platform: DiscoveryPlatform | undefined): string {
   const path = HIDDEN_FOLDERS[row.adapterId ?? row.key];
   const choose = path === undefined ? "" : `Choose ${path}. `;
   if (row.unconfirmed === true)
     return `${choose}Drop the folder that holds it${parentOf(row) === undefined ? "" : ` (${parentOf(row)})`}, or connect it to choose it yourself.`;
-  if (row.adapterId === "claude-code" || (row.unreadable?.length ?? 0) > 0)
-    return `${choose}The chooser follows the link.`;
+  const linked = linkedPath(row);
+  if (
+    linked !== undefined &&
+    (row.adapterId === "claude-code" || (row.unreadable?.length ?? 0) > 0)
+  )
+    return `Connect it and choose the folder the link points to. ${linkTargetHelp(linked, platform)}`;
   return `${choose}The chooser reads only the folder you choose.`;
 }
 
 /** Why a folder chosen to connect one tool did not connect it. */
-function notConnectedNote(row: HistoryRow, folder: string): string {
+function notConnectedNote(
+  row: HistoryRow,
+  folder: string,
+  platform: DiscoveryPlatform | undefined,
+): string {
   const path = HIDDEN_FOLDERS[row.adapterId ?? row.key];
+  if (row.adapterId === "claude-code" && path !== undefined)
+    return `${row.name} still isn't included: your browser couldn't open its history from ${folder}, usually because that history folder is a link. Choose ${path}, or the folder it points to if it is a link. ${linkTargetHelp(path, platform)}`;
   const choose =
     path === undefined
       ? "Choose the folder that holds it."
       : `Choose ${path} itself. It is a hidden folder: in the picker, press ⌘⇧. on a Mac or Ctrl+H on Linux to show it.`;
-  return row.adapterId === "claude-code"
-    ? `${row.name} still isn't included: your browser couldn't open its history from ${folder}, usually because that history folder is a link. ${choose}`
-    : `${row.name} still isn't included: ${folder} doesn't hold its history. ${choose}`;
+  return `${row.name} still isn't included: ${folder} doesn't hold its history. ${choose}`;
+}
+
+/** Why a picked folder could not be opened at all: the browser won't read a picked link. */
+function linkedPickNote(
+  row: HistoryRow | undefined,
+  folder: string,
+  platform: DiscoveryPlatform | undefined,
+): string {
+  const path = row === undefined ? undefined : linkedPath(row);
+  const start = `Your browser can't open ${folder} because it is a link. Choose the folder it points to instead.`;
+  return path === undefined ? start : `${start} ${linkTargetHelp(path, platform)}`;
 }
 
 /** What the confirm step says the person is about to leave out. */
@@ -371,6 +412,10 @@ export function HistoryDiscovery({
       try {
         const folder = await pickHistoryDirectory();
         const target = rows.find((row) => row.key === key);
+        if (!(await pickedFolderOpens(folder))) {
+          setDropNote(linkedPickNote(target, folder.name, platform));
+          return;
+        }
         const run = await discoverPickedDirectory(folder, platform, target?.adapterId);
         const connected = run.findings.some(
           (finding) =>
@@ -380,7 +425,7 @@ export function HistoryDiscovery({
         // A Connect that still can't read the tool says so instead of leaving
         // the row unchanged.
         if (key !== undefined && target !== undefined && !connected)
-          setDropNote(notConnectedNote(target, folder.name));
+          setDropNote(notConnectedNote(target, folder.name, platform));
         setRows((current) => {
           if (key !== undefined && connected) {
             return applyChosenFolder(current, run.findings, [], folder.name, key);
@@ -740,7 +785,7 @@ export function HistoryDiscovery({
               <div className="sr-find-missing-row" key={row.key} data-testid={`missing-${row.key}`}>
                 <div className="sr-find-missing-body">
                   <p className="font-medium">{missingMessage(row)}</p>
-                  <p className="sr-find-fine mt-1">{missingHint(row)}</p>
+                  <p className="sr-find-fine mt-1">{missingHint(row, platform)}</p>
                 </div>
                 <Button
                   type="button"
