@@ -31,10 +31,10 @@ export const siteUrl: string =
 
 export const siteName = "StackReplay";
 
-export const siteTagline = "Know the AI market. Know what fits your workload.";
+export const siteTagline = "Your AI coding, measured.";
 
 export const siteDescription =
-  "Dated, sourced AI model releases, benchmarks, API prices and subscription terms, then which of them matter to your own AI coding history, analyzed privately in your browser.";
+  "Measure tokens, speed, models and coding rhythm from your local AI history. Scan in your browser. Your logs stay on this device.";
 
 export const repositoryUrl = "https://github.com/btsouth/stackreplay";
 
