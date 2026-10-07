@@ -877,14 +877,35 @@ export async function intakeBrowserCandidates(
    * config folders (`.claude`, `.claude2`, `.claude-work`): they are one
    * Claude Code history, so the same session there is one session, not two.
    * Other sources keep each location distinct.
+   *
+   * The config folder name is checked a character at a time, not with a
+   * backtracking pattern, so a path made of many `.claude` repetitions stays
+   * linear.
    */
+  const claudeConfigName = (name: string): boolean => {
+    if (!name.startsWith(".claude")) return false;
+    for (const character of name.slice(7)) {
+      if (!/[A-Za-z0-9_.-]/u.test(character)) return false;
+    }
+    return true;
+  };
+  const canonicalClaudeRoot = (root: string): string => {
+    const parts = root.split("/");
+    const name = parts.at(-1);
+    const config = parts.at(-2);
+    if (name !== "projects" || config === undefined || !claudeConfigName(config)) return root;
+    parts[parts.length - 2] = ".claude";
+    return parts.join("/");
+  };
   const signatureScopeOf = (candidate: BrowserCandidate): string | undefined => {
     const path = normalizedPath(candidate.path);
-    const selectedRoot = /(?:^|\/)(?:opencode|state)\.db$/iu.test(path)
-      ? path.replace(/(?:^|\/)(?:opencode|state)\.db$/iu, "")
-      : path
-          .match(/^(.*?(?:^|\/)projects)(?:\/|$)/u)?.[1]
-          ?.replace(/\.claude[\w.-]*\/projects$/u, ".claude/projects");
+    let selectedRoot: string | undefined;
+    if (/(?:^|\/)(?:opencode|state)\.db$/iu.test(path)) {
+      selectedRoot = path.replace(/(?:^|\/)(?:opencode|state)\.db$/iu, "");
+    } else {
+      const match = path.match(/^(.*?(?:^|\/)projects)(?:\/|$)/u)?.[1];
+      selectedRoot = match === undefined ? undefined : canonicalClaudeRoot(match);
+    }
     return selectedRoot === undefined
       ? undefined
       : JSON.stringify([candidate.group ?? "selection", selectedRoot]);
