@@ -1392,10 +1392,16 @@
 }
 .terminal .sr-scan {
   background: var(--panel);
-  border-color: var(--line);
+  border: 1px solid var(--line);
   border-radius: 3px;
   box-shadow: none;
+  padding: 20px 24px 24px;
   --sr-signal: var(--signal);
+}
+@media (max-width: 640px) {
+  .terminal .sr-scan {
+    padding: 16px;
+  }
 }
 .terminal .sr-scan *,
 .terminal .sr-micro {
@@ -2954,4 +2960,34 @@
 .terminal .app-scan .sr-find-link:disabled {
   opacity: 1;
   color: var(--dim);
+}
+
+/* Side readouts scale with their own cell, so long figures never touch the edge.
+   Phones keep their own sizes. 24px is the floor so orange figures stay large
+   text for contrast. */
+@media (min-width: 801px) {
+  .terminal :is(.costside, .rside, .hero .side, .actside, .sins) .cell {
+    container-type: inline-size;
+  }
+  .terminal :is(.costside, .rside, .hero .side, .actside, .sins) .kv .v {
+    font-size: clamp(24px, 14cqi, var(--kv-max, 34px));
+    overflow-wrap: anywhere;
+  }
+  .terminal .costside .kv .v {
+    --kv-max: 28px;
+  }
+}
+/* Below 1100px the value readouts are too narrow beside the chart, so they
+   sit in one row under it. */
+@media (min-width: 801px) and (max-width: 1100px) {
+  .terminal .cost,
+  .terminal .costside {
+    grid-column: 1 / -1;
+  }
+  .terminal .costside {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+  .terminal .costside .cell:last-child {
+    grid-column: 1 / -1;
+  }
 }
