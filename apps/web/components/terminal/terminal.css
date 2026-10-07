@@ -2979,4 +2979,7 @@
   .terminal .costside {
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
+  .terminal .costside .cell:last-child {
+    grid-column: 1 / -1;
+  }
 }
