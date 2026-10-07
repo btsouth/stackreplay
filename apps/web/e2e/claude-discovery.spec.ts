@@ -160,7 +160,8 @@ function installPicker({ tree, rootName }: { tree: ReadNode; rootName: string })
     name,
     async getDirectoryHandle(child: string) {
       const next = node.entries[child];
-      if (next === undefined || next.kind === "link")
+      // A linked child is reported as missing, never followed.
+      if (next === undefined || next.kind !== "dir")
         throw new DOMException("Missing", "NotFoundError");
       return handle(child, next);
     },
