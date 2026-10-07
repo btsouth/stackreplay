@@ -20,6 +20,7 @@ import { createOpenCodeAdapter } from "./adapters/opencode.js";
 import { createT3CodeAdapter } from "./adapters/t3-code.js";
 import type { BrowserSourceId } from "./browser-formats.js";
 import { openBrowserOpenCode } from "./browser-sqlite.js";
+import { codexRecordHead } from "./codex-record-head.js";
 import { dedupeEvents } from "./dedup.js";
 import {
   generateSalt,
@@ -27,7 +28,7 @@ import {
   normalizeProjectKey,
   sourceRootHash,
 } from "./identity.js";
-import { createModelMapper } from "./models.js";
+import { createModelMapper, type ModelMapper } from "./models.js";
 import { type LocalProjectLabel, localProjectLabels } from "./project-labels.js";
 import type { SqliteDatabase } from "./sqlite.js";
 import { MAX_BROWSER_DATABASE_BYTES } from "./sqlite-snapshot.js";
@@ -607,6 +608,7 @@ export function detectBrowserSource(
   let examined = 0;
   for (const line of nonEmptyLines(text)) {
     if (examined++ >= 256) break;
+    if (codexRecordHead(line) !== undefined) continue;
     try {
       const value = JSON.parse(line) as Record<string, unknown>;
       const payload = value.payload as Record<string, unknown> | null;
@@ -753,6 +755,300 @@ export function selectedLocation(path: string, group: string | undefined): strin
   return JSON.stringify([group ?? "selection", root]);
 }
 
+const PEEK_BYTES = 8 * MiB;
+/** A JSONL session the browser can stream instead of reading whole. */
+function streamsCandidate(candidate: BrowserCandidate): boolean {
+  return (
+    /\.jsonl$/iu.test(candidate.path) &&
+    candidate.stream !== undefined &&
+    candidate.peekText !== undefined
+  );
+}
+function databaseFile(candidate: BrowserCandidate): boolean {
+  return /(?:^|[/\\])(?:opencode\.db|state\.db|state\.sqlite)(?:-wal)?$/iu.test(candidate.path);
+}
+function fileLimitOf(candidate: BrowserCandidate): number {
+  return databaseFile(candidate)
+    ? MAX_BROWSER_DATABASE_BYTES
+    : streamsCandidate(candidate)
+      ? MAX_STREAMED_SOURCE_FILE_BYTES
+      : MAX_SOURCE_FILE_BYTES;
+}
+
+/** What parsing one read file produced. */
+export type CandidateParse =
+  /** Its signature matched a file already scanned, so it was not parsed. */
+  | { kind: "duplicate" }
+  /** A T3 Code database: harness attribution for other sources' sessions. */
+  | { kind: "t3"; sessions: string[]; warnings: AdapterWarning[] }
+  | { kind: "unrecognized"; outcome: CandidateOutcome }
+  /** The adapter could not read the file to the end; none of it is used. */
+  | { kind: "failed"; outcome: CandidateOutcome; projectKeys: [string, string][] }
+  | {
+      kind: "collected";
+      id: BrowserSourceId;
+      reason: string;
+      events: UsageEventV1[];
+      capacityEvents?: ObservedCapacityEvent[];
+      warnings: AdapterWarning[];
+      sessionsScanned: number;
+      projectKeys: [string, string][];
+    };
+
+/**
+ * One selected file read and parsed on its own. Files are independent until
+ * they join the intake, so a scan can run in another Worker; everything that
+ * depends on other files (exact-copy duplicates, event deduplication, T3 Code
+ * attribution) happens when results are folded in selection order.
+ */
+export type CandidateScan =
+  | { kind: "unreadable"; outcome: CandidateOutcome }
+  | {
+      kind: "read";
+      /** The file's exact-copy signature, scoped to its history root, when signed. */
+      signature?: string;
+      /** Warnings from reading, kept even when the file is a duplicate. */
+      readWarnings: AdapterWarning[];
+      result: CandidateParse;
+    };
+
+/** The per-file decisions the intake makes from the whole selection. Plain data. */
+export interface CandidateScanPlan {
+  now: string;
+  salt: string;
+  sourceRootSalt?: string;
+  /** The file's name for outcomes. */
+  display: string;
+  /** The signature scope (the selected history root), if any. */
+  sessionRoot?: string;
+  /** Whether an exact-file signature is needed to tell this file from a copy. */
+  signed: boolean;
+}
+
+export interface CandidateScanIo {
+  /** A database's write-ahead log, read with it. */
+  companion?: BrowserCandidate;
+  /** The detection read, when it was started early. */
+  peek?: Promise<string>;
+  signal?: AbortSignal;
+  onExamined?: (bytes: number) => void;
+  /** Skips parsing a file whose signature an earlier file already claimed. */
+  alreadySeen?: (signature: string) => boolean;
+}
+
+export type BrowserCandidateScanner = (
+  candidate: BrowserCandidate,
+  plan: CandidateScanPlan,
+  io?: CandidateScanIo,
+) => Promise<CandidateScan>;
+
+/** A scanner with its catalog's model mapper, for this thread or a scan Worker. */
+export function createBrowserScanner(catalog: CatalogV1): BrowserCandidateScanner {
+  const mapper = createModelMapper(catalog);
+  return (candidate, plan, io = {}) => scanBrowserCandidate(candidate, plan, mapper, io);
+}
+
+async function scanBrowserCandidate(
+  candidate: BrowserCandidate,
+  plan: CandidateScanPlan,
+  mapper: ModelMapper,
+  io: CandidateScanIo,
+): Promise<CandidateScan> {
+  const { display, salt } = plan;
+  const streaming = streamsCandidate(candidate);
+  // The peek already holds all of a file this small, so it is parsed from
+  // there instead of being read and decoded a second time.
+  const whole = streaming && candidate.size <= PEEK_BYTES;
+  const examined = (bytes: number): void => io.onExamined?.(bytes);
+  const readWarnings: AdapterWarning[] = [];
+  let content = "";
+  let signature: string | undefined;
+  let database: SqliteDatabase | undefined;
+  const t3 = /(?:^|[/\\])state\.sqlite$/iu.test(candidate.path);
+  const hermes = /(?:^|[/\\])state\.db$/iu.test(candidate.path);
+  const sqlite = t3 || /(?:^|[/\\])(?:opencode|state)\.db$/iu.test(candidate.path);
+  try {
+    if (sqlite) {
+      const companion = io.companion;
+      if (
+        candidate.size > MAX_BROWSER_DATABASE_BYTES ||
+        (companion?.size ?? 0) > MAX_BROWSER_DATABASE_BYTES
+      )
+        throw new Error("Session database files exceed the 1 GB browser limit; use a CLI export.");
+      if (!candidate.arrayBuffer || (companion && !companion.arrayBuffer))
+        throw new Error("Selected session database bytes are unavailable.");
+      const bytes = new Uint8Array(await candidate.arrayBuffer());
+      examined(candidate.size);
+      let wal: Uint8Array | undefined;
+      if (companion) {
+        wal = new Uint8Array(
+          await (companion.arrayBuffer as NonNullable<BrowserCandidate["arrayBuffer"]>)(),
+        );
+        examined(companion.size);
+      }
+      const hash = new FileSignature(bytes.length + (wal?.length ?? 0));
+      await hash.update(bytes);
+      if (wal) await hash.update(wal);
+      signature = await hash.digest();
+      if (io.signal?.aborted) throw new BrowserIntakeCancelledError();
+      database = await openBrowserOpenCode(
+        bytes,
+        wal,
+        t3 ? "t3-code" : hermes ? "hermes" : "opencode",
+      );
+      if (!companion && bytes[18] === 2)
+        readWarnings.push({
+          code: "SESSION_PARTIAL",
+          message:
+            "Session database was selected without its write-ahead log; recent sessions may be missing. Close the harness or include the matching database-wal file if present.",
+        });
+    } else if (streaming) {
+      content = (await (io.peek ?? candidate.peekText?.(PEEK_BYTES))) ?? "";
+      if (plan.signed) {
+        signature = await streamedSignature(
+          candidate.stream?.() as ReadableStream<Uint8Array>,
+          candidate.size,
+          examined,
+          io.signal,
+        );
+      } else if (whole) {
+        examined(candidate.size);
+      }
+    } else {
+      content = await candidate.text();
+      signature = await textSignature(content);
+      examined(candidate.size);
+    }
+  } catch (error) {
+    if (error instanceof BrowserIntakeCancelledError) throw error;
+    return {
+      kind: "unreadable",
+      outcome: sqlite
+        ? {
+            path: display,
+            source: t3 ? "T3 Code" : hermes ? "Hermes" : "OpenCode",
+            status: "unreadable",
+            events: 0,
+            reason: safeIntakeMessage(
+              error instanceof Error ? error.message : "Could not read session database",
+            ),
+          }
+        : unreadableOutcome(display, error),
+    };
+  }
+  if (signature !== undefined && plan.sessionRoot)
+    signature = `${plan.sessionRoot}\u0000${signature}`;
+  const read = (result: CandidateParse): CandidateScan => ({
+    kind: "read",
+    ...(signature === undefined ? {} : { signature }),
+    readWarnings,
+    result,
+  });
+  if (signature !== undefined && io.alreadySeen?.(signature) === true) {
+    database?.close();
+    return read({ kind: "duplicate" });
+  }
+  if (t3 && database) {
+    const path = "/selected/state.sqlite";
+    const attribution = await createT3CodeAdapter().collectAttribution(
+      {
+        platform: "linux",
+        homeDir: "/selected",
+        env: {},
+        fs: singleFileSystem(path, "", candidate.lastModified, candidate.size),
+        openDatabase: async () => database!,
+      },
+      { now: new Date(plan.now), salt, mapper, roots: ["/selected"] },
+    );
+    const sessions: string[] = [];
+    for (const key of attribution.byProviderSession.keys()) {
+      const [adapter, session] = key.split("\u0000");
+      if (adapter && session) sessions.push(`${adapter}:${nativeSessionHash(salt, session)}`);
+    }
+    return read({ kind: "t3", sessions, warnings: attribution.warnings });
+  }
+  const detection = sqlite
+    ? {
+        id: hermes ? ("hermes" as const) : ("opencode" as const),
+        reason: "Local session database",
+      }
+    : detectBrowserSource(content);
+  if (detection.id === undefined) {
+    const plainText = /\.txt$/iu.test(candidate.path);
+    return read({
+      kind: "unrecognized",
+      outcome: {
+        path: display,
+        status: plainText ? "unsupported" : detection.malformed ? "malformed" : "unrecognized",
+        reason: plainText
+          ? "Text file does not contain supported session or usage records"
+          : detection.reason,
+        events: 0,
+      },
+    });
+  }
+  const id = detection.id;
+  const adapter = ADAPTERS[id];
+  // A synthetic collection root lets the original adapter read File contents
+  // through its injected FileSystem without access to Node or the host disk.
+  const name = display.replace(/[\\/]/gu, "_");
+  const path = `/selected/${sqlite ? (hermes ? "state.db" : "opencode.db") : name}`;
+  const env: SourceEnvironment = {
+    platform: "linux",
+    homeDir: "/selected",
+    env: {},
+    selectedFiles: true,
+    ...(database ? { openDatabase: async () => database } : {}),
+    fs: singleFileSystem(
+      path,
+      content,
+      candidate.lastModified,
+      candidate.size,
+      streaming && !whole ? candidate.stream : undefined,
+      // A file that was not signed is read in full for the first time here.
+      streaming && !whole && !plan.signed ? examined : undefined,
+      io.signal,
+    ),
+    ...(id === "ccusage" ? { inputFile: path } : {}),
+  };
+  const projectKeys: [string, string][] = [];
+  let result: Awaited<ReturnType<typeof adapter.collect>>;
+  try {
+    result = await adapter.collect(env, {
+      now: new Date(plan.now),
+      salt,
+      ...(plan.sourceRootSalt ? { sourceRootSalt: plan.sourceRootSalt } : {}),
+      mapper,
+      roots: ["/selected"],
+      ...(plan.sessionRoot ? { sessionRoot: plan.sessionRoot } : {}),
+      maxFileBytes: fileLimitOf(candidate),
+      onProjectKey: (hash, key) => projectKeys.push([hash, key]),
+      ...(id === "ccusage" ? { inputFile: path } : {}),
+    });
+  } catch (error) {
+    // A streamed file can fail after its first pass succeeded. Its partial
+    // events are discarded, so the file is either wholly in or reported out.
+    if (!(error instanceof SourceReadError)) throw error;
+    // Only a signed file had already been read to the end once; a failure on
+    // a file's first full read is reported as one, as it always was.
+    return read({
+      kind: "failed",
+      outcome: unreadableOutcome(display, error, plan.signed ? adapter.name : undefined),
+      projectKeys,
+    });
+  }
+  return read({
+    kind: "collected",
+    id,
+    reason: detection.reason,
+    events: result.events,
+    ...(result.capacityEvents === undefined ? {} : { capacityEvents: result.capacityEvents }),
+    warnings: result.warnings.map((warning) => ({ code: warning.code, message: warning.message })),
+    sessionsScanned: result.stats.sessionsScanned,
+    projectKeys,
+  });
+}
+
 /** Collect from explicit browser candidates. Raw text is never returned or persisted. */
 export async function intakeBrowserCandidates(
   candidates: readonly BrowserCandidate[],
@@ -776,12 +1072,24 @@ export async function intakeBrowserCandidates(
     readAhead?: number;
     /** Stops the intake between files; nothing partial is returned. */
     signal?: AbortSignal;
+    /**
+     * Scans files in other Workers. Every file is handed to `scan` at once, in
+     * selection order, so it should queue them. It returns undefined for a
+     * file it cannot take (an archive member), which is then scanned here. Results are still folded in selection order, so the
+     * intake's result is the same as a scan on one thread.
+     */
+    parallel?: {
+      scan(
+        candidate: BrowserCandidate,
+        plan: CandidateScanPlan,
+        io: { companion?: BrowserCandidate; onExamined(bytes: number): void },
+      ): Promise<CandidateScan> | undefined;
+    };
   },
 ): Promise<BrowserIntakeResult> {
   const budget = options.budget ?? new BrowserIntakeBudget();
   if (!budget.hasSelection()) budget.select(candidates);
   const salt = options.salt ?? generateSalt();
-  const mapper = createModelMapper(catalog);
   const events: UsageEventV1[] = [];
   /** The selected location each collected event came from, for location accounts. */
   const eventLocations = new WeakMap<UsageEventV1, string>();
@@ -857,19 +1165,8 @@ export async function intakeBrowserCandidates(
     if (entry !== undefined) entry.done += 1;
     emit(done, done === candidates.length);
   };
-  const PEEK_BYTES = 8 * MiB;
-  const streams = (candidate: BrowserCandidate): boolean =>
-    /\.jsonl$/iu.test(candidate.path) &&
-    candidate.stream !== undefined &&
-    candidate.peekText !== undefined;
-  const databaseFile = (candidate: BrowserCandidate): boolean =>
-    /(?:^|[/\\])(?:opencode\.db|state\.db|state\.sqlite)(?:-wal)?$/iu.test(candidate.path);
-  const fileLimit = (candidate: BrowserCandidate): number =>
-    databaseFile(candidate)
-      ? MAX_BROWSER_DATABASE_BYTES
-      : streams(candidate)
-        ? MAX_STREAMED_SOURCE_FILE_BYTES
-        : MAX_SOURCE_FILE_BYTES;
+  const streams = streamsCandidate;
+  const fileLimit = fileLimitOf;
   const readable = (candidate: BrowserCandidate): boolean =>
     isBrowserSourceCandidate(candidate.path) && candidate.size <= fileLimit(candidate);
   /**
@@ -930,7 +1227,9 @@ export async function intakeBrowserCandidates(
     }
     sizes.set(candidate.size, (sizes.get(candidate.size) ?? 0) + 1);
   }
-  const readAhead = Math.max(1, Math.floor(options.readAhead ?? 1));
+  const scanner = createBrowserScanner(catalog);
+  const parallel = options.parallel;
+  const readAhead = parallel ? 1 : Math.max(1, Math.floor(options.readAhead ?? 1));
   const peeks = new Map<number, Promise<string>>();
   /** The detection read for one file, started at most `readAhead - 1` files early. */
   const peekOf = (index: number): Promise<string> | undefined => {
@@ -945,11 +1244,13 @@ export async function intakeBrowserCandidates(
     }
     return peek;
   };
-  for (const [index, candidate] of candidates.entries()) {
-    if (options.signal?.aborted === true) throw new BrowserIntakeCancelledError();
-    // This file's read first, then the next few behind it.
-    for (let ahead = index; ahead < index + readAhead; ahead += 1) peekOf(ahead);
-    const display = safeCandidateName(candidate.path) || `file ${index + 1}`;
+  const displayOf = (index: number): string =>
+    safeCandidateName(candidates[index]?.path ?? "") || `file ${index + 1}`;
+  /** A file settled without reading it: a companion log, the wrong type or too large. */
+  const precheck = (
+    candidate: BrowserCandidate,
+    display: string,
+  ): { outcome: CandidateOutcome; skipped: boolean } | undefined => {
     if (/(?:^|[/\\])(?:(?:opencode|state)\.db|state\.sqlite)-wal$/iu.test(candidate.path)) {
       const paired = candidates.some(
         (entry) =>
@@ -962,145 +1263,106 @@ export async function intakeBrowserCandidates(
           ? "Hermes"
           : "OpenCode";
       const databaseName = normalizedPath(candidate.path).split("/").at(-1)!.replace(/-wal$/iu, "");
-      outcomes.push({
-        path: display,
-        status: paired ? "companion" : "unsupported",
-        source: sourceName,
-        events: 0,
-        reason: paired
-          ? `Companion log is read with its ${sourceName} database`
-          : `Select ${databaseName} together with its write-ahead log`,
-      });
-      report(index + 1, false);
-      continue;
+      return {
+        outcome: {
+          path: display,
+          status: paired ? "companion" : "unsupported",
+          source: sourceName,
+          events: 0,
+          reason: paired
+            ? `Companion log is read with its ${sourceName} database`
+            : `Select ${databaseName} together with its write-ahead log`,
+        },
+        skipped: false,
+      };
     }
-    if (!isBrowserSourceCandidate(candidate.path)) {
-      outcomes.push({
-        path: display,
-        status: "unsupported",
-        reason: "File extension is not a supported source candidate",
-        events: 0,
-      });
-      report(index + 1, true);
-      continue;
-    }
-    if (candidate.size > fileLimit(candidate)) {
-      outcomes.push({
-        path: display,
-        status: "unsupported",
-        reason: databaseFile(candidate)
-          ? "Session database files exceed the 1 GB browser limit; use a CLI export."
-          : streams(candidate)
-            ? "File exceeds the 2 GB session file limit"
-            : "File exceeds the 512 MB source parser limit",
-        events: 0,
-      });
-      report(index + 1, true);
-      continue;
-    }
-    const streaming = streams(candidate);
-    // The peek already holds all of a file this small, so it is parsed from
-    // there instead of being read and decoded a second time.
-    const whole = streaming && candidate.size <= PEEK_BYTES;
+    if (!isBrowserSourceCandidate(candidate.path))
+      return {
+        outcome: {
+          path: display,
+          status: "unsupported",
+          reason: "File extension is not a supported source candidate",
+          events: 0,
+        },
+        skipped: true,
+      };
+    if (candidate.size > fileLimit(candidate))
+      return {
+        outcome: {
+          path: display,
+          status: "unsupported",
+          reason: databaseFile(candidate)
+            ? "Session database files exceed the 1 GB browser limit; use a CLI export."
+            : streams(candidate)
+              ? "File exceeds the 2 GB session file limit"
+              : "File exceeds the 512 MB source parser limit",
+          events: 0,
+        },
+        skipped: true,
+      };
+    return undefined;
+  };
+  /** Files folded so far, for progress reported while later files are read. */
+  let folded = 0;
+  const tasks = new Map<number, Promise<CandidateScan>>();
+  /** Starts one file's scan, here or in a scan Worker. Budget is charged in selection order. */
+  const dispatch = (index: number): void => {
+    const candidate = candidates[index] as BrowserCandidate;
+    const display = displayOf(index);
+    if (precheck(candidate, display) !== undefined) return;
     const sessionRoot = signatureScopeOf(candidate);
-    const signed =
-      textSignedScopes.has(sessionRoot) ||
-      !streaming ||
-      (streamedSizes.get(sessionRoot)?.get(candidate.size) ?? 0) > 1;
+    const plan: CandidateScanPlan = {
+      now: options.now,
+      salt,
+      ...(options.sourceRootSalt ? { sourceRootSalt: options.sourceRootSalt } : {}),
+      display,
+      ...(sessionRoot === undefined ? {} : { sessionRoot }),
+      signed:
+        textSignedScopes.has(sessionRoot) ||
+        !streams(candidate) ||
+        (streamedSizes.get(sessionRoot)?.get(candidate.size) ?? 0) > 1,
+    };
+    const companion = databaseFile(candidate) ? companionOf(candidate) : undefined;
+    budget.add("readBytes", candidate.readCost ?? candidate.size);
+    if (companion !== undefined) budget.add("readBytes", companion.readCost ?? companion.size);
     let lastReported = 0;
-    const examined = (bytes: number): void => {
+    let fileBytes = 0;
+    const onExamined = (bytes: number): void => {
       scanProgress.examinedBytes += bytes;
-      if (scanProgress.examinedBytes - lastReported >= 8 * MiB) {
-        lastReported = scanProgress.examinedBytes;
-        emit(index, false);
+      fileBytes += bytes;
+      if (fileBytes - lastReported >= 8 * MiB) {
+        lastReported = fileBytes;
+        emit(folded, false);
       }
     };
-    let content = "";
-    let signature: string | undefined;
-    let database: SqliteDatabase | undefined;
-    const t3 = /(?:^|[/\\])state\.sqlite$/iu.test(candidate.path);
-    const hermes = /(?:^|[/\\])state\.db$/iu.test(candidate.path);
-    const sqlite = t3 || /(?:^|[/\\])(?:opencode|state)\.db$/iu.test(candidate.path);
-    try {
-      budget.add("readBytes", candidate.readCost ?? candidate.size);
-      if (sqlite) {
-        const companion = companionOf(candidate);
-        if (
-          candidate.size > MAX_BROWSER_DATABASE_BYTES ||
-          (companion?.size ?? 0) > MAX_BROWSER_DATABASE_BYTES
-        )
-          throw new Error(
-            "Session database files exceed the 1 GB browser limit; use a CLI export.",
-          );
-        if (!candidate.arrayBuffer || (companion && !companion.arrayBuffer))
-          throw new Error("Selected session database bytes are unavailable.");
-        const bytes = new Uint8Array(await candidate.arrayBuffer());
-        examined(candidate.size);
-        let wal: Uint8Array | undefined;
-        if (companion) {
-          budget.add("readBytes", companion.readCost ?? companion.size);
-          wal = new Uint8Array(
-            await (companion.arrayBuffer as NonNullable<BrowserCandidate["arrayBuffer"]>)(),
-          );
-          examined(companion.size);
-        }
-        const hash = new FileSignature(bytes.length + (wal?.length ?? 0));
-        await hash.update(bytes);
-        if (wal) await hash.update(wal);
-        signature = await hash.digest();
-        if (options.signal?.aborted) throw new BrowserIntakeCancelledError();
-        database = await openBrowserOpenCode(
-          bytes,
-          wal,
-          t3 ? "t3-code" : hermes ? "hermes" : "opencode",
-        );
-        if (!companion && bytes[18] === 2)
-          warnings.push({
-            code: "SESSION_PARTIAL",
-            message:
-              "Session database was selected without its write-ahead log; recent sessions may be missing. Close the harness or include the matching database-wal file if present.",
-          });
-      } else if (streaming) {
-        const peek = peekOf(index);
-        peeks.delete(index);
-        content = (await peek) ?? "";
-        if (signed) {
-          signature = await streamedSignature(
-            candidate.stream?.() as ReadableStream<Uint8Array>,
-            candidate.size,
-            examined,
-            options.signal,
-          );
-        } else if (whole) {
-          examined(candidate.size);
-        }
-      } else {
-        content = await candidate.text();
-        signature = await textSignature(content);
-        scanProgress.examinedBytes += candidate.size;
-      }
-    } catch (error) {
-      if (error instanceof BrowserIntakeBudgetError) throw error;
-      if (error instanceof BrowserIntakeCancelledError) throw error;
-      outcomes.push(
-        sqlite
-          ? {
-              path: display,
-              source: t3 ? "T3 Code" : hermes ? "Hermes" : "OpenCode",
-              status: "unreadable",
-              events: 0,
-              reason: safeIntakeMessage(
-                error instanceof Error ? error.message : "Could not read session database",
-              ),
-            }
-          : unreadableOutcome(display, error),
-      );
+    const io = { ...(companion === undefined ? {} : { companion }), onExamined };
+    const task =
+      parallel?.scan(candidate, plan, io) ??
+      scanner(candidate, plan, {
+        ...io,
+        ...(options.signal === undefined ? {} : { signal: options.signal }),
+        ...(parallel === undefined && peekOf(index) !== undefined
+          ? { peek: peekOf(index) as Promise<string> }
+          : {}),
+        alreadySeen: (signature) => seen.has(signature),
+      });
+    peeks.delete(index);
+    // Awaited in order below; a failure is reported when its file's turn comes.
+    task.catch(() => undefined);
+    tasks.set(index, task);
+  };
+  /** Joins one file's scan to the intake. The only place shared state changes. */
+  const fold = (index: number, scan: CandidateScan): void => {
+    const candidate = candidates[index] as BrowserCandidate;
+    const display = displayOf(index);
+    if (scan.kind === "unreadable") {
+      outcomes.push(scan.outcome);
       report(index + 1, true);
-      continue;
+      return;
     }
-    if (signature !== undefined && sessionRoot) signature = `${sessionRoot}\u0000${signature}`;
-    if (signature !== undefined && seen.has(signature)) {
-      database?.close();
+    warnings.push(...scan.readWarnings);
+    const { result, signature } = scan;
+    if (signature !== undefined && (result.kind === "duplicate" || seen.has(signature))) {
       outcomes.push({
         path: display,
         status: "duplicate",
@@ -1108,111 +1370,45 @@ export async function intakeBrowserCandidates(
         events: 0,
       });
       report(index + 1, true);
-      continue;
+      return;
     }
-    if (signature !== undefined) seen.add(signature);
-    if (t3 && database) {
-      const path = "/selected/state.sqlite";
-      const attribution = await createT3CodeAdapter().collectAttribution(
-        {
-          platform: "linux",
-          homeDir: "/selected",
-          env: {},
-          fs: singleFileSystem(path, "", candidate.lastModified, candidate.size),
-          openDatabase: async () => database!,
-        },
-        { now: new Date(options.now), salt, mapper, roots: ["/selected"] },
-      );
-      for (const key of attribution.byProviderSession.keys()) {
-        const [adapter, session] = key.split("\u0000");
-        if (adapter && session) t3Sessions.add(`${adapter}:${nativeSessionHash(salt, session)}`);
-      }
-      warnings.push(...attribution.warnings);
-      t3Collected = true;
-      outcomes.push({
-        path: display,
-        status: "companion",
-        source: "T3 Code",
-        reason: "Harness attribution only; underlying usage counted once",
-        events: 0,
-      });
-      report(index + 1, false);
-      continue;
+    // A file the adapter could not read to the end contributed nothing, so a
+    // later copy of it may still be scanned.
+    if (signature !== undefined && result.kind !== "failed") seen.add(signature);
+    switch (result.kind) {
+      case "duplicate":
+        // Only reached without a signature, which a duplicate always has.
+        report(index + 1, true);
+        return;
+      case "t3":
+        for (const session of result.sessions) t3Sessions.add(session);
+        warnings.push(...result.warnings);
+        t3Collected = true;
+        outcomes.push({
+          path: display,
+          status: "companion",
+          source: "T3 Code",
+          reason: "Harness attribution only; underlying usage counted once",
+          events: 0,
+        });
+        report(index + 1, false);
+        return;
+      case "unrecognized":
+        outcomes.push(result.outcome);
+        report(index + 1, true);
+        return;
+      case "failed":
+        for (const [hash, key] of result.projectKeys) projectKeys.set(hash, key);
+        outcomes.push(result.outcome);
+        report(index + 1, true);
+        return;
     }
-    const detection = sqlite
-      ? {
-          id: hermes ? ("hermes" as const) : ("opencode" as const),
-          reason: "Local session database",
-        }
-      : detectBrowserSource(content);
-    if (detection.id === undefined) {
-      const plainText = /\.txt$/iu.test(candidate.path);
-      outcomes.push({
-        path: display,
-        status: plainText ? "unsupported" : detection.malformed ? "malformed" : "unrecognized",
-        reason: plainText
-          ? "Text file does not contain supported session or usage records"
-          : detection.reason,
-        events: 0,
-      });
-      report(index + 1, true);
-      continue;
-    }
-    const id = detection.id;
+    for (const [hash, key] of result.projectKeys) projectKeys.set(hash, key);
+    const id = result.id;
     const adapter = ADAPTERS[id];
-    // A synthetic collection root lets the original adapter read File contents
-    // through its injected FileSystem without access to Node or the host disk.
-    const name = display.replace(/[\\/]/gu, "_");
-    const path = `/selected/${sqlite ? (hermes ? "state.db" : "opencode.db") : name}`;
-    const env: SourceEnvironment = {
-      platform: "linux",
-      homeDir: "/selected",
-      env: {},
-      selectedFiles: true,
-      ...(database ? { openDatabase: async () => database } : {}),
-      fs: singleFileSystem(
-        path,
-        content,
-        candidate.lastModified,
-        candidate.size,
-        streaming && !whole ? candidate.stream : undefined,
-        // A file that was not signed is read in full for the first time here.
-        streaming && !whole && !signed ? examined : undefined,
-        options.signal,
-      ),
-      ...(id === "ccusage" ? { inputFile: path } : {}),
-    };
-    let result: Awaited<ReturnType<typeof adapter.collect>>;
-    try {
-      result = await adapter.collect(env, {
-        now: new Date(options.now),
-        salt,
-        ...(options.sourceRootSalt ? { sourceRootSalt: options.sourceRootSalt } : {}),
-        mapper,
-        roots: ["/selected"],
-        ...(sessionRoot ? { sessionRoot } : {}),
-        maxFileBytes: fileLimit(candidate),
-        onProjectKey: (hash, key) => projectKeys.set(hash, key),
-        ...(id === "ccusage" ? { inputFile: path } : {}),
-      });
-    } catch (error) {
-      // A streamed file can fail after its first pass succeeded. Its partial
-      // events are discarded, so the file is either wholly in or reported out.
-      if (!(error instanceof SourceReadError)) throw error;
-      // A later selected copy may still be readable. The signature was added
-      // before parsing, but this file contributed no events to the workload.
-      if (signature !== undefined) seen.delete(signature);
-      // Only a signed file had already been read to the end once; a failure on
-      // a file's first full read is reported as one, as it always was.
-      outcomes.push(unreadableOutcome(display, error, signed ? adapter.name : undefined));
-      report(index + 1, true);
-      continue;
-    }
     capacityEvents.push(...(result.capacityEvents ?? []));
     capacityInspected ||= result.capacityEvents !== undefined;
-    warnings.push(
-      ...result.warnings.map((warning) => ({ code: warning.code, message: warning.message })),
-    );
+    warnings.push(...result.warnings);
     if (result.events.length === 0 && !result.capacityEvents?.length) {
       outcomes.push({
         path: display,
@@ -1231,7 +1427,7 @@ export async function intakeBrowserCandidates(
       scanProgress.reconstructedEvents += result.events.length;
       const group = candidate.group === undefined ? undefined : groups.get(candidate.group);
       if (group !== undefined) group.events += result.events.length;
-      scanProgress.identifiedSessions += result.stats.sessionsScanned;
+      scanProgress.identifiedSessions += result.sessionsScanned;
       for (const event of result.events) {
         const model = event.model.canonicalId;
         if (model !== undefined) modelEvents[model] = (modelEvents[model] ?? 0) + 1;
@@ -1243,11 +1439,34 @@ export async function intakeBrowserCandidates(
         path: display,
         status: "imported",
         source: adapter.name,
-        reason: detection.reason,
+        reason: result.reason,
         events: result.events.length,
       });
     }
     report(index + 1, result.events.length === 0);
+  };
+  // Scan Workers pull files from their own queue, so every file is handed over
+  // at once and a large file never holds back the ones behind it. Results wait
+  // here until their turn; they are kept either way.
+  const window = parallel === undefined ? 1 : candidates.length;
+  let next = 0;
+  for (const [index, candidate] of candidates.entries()) {
+    if (options.signal?.aborted === true) throw new BrowserIntakeCancelledError();
+    // This file's read first, then the next few behind it. Scan Workers read
+    // their own files, so the read-ahead is only for scans on this thread.
+    if (parallel === undefined)
+      for (let ahead = index; ahead < index + readAhead; ahead += 1) peekOf(ahead);
+    for (; next < Math.min(candidates.length, index + window); next += 1) dispatch(next);
+    const pre = precheck(candidate, displayOf(index));
+    if (pre !== undefined) {
+      outcomes.push(pre.outcome);
+      report(index + 1, pre.skipped);
+    } else {
+      const task = tasks.get(index) as Promise<CandidateScan>;
+      tasks.delete(index);
+      fold(index, await task);
+    }
+    folded = index + 1;
   }
   if (options.signal?.aborted === true) throw new BrowserIntakeCancelledError();
   for (const event of events) {

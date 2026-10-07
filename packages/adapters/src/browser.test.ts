@@ -5,6 +5,7 @@ import {
   type BrowserCandidate,
   BrowserIntakeBudget,
   BrowserIntakeCancelledError,
+  createBrowserScanner,
   detectBrowserSource,
   expandZipCandidate,
   FileSignature,
@@ -683,6 +684,56 @@ describe("browser intake using shared adapters", () => {
     expect(result.outcomes.map((outcome) => outcome.status)).toEqual(["unreadable", "imported"]);
     expect(result.exported?.events.length).toBeGreaterThan(0);
     expect(result.exported?.events.every((event) => event.source.adapterId === "codex")).toBe(true);
+  });
+
+  it("folds out-of-order parallel scans identically with copies, mid-read failure and mixed sources", async () => {
+    const files = [
+      candidate("root/projects/p/session.jsonl", CLAUDE_CODE_SESSION),
+      candidate("root/projects/p/copy.jsonl", CLAUDE_CODE_SESSION),
+      flaky("root/sessions/broken.jsonl", 1),
+      candidate("root/sessions/rollout.jsonl", CODEX_ROLLOUT),
+      candidate("command.jsonl", COMMAND_CODE_SESSION),
+    ];
+    const options = { now: NOW, salt: FIXTURE_SALT, sourceRootSalt: FIXTURE_SALT };
+    const sequential = await intakeBrowserCandidates(files, syntheticCatalog(), options);
+    // Reset the scripted stream failure for the second intake.
+    files[2] = flaky("root/sessions/broken.jsonl", 1);
+    const scanner = createBrowserScanner(syntheticCatalog());
+    const completed: number[] = [];
+    const gates = files.map(() => {
+      let release = () => {};
+      const promise = new Promise<void>((resolve) => {
+        release = resolve;
+      });
+      return { promise, release };
+    });
+    const parallel = intakeBrowserCandidates(files, syntheticCatalog(), {
+      ...options,
+      parallel: {
+        scan: (file, plan, io) => {
+          const index = files.indexOf(file);
+          const gate = gates[index];
+          if (!gate) throw new Error("Unexpected candidate");
+          return gate.promise.then(async () => {
+            const result = await scanner(file, plan, io);
+            completed.push(index);
+            if (index > 0) gates[index - 1]?.release();
+            return result;
+          });
+        },
+      },
+    });
+    gates.at(-1)?.release();
+    const result = await parallel;
+    expect(completed).toEqual([4, 3, 2, 1, 0]);
+    expect(result).toEqual(sequential);
+    expect(result.outcomes.map((outcome) => outcome.status)).toEqual([
+      "imported",
+      "duplicate",
+      "unreadable",
+      "imported",
+      "imported",
+    ]);
   });
 
   it("reads a small streamed file once and signs files only when two share a size", async () => {

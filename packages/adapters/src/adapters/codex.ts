@@ -1,4 +1,5 @@
 import type { TextUsageV1 } from "@stackreplay/schema";
+import { codexRecordHead } from "../codex-record-head.js";
 import { buildEvent, eventContext, HARNESS_IDS, providerIdForModel } from "../event-builder.js";
 import {
   baseName,
@@ -148,7 +149,8 @@ export function createCodexAdapter(): LocalSourceAdapter {
           for await (const line of env.fs.readLines(file, maxBytes)) {
             lineIndex += 1;
             stats.recordsRead += 1;
-            const parsed = parseJsonLine(line);
+            const head = codexRecordHead(line);
+            const parsed = head === undefined ? parseJsonLine(line) : { ok: true, value: head };
             if (!parsed.ok) {
               warnings.add("RECORD_MALFORMED", "line is not valid JSON", file);
               stats.recordsUnsupported += 1;
