@@ -873,14 +873,26 @@ export async function intakeBrowserCandidates(
   const readable = (candidate: BrowserCandidate): boolean =>
     isBrowserSourceCandidate(candidate.path) && candidate.size <= fileLimit(candidate);
   /** Exact-file matches already include this history scope in their key. */
-  const signatureScopeOf = (candidate: BrowserCandidate): string | undefined => {
-    const path = normalizedPath(candidate.path);
-    const selectedRoot = /(?:^|\/)(?:opencode|state)\.db$/iu.test(path)
+  const historyRootOf = (path: string): string | undefined =>
+    /(?:^|\/)(?:opencode|state)\.db$/iu.test(path)
       ? path.replace(/(?:^|\/)(?:opencode|state)\.db$/iu, "")
-      : (path.match(/^(.*?(?:^|\/)\.claude[\w.-]*\/projects)(?:\/|$)/u)?.[1]?.replace(
-          /\.claude[\w.-]*\/projects$/u,
-          ".claude/projects",
-        ) ?? path.match(/^(.*?(?:^|\/)projects)(?:\/|$)/u)?.[1]);
+      : path.match(/^(.*?(?:^|\/)projects)(?:\/|$)/u)?.[1];
+  /** The account a file belongs to: each Claude config folder is its own root. */
+  const signatureScopeOf = (candidate: BrowserCandidate): string | undefined => {
+    const selectedRoot = historyRootOf(normalizedPath(candidate.path));
+    return selectedRoot === undefined
+      ? undefined
+      : JSON.stringify([candidate.group ?? "selection", selectedRoot]);
+  };
+  /**
+   * The file-dedup scope: the same bytes in `.claude` and `.claude2` are one
+   * session copied between config folders, not two accounts' worth of work.
+   */
+  const fileScopeOf = (candidate: BrowserCandidate): string | undefined => {
+    const selectedRoot = historyRootOf(normalizedPath(candidate.path))?.replace(
+      /\.claude[\w.-]*\/projects$/u,
+      ".claude/projects",
+    );
     return selectedRoot === undefined
       ? undefined
       : JSON.stringify([candidate.group ?? "selection", selectedRoot]);
@@ -893,7 +905,7 @@ export async function intakeBrowserCandidates(
   const streamedSizes = new Map<string | undefined, Map<number, number>>();
   for (const candidate of candidates) {
     if (!readable(candidate)) continue;
-    const scope = signatureScopeOf(candidate);
+    const scope = fileScopeOf(candidate);
     if (!streams(candidate)) {
       textSignedScopes.add(scope);
       continue;
@@ -978,10 +990,11 @@ export async function intakeBrowserCandidates(
     // there instead of being read and decoded a second time.
     const whole = streaming && candidate.size <= PEEK_BYTES;
     const sessionRoot = signatureScopeOf(candidate);
+    const fileScope = fileScopeOf(candidate);
     const signed =
-      textSignedScopes.has(sessionRoot) ||
+      textSignedScopes.has(fileScope) ||
       !streaming ||
-      (streamedSizes.get(sessionRoot)?.get(candidate.size) ?? 0) > 1;
+      (streamedSizes.get(fileScope)?.get(candidate.size) ?? 0) > 1;
     let lastReported = 0;
     const examined = (bytes: number): void => {
       scanProgress.examinedBytes += bytes;
@@ -1073,7 +1086,7 @@ export async function intakeBrowserCandidates(
       report(index + 1, true);
       continue;
     }
-    if (signature !== undefined && sessionRoot) signature = `${sessionRoot}\u0000${signature}`;
+    if (signature !== undefined && fileScope) signature = `${fileScope}\u0000${signature}`;
     if (signature !== undefined && seen.has(signature)) {
       database?.close();
       outcomes.push({
