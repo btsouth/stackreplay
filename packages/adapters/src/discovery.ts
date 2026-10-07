@@ -517,7 +517,7 @@ export async function discoverHistories<F extends DiscoveryFile>(
         ...(unreadable.length > 0 ? { unreadable } : {}),
       };
     } else if (!base.importable) {
-      finding = { ...base, status: "unsupported", location: readingPaths[0] };
+      finding = { ...base, status: "unsupported", location: readingPaths[0] as readonly string[] };
     } else if (match !== undefined && match.kind === "file") {
       const file = await prober.file(match.path);
       if (file === null) throw new Error("A probed history database disappeared");
@@ -537,7 +537,7 @@ export async function discoverHistories<F extends DiscoveryFile>(
         files,
       };
     } else if (source.inventory === undefined) {
-      finding = { ...base, status: "unsupported", location: readingPaths[0] };
+      finding = { ...base, status: "unsupported", location: readingPaths[0] as readonly string[] };
     } else {
       const files: DiscoveredFile<F>[] = [];
       let truncated = false;
@@ -567,7 +567,7 @@ export async function discoverHistories<F extends DiscoveryFile>(
       finding = {
         ...base,
         status: files.length === 0 ? "empty" : "found",
-        location: readingPaths[0],
+        location: readingPaths[0] as readonly string[],
         ...(readingPaths.length > 1 ? { locations: readingPaths } : {}),
         fileCount: files.length,
         ...(bytes === undefined ? {} : { bytes }),

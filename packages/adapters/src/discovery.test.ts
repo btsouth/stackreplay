@@ -257,7 +257,7 @@ describe("alternate Claude config folders", () => {
       unreadable: [[".claude", "projects"]],
     });
 
-    const linked = { ...home, ".claude": { projects: LINK, "settings.json": 10 } };
+    const linked: Tree = { ...home, ".claude": { projects: LINK, "settings.json": 10 } };
     const beside = await discover(linked, { platform: "linux" });
     expect(beside.status["Claude Code"]).toMatchObject({
       status: "found",
