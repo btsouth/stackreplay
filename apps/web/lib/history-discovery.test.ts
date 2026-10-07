@@ -1,7 +1,12 @@
 import { discoverHistories, registeredProbePaths } from "@stackreplay/adapters/discovery";
 import { describe, expect, it } from "vitest";
 import { collectSelection, mergeFinding, waitingRows } from "./discovery-list";
-import { discoverPickedDirectory, handleDirectory, tooManyChosenFiles } from "./history-discovery";
+import {
+  discoverPickedDirectory,
+  handleDirectory,
+  pickedFolderOpens,
+  tooManyChosenFiles,
+} from "./history-discovery";
 
 type Tree = { [name: string]: Tree | File };
 
@@ -121,6 +126,41 @@ describe("lazy directory handles", () => {
     log.length = 0;
     await discoverPickedDirectory(fakeHandle("bts", { unrelated: tree }, log), undefined, "codex");
     expect(log.some((entry) => entry.startsWith("list:"))).toBe(false);
+  });
+
+  it("connects Claude from a link's target folder whatever it is named", async () => {
+    const log: string[] = [];
+    const session = new File(["fixture"], "a.jsonl");
+    const target = await discoverPickedDirectory(
+      fakeHandle("claude-history", { "-home-dev-app": { "a.jsonl": session } }, log),
+      undefined,
+      "claude-code",
+    );
+    const claude = target.findings.find((finding) => finding.adapterId === "claude-code");
+    expect(claude?.status).toBe("found");
+    expect(claude?.fileCount).toBe(1);
+    // A .claude whose linked projects is hidden is not mistaken for one.
+    const tool = await discoverPickedDirectory(
+      fakeHandle(".claude", { todos: { "x.jsonl": session }, "history.jsonl": session }, log),
+      undefined,
+      "claude-code",
+    );
+    expect(tool.findings.find((finding) => finding.adapterId === "claude-code")?.status).not.toBe(
+      "found",
+    );
+  });
+
+  it("tells a picked link, which the browser cannot read, from a real folder", async () => {
+    const missing = () => {
+      throw new DOMException("Missing", "NotFoundError");
+    };
+    const link = {
+      kind: "directory",
+      name: "projects",
+      values: () => ({ next: async () => missing() }),
+    } as unknown as FileSystemDirectoryHandle;
+    expect(await pickedFolderOpens(link)).toBe(false);
+    expect(await pickedFolderOpens(fakeHandle("projects", {}, []))).toBe(true);
   });
 
   it("rejects nested probes and surfaces permission and enumeration failures", async () => {

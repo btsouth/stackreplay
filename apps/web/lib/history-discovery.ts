@@ -45,6 +45,24 @@ export function pickerCancelled(error: unknown): boolean {
   return error instanceof DOMException && error.name === "AbortError";
 }
 
+/**
+ * Whether the browser can list a picked folder. Chromium hands back a handle
+ * for a picked symbolic link but reports it as not found on every read, so a
+ * linked `~/.claude/projects` must be picked at the folder it points to.
+ */
+export async function pickedFolderOpens(handle: FileSystemDirectoryHandle): Promise<boolean> {
+  const iterable = handle as FileSystemDirectoryHandle & {
+    values(): AsyncIterator<FileSystemHandle>;
+  };
+  try {
+    await iterable.values().next();
+    return true;
+  } catch (error) {
+    if (error instanceof DOMException && error.name === "NotFoundError") return false;
+    throw error;
+  }
+}
+
 export function tooManyChosenFiles(count: number): boolean {
   return count > DISCOVERY_MAX_FILES;
 }
@@ -119,6 +137,19 @@ export function handleDirectory(handle: FileSystemDirectoryHandle): DiscoveryDir
   };
 }
 
+/**
+ * Claude Code names each project folder after its encoded path: `-home-me-app`
+ * on Linux and macOS, `C--Users-me-app` on Windows. A folder holding these is
+ * a Claude `projects` folder whatever it is called, such as the target of a
+ * linked `~/.claude/projects`.
+ */
+const CLAUDE_PROJECT_FOLDER = /^(?:-|[A-Za-z]--)/u;
+
+async function holdsClaudeProjects(directory: DiscoveryDirectory<HandleFile>): Promise<boolean> {
+  const { directories } = await directory.list();
+  return directories.some((child) => CLAUDE_PROJECT_FOLDER.test(child.name));
+}
+
 /** A tool's Connect control can confirm its history folder or a Codex date folder. */
 export async function discoverPickedDirectory(
   handle: FileSystemDirectoryHandle,
@@ -128,13 +159,13 @@ export async function discoverPickedDirectory(
   const directory = handleDirectory(handle);
   const run = await discoverHistories(directory, { platform });
   const source = DISCOVERY_REGISTRY.find((entry) => entry.adapterId === adapterId);
+  const nothingFound = run.findings.every((finding) => finding.status !== "found");
   if (
     source?.inventory !== undefined &&
     ((run.findings.some((finding) => finding.adapterId === adapterId && finding.unconfirmed) &&
       source.history.some((location) => location.path.at(-1) === handle.name)) ||
-      (adapterId === "codex" &&
-        /^(?:\d{4}|\d{2})$/u.test(handle.name) &&
-        run.findings.every((finding) => finding.status !== "found")))
+      (adapterId === "codex" && /^(?:\d{4}|\d{2})$/u.test(handle.name) && nothingFound) ||
+      (adapterId === "claude-code" && nothingFound && (await holdsClaudeProjects(directory))))
   ) {
     const confirmed = await discoverHistories(directory, {
       platform,

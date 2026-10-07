@@ -43,9 +43,10 @@ test("a linked Claude history is shown loudly and confirmed before it is left ou
   const block = page.getByTestId("missing-claude-code");
   await expect(block).toBeVisible();
   await expect(block).toContainText("Claude Code isn't included yet");
-  await expect(block).toContainText("a link your browser can't follow from a drag");
-  await expect(block).toContainText("Choose ~/.claude/projects");
-  await expect(block).toContainText("The chooser follows the link");
+  await expect(block).toContainText("your browser can't open links");
+  await expect(block).toContainText("choose the folder the link points to");
+  // The command to find the target follows the browser platform.
+  await expect(block).toContainText("To find it, run");
   await expect(page.getByTestId("top-connect-claude-code")).toBeVisible();
   expect(languageMatches(await page.getByTestId("history-discovery").innerText())).toEqual([]);
 
@@ -94,30 +95,42 @@ test("extra .claude2 history is found, listed and imported with Claude Code", as
 });
 
 /**
- * Chromium's File System Access layer treats any path containing a symbolic
- * link as not found (`storage/browser/file_system/local_file_util.cc`,
- * `IsHiddenItemUnderRoot` / `GetLocalFilePath`), except that the picked folder
- * itself is not checked. So picking `~/.claude/projects` (the link) reads its
- * target, while picking `~/.claude` cannot descend into the linked `projects`.
- * The native picker cannot be driven from Playwright, so the handle is stubbed
+ * Chromium's File System Access layer never follows a symbolic link
+ * (`storage/browser/file_system/local_file_util.cc`). Picking the link
+ * `~/.claude/projects` returns a handle, but every read of it fails with
+ * NotFoundError (checked in Chromium on Linux), and picking `~/.claude` hides
+ * the linked `projects`. Only the folder the link points to can be read. The
+ * native picker cannot be driven from Playwright, so the handle is stubbed
  * over a real temp tree with exactly those semantics.
  */
-test("the chooser reads a picked linked folder but not a linked child", async ({
+test("a picked linked folder says where to look, and its target connects", async ({
   page,
 }, testInfo) => {
   const real = testInfo.outputPath("real-data/claude-projects");
   const home = testInfo.outputPath("dev-home");
   await buildHome(home, { claudeSessions: 1, codexRollouts: 1, linkClaude: real });
 
-  // Picking the link itself: the handle root is the link, read through it.
-  const target = await readTree(real);
-  await page.addInitScript(installPicker, { tree: target, rootName: "projects" });
+  // Picking the link itself: the handle opens but cannot be read.
+  const link = await readTree(join(home, ".claude", "projects"));
+  await page.addInitScript(installPicker, { tree: link, rootName: "projects" });
 
   await dropHome(page, home);
   await expect(page.getByTestId("history-claude-code")).toHaveAttribute(
     "data-status",
     "access-needed",
   );
+  await page.getByTestId("top-connect-claude-code").click();
+  const note = page.getByTestId("discovery-drop-note");
+  await expect(note).toContainText("Your browser can't open projects because it is a link");
+  await expect(note).toContainText("To find it, run");
+  expect(languageMatches(await note.innerText())).toEqual([]);
+  await expect(page.getByTestId("history-claude-code")).toHaveAttribute(
+    "data-status",
+    "access-needed",
+  );
+
+  // Picking the folder the link points to connects it.
+  await page.evaluate(installPicker, { tree: await readTree(real), rootName: "claude-projects" });
   await page.getByTestId("top-connect-claude-code").click();
   await expect(page.getByTestId("history-claude-code")).toHaveAttribute("data-status", "found");
   await expect(page.getByTestId("history-claude-code")).toContainText("1 file");
@@ -156,7 +169,7 @@ test("connecting Claude from .claude with a linked projects says what to choose"
   const note = page.getByTestId("discovery-drop-note");
   await expect(note).toContainText("Claude Code still isn't included");
   await expect(note).toContainText("couldn't open its history from .claude");
-  await expect(note).toContainText("Choose ~/.claude/projects itself");
+  await expect(note).toContainText("or the folder it points to if it is a link");
   expect(languageMatches(await note.innerText())).toEqual([]);
   await expect(page.getByTestId("history-claude-code")).not.toHaveAttribute("data-status", "found");
 });
@@ -209,8 +222,25 @@ function installPicker({ tree, rootName }: { tree: ReadNode; rootName: string })
       }
     },
   });
+  const missing = () => {
+    throw new DOMException("Missing", "NotFoundError");
+  };
+  // A picked link opens, then fails every read.
   const root =
-    tree.kind === "dir" ? handle(rootName, tree) : handle(rootName, { kind: "dir", entries: {} });
+    tree.kind === "dir"
+      ? handle(rootName, tree)
+      : {
+          kind: "directory" as const,
+          name: rootName,
+          getDirectoryHandle: async () => missing(),
+          getFileHandle: async () => missing(),
+          values: () => ({
+            next: async () => missing(),
+            [Symbol.asyncIterator]() {
+              return this;
+            },
+          }),
+        };
   Object.defineProperty(window, "showDirectoryPicker", {
     configurable: true,
     value: async () => root,
