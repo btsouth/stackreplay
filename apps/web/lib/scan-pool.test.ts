@@ -29,7 +29,7 @@ const plan: CandidateScanPlan = {
 };
 const scan: CandidateScan = {
   kind: "unreadable",
-  outcome: { path: "fixture", status: "unreadable", events: 0 },
+  outcome: { path: "fixture", status: "unreadable", events: 0, reason: "Unreadable fixture" },
 };
 
 function selection(count = 4) {
@@ -60,7 +60,7 @@ it("pulls largest first, returns each result to its own caller and forwards prog
   if (!pool) throw new Error("Missing pool");
   const examined = candidates.map(() => vi.fn());
   const promises = candidates.map((file, index) =>
-    pool.scan(file, plan, { onExamined: examined[index] }),
+    pool.scan(file, plan, { onExamined: (bytes) => examined[index]?.(bytes) }),
   );
   expect(FakeWorker.all.flatMap((worker) => worker.requests)).toEqual([]);
   await Promise.resolve();

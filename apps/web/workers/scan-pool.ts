@@ -33,7 +33,7 @@ export function createScanPool(files: Map<BrowserCandidate, ScanFile>, signal: A
   // many-core machines; two keeps small machines responsive while parsing.
   const cores = typeof navigator === "undefined" ? 2 : navigator.hardwareConcurrency || 2;
   const size = Math.min(files.size, Math.max(2, Math.min(12, cores)));
-  const slots: { worker: Worker; job?: Job }[] = [];
+  const slots: { worker: Worker; job: Job | undefined }[] = [];
   let queue: Job[] = [];
   let stopped: Error | undefined;
   let scheduled = false;
@@ -76,6 +76,7 @@ export function createScanPool(files: Map<BrowserCandidate, ScanFile>, signal: A
   try {
     for (let i = 0; i < size; i += 1) {
       const slot: (typeof slots)[number] = {
+        job: undefined,
         worker: new Worker(new URL("stackreplay-scan-worker.js", self.location.href), {
           type: "module",
         }),
