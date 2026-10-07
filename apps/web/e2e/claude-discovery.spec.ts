@@ -45,7 +45,8 @@ test("a linked Claude history is shown loudly and confirmed before it is left ou
   await expect(block).toContainText("Claude Code isn't included yet");
   await expect(block).toContainText("your browser can't open links");
   await expect(block).toContainText("choose the folder the link points to");
-  await expect(block).toContainText("readlink -f ~/.claude/projects");
+  // The command to find the target follows the browser platform.
+  await expect(block).toContainText("To find it, run");
   await expect(page.getByTestId("top-connect-claude-code")).toBeVisible();
   expect(languageMatches(await page.getByTestId("history-discovery").innerText())).toEqual([]);
 
@@ -121,7 +122,7 @@ test("a picked linked folder says where to look, and its target connects", async
   await page.getByTestId("top-connect-claude-code").click();
   const note = page.getByTestId("discovery-drop-note");
   await expect(note).toContainText("Your browser can't open projects because it is a link");
-  await expect(note).toContainText("readlink -f ~/.claude/projects");
+  await expect(note).toContainText("To find it, run");
   expect(languageMatches(await note.innerText())).toEqual([]);
   await expect(page.getByTestId("history-claude-code")).toHaveAttribute(
     "data-status",

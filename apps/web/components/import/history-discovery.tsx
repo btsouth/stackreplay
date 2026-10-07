@@ -412,16 +412,29 @@ export function HistoryDiscovery({
       try {
         const folder = await pickHistoryDirectory();
         const target = rows.find((row) => row.key === key);
-        if (!(await pickedFolderOpens(folder))) {
+        // A picked link opens but cannot be read. Checked only after a pick
+        // finds nothing, so a working folder is never listed for it.
+        const linked = async () => {
+          if (await pickedFolderOpens(folder)) return false;
           setDropNote(linkedPickNote(target, folder.name, platform));
-          return;
+          return true;
+        };
+        let run: Awaited<ReturnType<typeof discoverPickedDirectory>>;
+        try {
+          run = await discoverPickedDirectory(folder, platform, target?.adapterId);
+        } catch (error) {
+          if (await linked()) return;
+          throw error;
         }
-        const run = await discoverPickedDirectory(folder, platform, target?.adapterId);
         const connected = run.findings.some(
           (finding) =>
             finding.adapterId === target?.adapterId &&
             (finding.status === "found" || finding.status === "empty"),
         );
+        const foundAny = run.findings.some(
+          (finding) => finding.status === "found" || finding.status === "empty",
+        );
+        if (!(key === undefined ? foundAny : connected) && (await linked())) return;
         // A Connect that still can't read the tool says so instead of leaving
         // the row unchanged.
         if (key !== undefined && target !== undefined && !connected)
