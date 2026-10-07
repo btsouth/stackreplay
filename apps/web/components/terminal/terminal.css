@@ -2969,3 +2969,14 @@
     --kv-max: 28px;
   }
 }
+/* Below 1100px the value readouts are too narrow beside the chart, so they
+   sit in one row under it. */
+@media (min-width: 801px) and (max-width: 1100px) {
+  .terminal .cost,
+  .terminal .costside {
+    grid-column: 1 / -1;
+  }
+  .terminal .costside {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
