@@ -1,8 +1,8 @@
 import { lstat, mkdir, readdir, readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { expect, type Page, test } from "@playwright/test";
-import { buildHome, writeClaudeProjects } from "./fixtures/discovery-home";
 import { languageMatches } from "./app-language";
+import { buildHome, writeClaudeProjects } from "./fixtures/discovery-home";
 import { dropFolders, gotoImport, waitForWorkload } from "./premium-app-helpers";
 
 /**
