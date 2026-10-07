@@ -78,6 +78,7 @@ describe("lazy directory handles", () => {
     for (const probe of probes)
       expect(registeredProbePaths().has(probe.split(":")[1] ?? "")).toBe(true);
     expect(log.filter((entry) => entry.startsWith("list:"))).toEqual([
+      "list:",
       "list:.claude/projects",
       "list:.claude/projects/project",
       "list:.codex/sessions",
