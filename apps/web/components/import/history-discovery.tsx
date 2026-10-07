@@ -42,6 +42,7 @@ import {
   FOLDER_PICKER_NOTE,
   FOLDER_TOO_LARGE_NOTE,
   forgetConnections,
+  holdsClaudeSessions,
   pickedFolderOpens,
   pickerCancelled,
   pickHistoryDirectory,
@@ -127,9 +128,9 @@ function missingMessage(row: HistoryRow): string {
     return `${row.name} isn't included yet. This folder only has the name of its history folder, so StackReplay did not look inside.`;
   if (whollyMissing(row))
     return row.adapterId === "claude-code"
-      ? `${row.name} isn't included yet. Its history folder is a link, and your browser can't open links.`
+      ? `${row.name} isn't included yet. Its history folder is a link, which a drag can't follow.`
       : `${row.name} isn't included yet. Its history folder isn't visible from here.`;
-  return `${row.name}'s ${(row.unreadable ?? []).join(" · ")} isn't included yet. It is a link, and your browser can't open links.`;
+  return `${row.name}'s ${(row.unreadable ?? []).join(" · ")} isn't included yet. It is a link, which a drag can't follow.`;
 }
 
 /** The linked folder to name in the hint: the unreadable one, else the tool's usual one. */
@@ -138,10 +139,9 @@ function linkedPath(row: HistoryRow): string | undefined {
 }
 
 /**
- * How to find where a linked folder points and open it in the chooser. A
- * browser never follows a link, even one picked in the chooser, so the folder
- * it points to is the one to choose. On a folder that is not a link the same
- * command prints the folder itself, so the advice holds either way.
+ * How to find where a linked folder points. Only the folder picker needs it:
+ * it never follows a link, even a picked one. The upload chooser that Connect
+ * uses for linked histories does follow one.
  */
 function linkTargetHelp(path: string, platform: DiscoveryPlatform | undefined): string {
   if (platform === "windows")
@@ -160,11 +160,8 @@ function missingHint(row: HistoryRow, platform: DiscoveryPlatform | undefined): 
   if (row.unconfirmed === true)
     return `${choose}Drop the folder that holds it${parentOf(row) === undefined ? "" : ` (${parentOf(row)})`}, or connect it to choose it yourself.`;
   const linked = linkedPath(row);
-  if (
-    linked !== undefined &&
-    (row.adapterId === "claude-code" || (row.unreadable?.length ?? 0) > 0)
-  )
-    return `Connect it and choose the folder the link points to. ${linkTargetHelp(linked, platform)}`;
+  if (linked !== undefined && followsLinks(row))
+    return `Connect it, choose ${linked}${hiddenTip(platform)}, then confirm your browser's upload prompt. The files stay on this device.`;
   return `${choose}The chooser reads only the folder you choose.`;
 }
 
@@ -176,12 +173,30 @@ function notConnectedNote(
 ): string {
   const path = HIDDEN_FOLDERS[row.adapterId ?? row.key];
   if (row.adapterId === "claude-code" && path !== undefined)
-    return `${row.name} still isn't included: your browser couldn't open its history from ${folder}, usually because that history folder is a link. Choose ${path}, or the folder it points to if it is a link. ${linkTargetHelp(path, platform)}`;
+    return `${row.name} still isn't included: ${folder} doesn't hold its history, or holds it behind a link. Choose ${path} itself${hiddenTip(platform)}.`;
   const choose =
     path === undefined
       ? "Choose the folder that holds it."
       : `Choose ${path} itself. It is a hidden folder: in the picker, press ⌘⇧. on a Mac or Ctrl+H on Linux to show it.`;
   return `${row.name} still isn't included: ${folder} doesn't hold its history. ${choose}`;
+}
+
+/**
+ * Connect for a linked history uses the upload chooser: unlike the folder
+ * picker it follows a picked link (checked in Chromium on Linux), at the cost
+ * of one confirm prompt. Picking the link's parent still drops the link.
+ */
+function followsLinks(row: HistoryRow | undefined): boolean {
+  return (
+    row !== undefined && (row.adapterId === "claude-code" || (row.unreadable?.length ?? 0) > 0)
+  );
+}
+
+/** How to show hidden folders in the platform's chooser, as a clause. */
+function hiddenTip(platform: DiscoveryPlatform | undefined): string {
+  if (platform === "macos") return " (press ⌘⇧. to show hidden folders)";
+  if (platform === "linux") return " (press Ctrl+H to show hidden folders)";
+  return "";
 }
 
 /** Why a picked folder could not be opened at all: the browser won't read a picked link. */
@@ -401,7 +416,7 @@ export function HistoryDiscovery({
     async (key?: string) => {
       if (busy || !ready || runningRef.current) return;
       setConfirming(false);
-      if (!supportsDirectoryPicker()) {
+      if (!supportsDirectoryPicker() || followsLinks(rows.find((row) => row.key === key))) {
         chooserTarget.current = key === undefined ? {} : { key };
         chooserRef.current?.click();
         return;
@@ -486,6 +501,20 @@ export function HistoryDiscovery({
         const tree = chosenFolder(list);
         const run = tree === undefined ? undefined : await discoverHistories(tree, { platform });
         const findings = run?.findings ?? [];
+        // A Claude folder whose projects is a link arrives without it (the
+        // chooser drops a link below the chosen folder): say what to choose
+        // instead of taking history.jsonl or nothing as its sessions.
+        const row = rows.find((candidate) => candidate.key === target.key);
+        if (
+          row?.adapterId === "claude-code" &&
+          !findings.some(
+            (finding) => finding.adapterId === "claude-code" && finding.status === "found",
+          ) &&
+          !holdsClaudeSessions(list)
+        ) {
+          setDropNote(notConnectedNote(row, folder, platform));
+          return;
+        }
         setRows((current) => applyChosenFolder(current, findings, list, folder, target.key));
         const named = findings
           .filter((finding) => finding.status !== "not-found")
@@ -501,7 +530,7 @@ export function HistoryDiscovery({
         setPicking(false);
       }
     },
-    [platform],
+    [platform, rows],
   );
 
   const toggle = useCallback((key: string, value: boolean) => {

@@ -4,6 +4,7 @@ import { collectSelection, mergeFinding, waitingRows } from "./discovery-list";
 import {
   discoverPickedDirectory,
   handleDirectory,
+  holdsClaudeSessions,
   pickedFolderOpens,
   tooManyChosenFiles,
 } from "./history-discovery";
@@ -147,6 +148,20 @@ describe("lazy directory handles", () => {
     );
     expect(tool.findings.find((finding) => finding.adapterId === "claude-code")?.status).not.toBe(
       "found",
+    );
+  });
+
+  it("recognizes Claude sessions in upload chooser files by their project folder", () => {
+    const file = (path: string) => {
+      const value = new File(["{}"], path.split("/").at(-1) ?? path);
+      Object.defineProperty(value, "webkitRelativePath", { value: path });
+      return value;
+    };
+    expect(holdsClaudeSessions([file("projects/-home-me-app/a.jsonl")])).toBe(true);
+    expect(holdsClaudeSessions([file("projects/C--Users-me-app/a.jsonl")])).toBe(true);
+    // A .claude whose linked projects was dropped: history.jsonl is no session.
+    expect(holdsClaudeSessions([file(".claude/history.jsonl"), file(".claude/a.json")])).toBe(
+      false,
     );
   });
 
