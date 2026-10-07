@@ -36,6 +36,8 @@ import {
   type WorkerResponse,
 } from "../lib/worker-protocol";
 import { summarizeExport } from "../lib/workload-summary";
+import { type ScanFile, scanCandidate } from "./scan-candidate";
+import { createScanPool } from "./scan-pool";
 
 /**
  * The import Worker (M3 brief).
@@ -457,6 +459,7 @@ async function handleImportSources(
     `Scanning ${files.length} selected file${files.length === 1 ? "" : "s"}`,
   );
   const candidates: BrowserCandidate[] = [];
+  const scanFiles = new Map<BrowserCandidate, ScanFile>();
   const archiveOutcomes: CandidateOutcome[] = [];
   for (const { file, path, group, unavailable } of files) {
     if (!importIsCurrent(requestId, signal)) return;
@@ -467,17 +470,13 @@ async function handleImportSources(
       candidates.push(unavailableCandidate(path, history, name));
       continue;
     }
-    const selected = {
+    const scanFile: ScanFile = {
+      file,
       path,
       ...(history === undefined ? {} : { group: history }),
-      size: file.size,
-      lastModified: file.lastModified,
-      text: () => (file === preReadFile ? Promise.resolve(preReadText ?? "") : file.text()),
-      stream: () => file.stream(),
-      peekText: (bytes: number) => file.slice(0, bytes).text(),
       readCost: file === preReadFile ? 0 : file.size,
-      arrayBuffer: () => file.arrayBuffer(),
     };
+    const selected = scanCandidate(scanFile, file === preReadFile ? preReadText : undefined);
     if (/\.zip$/iu.test(file.name)) {
       try {
         const expanded = await expandZipCandidate(selected, budget);
@@ -493,15 +492,20 @@ async function handleImportSources(
             failure instanceof Error ? sanitizeMessage(failure.message) : "Archive is malformed",
         });
       }
-    } else candidates.push(selected);
+    } else {
+      candidates.push(selected);
+      if (file !== preReadFile) scanFiles.set(selected, scanFile);
+    }
   }
   let result: Awaited<ReturnType<typeof intakeBrowserCandidates>>;
+  const pool = createScanPool(scanFiles, signal);
   try {
     result = await intakeBrowserCandidates(candidates, loadBundledCatalog(), {
       now,
       ...(request.sourceRootSalt ? { sourceRootSalt: request.sourceRootSalt } : {}),
       budget,
       signal,
+      ...(pool === undefined ? {} : { parallel: pool }),
       // Real totals, at most ten times a second: a report per small file cost
       // more in messages and renders than the scan itself.
       progressIntervalMs: 100,
@@ -519,6 +523,8 @@ async function handleImportSources(
     // A cancelled scan already told the page; it stops here and saves nothing.
     if (failure instanceof BrowserIntakeCancelledError) return;
     throw failure;
+  } finally {
+    pool?.close();
   }
   if (!importIsCurrent(requestId, signal)) return;
   result.outcomes.unshift(...archiveOutcomes);

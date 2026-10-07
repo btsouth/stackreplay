@@ -18,6 +18,7 @@ const here = dirname(fileURLToPath(import.meta.url));
 const root = join(here, "..");
 for (const [entry, output] of [
   ["import.worker.ts", "stackreplay-worker.js"],
+  ["scan.worker.ts", "stackreplay-scan-worker.js"],
   ["recap.worker.ts", "stackreplay-recap-worker.js"],
 ]) {
   await build({
