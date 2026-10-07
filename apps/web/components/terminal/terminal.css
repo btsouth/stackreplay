@@ -2954,14 +2954,18 @@
   color: var(--dim);
 }
 
-/* Side readouts scale with their own cell, so long figures never touch the edge. */
-.terminal :is(.costside, .rside, .hero .side, .actside, .sins) .cell {
-  container-type: inline-size;
-}
-.terminal :is(.costside, .rside, .hero .side, .actside, .sins) .kv .v {
-  font-size: clamp(18px, 14cqi, var(--kv-max, 34px));
-  overflow-wrap: anywhere;
-}
-.terminal .costside .kv .v {
-  --kv-max: 28px;
+/* Side readouts scale with their own cell, so long figures never touch the edge.
+   Phones keep their own sizes. 24px is the floor so orange figures stay large
+   text for contrast. */
+@media (min-width: 801px) {
+  .terminal :is(.costside, .rside, .hero .side, .actside, .sins) .cell {
+    container-type: inline-size;
+  }
+  .terminal :is(.costside, .rside, .hero .side, .actside, .sins) .kv .v {
+    font-size: clamp(24px, 14cqi, var(--kv-max, 34px));
+    overflow-wrap: anywhere;
+  }
+  .terminal .costside .kv .v {
+    --kv-max: 28px;
+  }
 }
