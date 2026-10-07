@@ -345,7 +345,6 @@ describe("browser intake using shared adapters", () => {
     expect(result.exported?.events.length).toBeGreaterThan(0);
     expect(result.outcomes[0]?.status).toBe("imported");
   });
-
   it("streams JSONL without asking for the whole file as text", async () => {
     const bytes = new TextEncoder().encode(CODEX_ROLLOUT);
     const streamed: BrowserCandidate = {
@@ -910,7 +909,7 @@ describe("file signature", () => {
   });
 });
 
-it("keeps Claude roots separate and prefers final native usage across selected files", async () => {
+it("dedupes a session shared by two Claude config folders and prefers final native usage", async () => {
   const row = (output: number, final: boolean) =>
     JSON.stringify({
       type: "assistant",
@@ -938,10 +937,28 @@ it("keeps Claude roots separate and prefers final native usage across selected f
     { now: NOW, salt: FIXTURE_SALT },
   );
   const events = result.exported?.events ?? [];
-  expect(events).toHaveLength(2);
-  expect(events.map((e) => e.usage.outputTokens)).toEqual([7, 7]);
-  expect(new Set(events.map((e) => e.source.resourceInstanceId)).size).toBe(2);
+  // `.claude2` holds the same session as `.claude`, so it is one history.
+  expect(events).toHaveLength(1);
+  expect(events.map((e) => e.usage.outputTokens)).toEqual([7]);
+  expect(new Set(events.map((e) => e.source.resourceInstanceId)).size).toBe(1);
   expect(events.reduce((n, e) => n + (e.source.nativeResponse?.duplicateRows ?? 0), 0)).toBe(1);
+});
+
+it("keeps different sessions from two Claude config folders", async () => {
+  const other = CLAUDE_CODE_SESSION.replaceAll(
+    "11111111-1111-4111-8111-111111111111",
+    "22222222-2222-4222-8222-222222222222",
+  ).replaceAll("msg_", "msgB_");
+  const result = await intakeBrowserCandidates(
+    [
+      { ...candidate(".claude/projects/p/a.jsonl", CLAUDE_CODE_SESSION), group: "claude-code" },
+      { ...candidate(".claude2/projects/p/b.jsonl", other), group: "claude-code" },
+    ],
+    syntheticCatalog(),
+    { now: NOW, salt: FIXTURE_SALT },
+  );
+  expect(result.exported?.events).toHaveLength(4);
+  expect(new Set(result.exported?.events.map((e) => e.source.resourceInstanceId)).size).toBe(1);
 });
 
 it("does not merge same-named projects folders from different connected locations", async () => {

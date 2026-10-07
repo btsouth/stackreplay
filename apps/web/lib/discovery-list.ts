@@ -35,6 +35,10 @@ export interface HistoryRow {
   /** The folder this history was found in or chosen as, shown on this screen only. */
   where?: string;
   via?: "discovery" | "chooser";
+  /** Every readable location found in one run, as `~/.claude/projects`-style labels. */
+  locations?: string[];
+  /** Registered locations that are installed but not readable (a link, a custom folder). */
+  unreadable?: string[];
   /** A second location for a history already found in another folder. */
   extra?: boolean;
   /** Access needed because the folder was only named like this history, so not examined. */
@@ -62,6 +66,17 @@ export interface HistorySelection {
   histories: { id: string; name: string; files: number; bytes?: number }[];
   bytes: number;
   remembered: { id: string; name: string; via: "discovery" | "chooser" }[];
+  /**
+   * Tools discovery found but that were left out on purpose (a history the
+   * browser could not read and the person chose not to connect). Names only,
+   * for the quiet notice on the built recap.
+   */
+  skipped: { id: string; name: string }[];
+}
+
+/** A history location as the home-relative path the person recognizes. */
+export function locationLabel(path: readonly string[]): string {
+  return `~/${path.join("/")}`;
 }
 
 export const FOUND: readonly RowStatus[] = ["found", "connected"];
@@ -115,6 +130,10 @@ export function rowFromFinding(
     ...(finding.truncated === true ? { truncated: true } : {}),
     ...(finding.relocatedBy === undefined ? {} : { relocatedBy: finding.relocatedBy }),
     ...(finding.unconfirmed === true ? { unconfirmed: true } : {}),
+    ...(finding.locations === undefined ? {} : { locations: finding.locations.map(locationLabel) }),
+    ...(finding.unreadable === undefined
+      ? {}
+      : { unreadable: finding.unreadable.map(locationLabel) }),
     ...(finding.profile === undefined
       ? {}
       : { profile: { get: () => (finding.profile as ResolvableFile).file() } }),
@@ -284,7 +303,10 @@ function browserErrorName(error: unknown): string {
  * browser no longer hands over is kept as an unavailable entry, so the scan
  * counts and reports it as unreadable; the workload then says it is partial.
  */
-export async function collectSelection(selected: readonly HistoryRow[]): Promise<HistorySelection> {
+export async function collectSelection(
+  selected: readonly HistoryRow[],
+  skipped: readonly { id: string; name: string }[] = [],
+): Promise<HistorySelection> {
   const files: HistorySelection["files"] = [];
   for (const row of selected) {
     for (const entry of row.files ?? []) {
@@ -328,5 +350,6 @@ export async function collectSelection(selected: readonly HistoryRow[]): Promise
         ? []
         : [{ id: row.adapterId, name: row.name, via: row.via ?? "discovery" }],
     ),
+    skipped: skipped.map((source) => ({ id: source.id, name: source.name })),
   };
 }

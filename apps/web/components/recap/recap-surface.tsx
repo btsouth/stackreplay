@@ -3,6 +3,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
 import { Overview } from "@/components/terminal/overview";
+import { readSkippedSources, type SkippedSource } from "@/lib/skipped-sources";
 import { usePaidMultiplier } from "@/lib/use-paid-multiplier";
 import { useRecapData } from "@/lib/use-recap-data";
 export function RecapSurface({
@@ -14,6 +15,11 @@ export function RecapSurface({
 }) {
   const data = useRecapData(initialImportId),
     paid = usePaidMultiplier(data.recap);
+  const [skipped, setSkipped] = useState<SkippedSource[]>([]);
+  const importId = data.record?.id;
+  useEffect(() => {
+    setSkipped(readSkippedSources(importId));
+  }, [importId]);
   if (data.error)
     return (
       <div className="status" role="alert">
@@ -84,6 +90,7 @@ export function RecapSurface({
           onPeriod={data.selectPeriod}
           record={data.record}
           paid={paid}
+          skipped={skipped}
         />
       ) : (
         <div className="status">

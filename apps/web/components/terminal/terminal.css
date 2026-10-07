@@ -1257,6 +1257,14 @@
   color: var(--dim);
   margin-bottom: 16px;
 }
+.terminal .recap-skipped {
+  font: 11px var(--mono);
+  color: var(--dim);
+  margin-bottom: 16px;
+}
+.terminal .recap-skipped a {
+  color: var(--signal);
+}
 .terminal .toggles {
   margin: 20px 0;
 }

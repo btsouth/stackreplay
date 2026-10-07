@@ -463,11 +463,13 @@ test("privacy: discovery opens only registered locations, reads nothing, and sen
   expect(probes.length).toBeGreaterThan(0);
   for (const probe of probes) expect(allowed.has(probe.path), probe.path).toBe(true);
 
-  // Listings happen only inside the two history folders that were found.
+  // Listings happen inside the found history folders, plus one names-only
+  // listing of the chosen home to find alternate Claude config folders.
   const listings = access.filter((entry) => entry.op === "list").map((entry) => entry.path);
   expect(listings.length).toBeGreaterThan(0);
+  expect(listings.filter((listing) => listing === "")).toHaveLength(1);
   for (const listing of listings) {
-    expect(listing, "the chosen folder itself is never listed").not.toBe("");
+    if (listing === "") continue;
     expect(
       listing.startsWith(".claude/projects") || listing.startsWith(".codex/sessions"),
       listing,
