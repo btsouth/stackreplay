@@ -79,7 +79,8 @@ export function locationLabel(path: readonly string[]): string {
   return `~/${path.join("/")}`;
 }
 
-export const FOUND: readonly RowStatus[] = ["found", "connected"];export const SETTLED: readonly RowStatus[] = [
+export const FOUND: readonly RowStatus[] = ["found", "connected"];
+export const SETTLED: readonly RowStatus[] = [
   "found",
   "connected",
   "empty",
@@ -129,9 +130,7 @@ export function rowFromFinding(
     ...(finding.truncated === true ? { truncated: true } : {}),
     ...(finding.relocatedBy === undefined ? {} : { relocatedBy: finding.relocatedBy }),
     ...(finding.unconfirmed === true ? { unconfirmed: true } : {}),
-    ...(finding.locations === undefined
-      ? {}
-      : { locations: finding.locations.map(locationLabel) }),
+    ...(finding.locations === undefined ? {} : { locations: finding.locations.map(locationLabel) }),
     ...(finding.unreadable === undefined
       ? {}
       : { unreadable: finding.unreadable.map(locationLabel) }),

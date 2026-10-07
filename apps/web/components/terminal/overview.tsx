@@ -8,6 +8,7 @@ import { pricingCoverage, type Recap, type RecapPeriod, requestCountOf } from "@
 import { recapInsights } from "@/lib/recap-insights";
 import { developerNames, harnessNames, providerNames } from "@/lib/recap-names";
 import { recapPeriodOptions } from "@/lib/recap-periods";
+import type { SkippedSource } from "@/lib/skipped-sources";
 import {
   activeDays,
   compact,
@@ -26,7 +27,6 @@ import {
 } from "@/lib/terminal-presentation";
 import { useGitHubActivity } from "@/lib/use-github-activity";
 import type { PaidFigure } from "@/lib/use-paid-multiplier";
-import type { SkippedSource } from "@/lib/skipped-sources";
 import type { ImportRecord } from "@/lib/worker-protocol";
 import { isSyntheticWorkload } from "@/lib/workload-kind";
 import { DailyChart } from "./daily-chart";
@@ -130,9 +130,8 @@ export function Overview({
       </div>
       {skipped !== undefined && skipped.length > 0 && (
         <p className="recap-skipped" data-testid="skipped-tool-notice">
-          {skipped.map((source) => source.name).join(" · ")}{" "}
-          {skipped.length === 1 ? "was" : "were"} found but not included ·{" "}
-          <Link href="/app/scan">Connect it</Link>
+          {skipped.map((source) => source.name).join(" · ")} {skipped.length === 1 ? "was" : "were"}{" "}
+          found but not included · <Link href="/app/scan">Connect it</Link>
         </p>
       )}
       {record && (

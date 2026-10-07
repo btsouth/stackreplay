@@ -1,4 +1,4 @@
-import { lstat, mkdir, readFile, readdir, writeFile } from "node:fs/promises";
+import { lstat, mkdir, readdir, readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { expect, type Page, test } from "@playwright/test";
 import { buildHome, writeClaudeProjects } from "./fixtures/discovery-home";
@@ -186,8 +186,9 @@ function installPicker({ tree, rootName }: { tree: ReadNode; rootName: string })
     },
   });
   const root =
-    tree.kind === "dir"
-      ? handle(rootName, tree)
-      : handle(rootName, { kind: "dir", entries: {} });
-  Object.defineProperty(window, "showDirectoryPicker", { configurable: true, value: async () => root });
+    tree.kind === "dir" ? handle(rootName, tree) : handle(rootName, { kind: "dir", entries: {} });
+  Object.defineProperty(window, "showDirectoryPicker", {
+    configurable: true,
+    value: async () => root,
+  });
 }
