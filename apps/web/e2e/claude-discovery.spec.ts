@@ -43,10 +43,9 @@ test("a linked Claude history is shown loudly and confirmed before it is left ou
   const block = page.getByTestId("missing-claude-code");
   await expect(block).toBeVisible();
   await expect(block).toContainText("Claude Code isn't included yet");
-  await expect(block).toContainText("your browser can't open links");
-  await expect(block).toContainText("choose the folder the link points to");
-  // The command to find the target follows the browser platform.
-  await expect(block).toContainText("To find it, run");
+  await expect(block).toContainText("a link, which a drag can't follow");
+  await expect(block).toContainText("Connect it, choose ~/.claude/projects");
+  await expect(block).toContainText("confirm your browser's upload prompt");
   await expect(page.getByTestId("top-connect-claude-code")).toBeVisible();
   expect(languageMatches(await page.getByTestId("history-discovery").innerText())).toEqual([]);
 
@@ -95,45 +94,48 @@ test("extra .claude2 history is found, listed and imported with Claude Code", as
 });
 
 /**
- * Chromium's File System Access layer never follows a symbolic link
- * (`storage/browser/file_system/local_file_util.cc`). Picking the link
- * `~/.claude/projects` returns a handle, but every read of it fails with
- * NotFoundError (checked in Chromium on Linux), and picking `~/.claude` hides
- * the linked `projects`. Only the folder the link points to can be read. The
- * native picker cannot be driven from Playwright, so the handle is stubbed
- * over a real temp tree with exactly those semantics.
+ * Chromium's folder picker never follows a symbolic link: a picked link fails
+ * every read, and picking `~/.claude` hides the linked `projects`. The upload
+ * chooser does follow a picked link, so Connect for a linked history uses it
+ * (both checked in Chromium on Linux). The folder picker cannot be driven from
+ * Playwright, so its handle is stubbed with exactly those semantics.
  */
-test("a picked linked folder says where to look, and its target connects", async ({
+test("Connect Claude Code reads a linked projects folder through the upload chooser", async ({
   page,
 }, testInfo) => {
   const real = testInfo.outputPath("real-data/claude-projects");
   const home = testInfo.outputPath("dev-home");
   await buildHome(home, { claudeSessions: 1, codexRollouts: 1, linkClaude: real });
 
-  // Picking the link itself: the handle opens but cannot be read.
-  const link = await readTree(join(home, ".claude", "projects"));
-  await page.addInitScript(installPicker, { tree: link, rootName: "projects" });
-
   await dropHome(page, home);
   await expect(page.getByTestId("history-claude-code")).toHaveAttribute(
     "data-status",
     "access-needed",
   );
+  const chooser = page.waitForEvent("filechooser");
   await page.getByTestId("top-connect-claude-code").click();
-  const note = page.getByTestId("discovery-drop-note");
-  await expect(note).toContainText("Your browser can't open projects because it is a link");
-  await expect(note).toContainText("To find it, run");
-  expect(languageMatches(await note.innerText())).toEqual([]);
+  await (await chooser).setFiles(join(home, ".claude", "projects"));
   await expect(page.getByTestId("history-claude-code")).toHaveAttribute(
     "data-status",
-    "access-needed",
+    "connected",
   );
-
-  // Picking the folder the link points to connects it.
-  await page.evaluate(installPicker, { tree: await readTree(real), rootName: "claude-projects" });
-  await page.getByTestId("top-connect-claude-code").click();
-  await expect(page.getByTestId("history-claude-code")).toHaveAttribute("data-status", "found");
   await expect(page.getByTestId("history-claude-code")).toContainText("1 file");
+  await expect(page.getByTestId("missing-claude-code")).toHaveCount(0);
+});
+
+test("a picked link the folder picker cannot read says so", async ({ page }, testInfo) => {
+  const real = testInfo.outputPath("real-data/claude-projects");
+  const home = testInfo.outputPath("dev-home");
+  await buildHome(home, { claudeSessions: 1, codexRollouts: 1, linkClaude: real });
+
+  const link = await readTree(join(home, ".claude", "projects"));
+  await page.addInitScript(installPicker, { tree: link, rootName: "projects" });
+
+  await gotoImport(page);
+  await page.getByTestId("choose-history-folder").click();
+  const note = page.getByTestId("discovery-drop-note");
+  await expect(note).toContainText("Your browser can't open projects because it is a link");
+  expect(languageMatches(await note.innerText())).toEqual([]);
 });
 
 test("the chooser cannot descend from .claude into a linked projects", async ({
@@ -157,19 +159,24 @@ test("the chooser cannot descend from .claude into a linked projects", async ({
 test("connecting Claude from .claude with a linked projects says what to choose", async ({
   page,
 }, testInfo) => {
-  const real = testInfo.outputPath("real-data/claude-projects");
   const home = testInfo.outputPath("dev-home");
-  await buildHome(home, { claudeSessions: 1, codexRollouts: 1, linkClaude: real });
-
-  const tool = await readTree(join(home, ".claude"));
-  await page.addInitScript(installPicker, { tree: tool, rootName: ".claude" });
+  await buildHome(home, {
+    claudeSessions: 1,
+    codexRollouts: 1,
+    linkClaude: testInfo.outputPath("real"),
+  });
+  // What the upload chooser hands over for .claude: the linked projects is dropped.
+  const tool = testInfo.outputPath("picked/.claude");
+  await mkdir(tool, { recursive: true });
+  await writeFile(join(tool, "settings.json"), "{}");
 
   await dropHome(page, home);
+  const chooser = page.waitForEvent("filechooser");
   await page.getByTestId("top-connect-claude-code").click();
+  await (await chooser).setFiles(tool);
   const note = page.getByTestId("discovery-drop-note");
   await expect(note).toContainText("Claude Code still isn't included");
-  await expect(note).toContainText("couldn't open its history from .claude");
-  await expect(note).toContainText("or the folder it points to if it is a link");
+  await expect(note).toContainText("Choose ~/.claude/projects itself");
   expect(languageMatches(await note.innerText())).toEqual([]);
   await expect(page.getByTestId("history-claude-code")).not.toHaveAttribute("data-status", "found");
 });

@@ -145,6 +145,18 @@ export function handleDirectory(handle: FileSystemDirectoryHandle): DiscoveryDir
  */
 const CLAUDE_PROJECT_FOLDER = /^(?:-|[A-Za-z]--)/u;
 
+/** Whether files from the upload chooser include a Claude session in a project folder. */
+export function holdsClaudeSessions(files: readonly File[]): boolean {
+  return files.some(
+    (file) =>
+      file.name.endsWith(".jsonl") &&
+      (file.webkitRelativePath ?? "")
+        .split("/")
+        .slice(0, -1)
+        .some((part) => CLAUDE_PROJECT_FOLDER.test(part)),
+  );
+}
+
 async function holdsClaudeProjects(directory: DiscoveryDirectory<HandleFile>): Promise<boolean> {
   const { directories } = await directory.list();
   return directories.some((child) => CLAUDE_PROJECT_FOLDER.test(child.name));
