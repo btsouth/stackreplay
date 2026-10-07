@@ -141,6 +141,26 @@ test("the chooser cannot descend from .claude into a linked projects", async ({
   await expect(page.getByTestId("missing-claude-code")).toBeVisible();
 });
 
+test("connecting Claude from .claude with a linked projects says what to choose", async ({
+  page,
+}, testInfo) => {
+  const real = testInfo.outputPath("real-data/claude-projects");
+  const home = testInfo.outputPath("dev-home");
+  await buildHome(home, { claudeSessions: 1, codexRollouts: 1, linkClaude: real });
+
+  const tool = await readTree(join(home, ".claude"));
+  await page.addInitScript(installPicker, { tree: tool, rootName: ".claude" });
+
+  await dropHome(page, home);
+  await page.getByTestId("top-connect-claude-code").click();
+  const note = page.getByTestId("discovery-drop-note");
+  await expect(note).toContainText("Claude Code still isn't included");
+  await expect(note).toContainText("couldn't open its history from .claude");
+  await expect(note).toContainText("Choose ~/.claude/projects itself");
+  expect(languageMatches(await note.innerText())).toEqual([]);
+  await expect(page.getByTestId("history-claude-code")).not.toHaveAttribute("data-status", "found");
+});
+
 type ReadNode =
   | { kind: "dir"; entries: Record<string, ReadNode> }
   | { kind: "file"; content: string }

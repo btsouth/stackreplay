@@ -142,6 +142,18 @@ function missingHint(row: HistoryRow): string {
   return `${choose}The chooser reads only the folder you choose.`;
 }
 
+/** Why a folder chosen to connect one tool did not connect it. */
+function notConnectedNote(row: HistoryRow, folder: string): string {
+  const path = HIDDEN_FOLDERS[row.adapterId ?? row.key];
+  const choose =
+    path === undefined
+      ? "Choose the folder that holds it."
+      : `Choose ${path} itself. It is a hidden folder: in the picker, press ⌘⇧. on a Mac or Ctrl+H on Linux to show it.`;
+  return row.adapterId === "claude-code"
+    ? `${row.name} still isn't included: your browser couldn't open its history from ${folder}, usually because that history folder is a link. ${choose}`
+    : `${row.name} still isn't included: ${folder} doesn't hold its history. ${choose}`;
+}
+
 /** What the confirm step says the person is about to leave out. */
 function missingConfirm(row: HistoryRow): string {
   if (whollyMissing(row)) return `${row.name} won't be in your recap.`;
@@ -360,15 +372,17 @@ export function HistoryDiscovery({
         const folder = await pickHistoryDirectory();
         const target = rows.find((row) => row.key === key);
         const run = await discoverPickedDirectory(folder, platform, target?.adapterId);
+        const connected = run.findings.some(
+          (finding) =>
+            finding.adapterId === target?.adapterId &&
+            (finding.status === "found" || finding.status === "empty"),
+        );
+        // A Connect that still can't read the tool says so instead of leaving
+        // the row unchanged.
+        if (key !== undefined && target !== undefined && !connected)
+          setDropNote(notConnectedNote(target, folder.name));
         setRows((current) => {
-          if (
-            key !== undefined &&
-            run.findings.some(
-              (finding) =>
-                finding.adapterId === target?.adapterId &&
-                (finding.status === "found" || finding.status === "empty"),
-            )
-          ) {
+          if (key !== undefined && connected) {
             return applyChosenFolder(current, run.findings, [], folder.name, key);
           }
           let next = current;
