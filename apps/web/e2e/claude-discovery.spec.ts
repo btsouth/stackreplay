@@ -115,10 +115,7 @@ test("Connect Claude Code reads a linked projects folder through the upload choo
   const chooser = page.waitForEvent("filechooser");
   await page.getByTestId("top-connect-claude-code").click();
   await (await chooser).setFiles(join(home, ".claude", "projects"));
-  await expect(page.getByTestId("history-claude-code")).toHaveAttribute(
-    "data-status",
-    "connected",
-  );
+  await expect(page.getByTestId("history-claude-code")).toHaveAttribute("data-status", "connected");
   await expect(page.getByTestId("history-claude-code")).toContainText("1 file");
   await expect(page.getByTestId("missing-claude-code")).toHaveCount(0);
 });
