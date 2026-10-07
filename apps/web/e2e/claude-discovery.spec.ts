@@ -2,6 +2,7 @@ import { lstat, mkdir, readdir, readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { expect, type Page, test } from "@playwright/test";
 import { buildHome, writeClaudeProjects } from "./fixtures/discovery-home";
+import { languageMatches } from "./app-language";
 import { dropFolders, gotoImport, waitForWorkload } from "./premium-app-helpers";
 
 /**
@@ -46,6 +47,7 @@ test("a linked Claude history is shown loudly and confirmed before it is left ou
   await expect(block).toContainText("Choose ~/.claude/projects");
   await expect(block).toContainText("The chooser follows the link");
   await expect(page.getByTestId("top-connect-claude-code")).toBeVisible();
+  expect(languageMatches(await page.getByTestId("history-discovery").innerText())).toEqual([]);
 
   // Making a recap first asks, and says exactly what would be left out.
   await page.getByTestId("build-workload").click();
@@ -53,6 +55,7 @@ test("a linked Claude history is shown loudly and confirmed before it is left ou
   await expect(confirm).toBeVisible();
   await expect(confirm).toContainText("Claude Code won't be in your recap.");
   await expect(page.getByTestId("confirm-connect-claude-code")).toBeVisible();
+  expect(languageMatches(await confirm.innerText())).toEqual([]);
 
   await page.getByTestId("build-without-missing").click();
   await waitForWorkload(page);
@@ -63,6 +66,7 @@ test("a linked Claude history is shown loudly and confirmed before it is left ou
     "href",
     "/app/scan",
   );
+  expect(languageMatches(await notice.innerText())).toEqual([]);
 });
 
 test("extra .claude2 history is found, listed and imported with Claude Code", async ({
