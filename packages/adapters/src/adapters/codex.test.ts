@@ -28,6 +28,40 @@ async function collectFrom(session: string = CODEX_ROLLOUT) {
 }
 
 describe("codex adapter", () => {
+  it.each([false, true])("long tool output preserves collection (ordinal=%s)", async (ordinal) => {
+    const output = (text: string) =>
+      JSON.stringify({
+        timestamp: "2026-09-19T11:00:03.000Z",
+        ...(ordinal ? { ordinal: 123 } : {}),
+        type: "response_item",
+        payload: { type: "custom_tool_call_output", output: text },
+      });
+    const withOutput = (text: string) =>
+      CODEX_ROLLOUT.split("\n")
+        .flatMap((line, index) => (index === 1 ? [line, output(text)] : [line]))
+        .join("\n");
+    const short = await collectFrom(withOutput("small"));
+    const long = await collectFrom(withOutput("x".repeat(8192)));
+    expect(long.events).toEqual(short.events);
+    expect(long.stats).toEqual(short.stats);
+    expect(long.warnings.map(({ path: _path, ...warning }) => warning)).toEqual(
+      short.warnings.map(({ path: _path, ...warning }) => warning),
+    );
+  });
+
+  it("counts truncated long output as malformed", async () => {
+    const damaged = JSON.stringify({
+      timestamp: "2026-09-19T11:00:03.000Z",
+      type: "response_item",
+      payload: { type: "custom_tool_call_output", output: "x".repeat(8192) },
+    }).slice(0, -1);
+    const before = await collectFrom();
+    const after = await collectFrom(`${CODEX_ROLLOUT}\n${damaged}`);
+    expect(after.events).toEqual(before.events);
+    expect(after.stats.recordsUnsupported).toBe(before.stats.recordsUnsupported + 1);
+    expect(after.stats.recordsRead).toBe(before.stats.recordsRead + 1);
+  });
+
   it("emits one event per per-turn token delta", async () => {
     const result = await collectFrom();
     expect(result.events).toHaveLength(2);

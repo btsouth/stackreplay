@@ -20,6 +20,7 @@ import { createOpenCodeAdapter } from "./adapters/opencode.js";
 import { createT3CodeAdapter } from "./adapters/t3-code.js";
 import type { BrowserSourceId } from "./browser-formats.js";
 import { openBrowserOpenCode } from "./browser-sqlite.js";
+import { codexRecordHead } from "./codex-record-head.js";
 import { dedupeEvents } from "./dedup.js";
 import {
   generateSalt,
@@ -607,6 +608,7 @@ export function detectBrowserSource(
   let examined = 0;
   for (const line of nonEmptyLines(text)) {
     if (examined++ >= 256) break;
+    if (codexRecordHead(line) !== undefined) continue;
     try {
       const value = JSON.parse(line) as Record<string, unknown>;
       const payload = value.payload as Record<string, unknown> | null;
