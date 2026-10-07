@@ -40,6 +40,8 @@ blob-report/
 # Generated browser Worker bundle (built from apps/web/workers by Vite)
 /apps/web/public/stackreplay-worker.js
 /apps/web/public/stackreplay-worker.js.map
+/apps/web/public/stackreplay-scan-worker.js
+/apps/web/public/stackreplay-scan-worker.js.map
 
 # Local usage exports (never commit personal workload data)
 *.stackreplay.json
