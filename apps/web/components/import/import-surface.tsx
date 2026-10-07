@@ -40,6 +40,7 @@ import {
 import { createLocalImportId } from "@/lib/idb";
 import { importSizeAdvice } from "@/lib/import-validation";
 import { forgetSources } from "@/lib/remembered-sources";
+import { forgetSkippedSources, rememberSkippedSources } from "@/lib/skipped-sources";
 import { browserTimeZone } from "@/lib/time-zone";
 import { localDayOf } from "@/lib/timeline";
 import { describeWorkerFailure, getWorkerClient, SupersededError } from "@/lib/worker-client";
@@ -431,6 +432,8 @@ export function ImportSurface({
       );
       if (imported !== undefined && selection.remembered.length > 0)
         rememberConnections(selection.remembered, new Date().toISOString());
+      if (imported !== undefined && selection.skipped.length > 0)
+        rememberSkippedSources(imported.id, selection.skipped);
     },
     [client, runImport, saveLocal],
   );
@@ -544,6 +547,7 @@ export function ImportSurface({
     setRecord(undefined);
     setPhase("idle");
     forgetConnections();
+    forgetSkippedSources();
     try {
       await forgetSources();
     } catch {

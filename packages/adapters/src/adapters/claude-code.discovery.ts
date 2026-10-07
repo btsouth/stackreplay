@@ -38,6 +38,10 @@ export const CLAUDE_CODE_DISCOVERY: SourceDiscovery = {
       kind: "directory",
     },
   ],
+  // `CLAUDE_CONFIG_DIR` also points Claude Code at `.claude2`, `.claude-work`
+  // and the like, all holding the same `projects` folder. The chosen home
+  // folder's top-level names are listed once to find every one of them.
+  families: [{ pattern: /^\.claude[\w.-]*$/u, history: ["projects"] }],
   relocatedBy: "CLAUDE_CONFIG_DIR",
   // Claude Code keeps the signed-in account in `.claude.json` beside its
   // config folder (in the config folder itself when CLAUDE_CONFIG_DIR is set).

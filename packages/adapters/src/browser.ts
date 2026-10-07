@@ -877,7 +877,10 @@ export async function intakeBrowserCandidates(
     const path = normalizedPath(candidate.path);
     const selectedRoot = /(?:^|\/)(?:opencode|state)\.db$/iu.test(path)
       ? path.replace(/(?:^|\/)(?:opencode|state)\.db$/iu, "")
-      : path.match(/^(.*?(?:^|\/)projects)(?:\/|$)/u)?.[1];
+      : (path.match(/^(.*?(?:^|\/)\.claude[\w.-]*\/projects)(?:\/|$)/u)?.[1]?.replace(
+          /\.claude[\w.-]*\/projects$/u,
+          ".claude/projects",
+        ) ?? path.match(/^(.*?(?:^|\/)projects)(?:\/|$)/u)?.[1]);
     return selectedRoot === undefined
       ? undefined
       : JSON.stringify([candidate.group ?? "selection", selectedRoot]);

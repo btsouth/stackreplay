@@ -14,6 +14,7 @@ import type { AdapterId } from "./types.js";
 
 export type {
   ChildMarker,
+  ConfigFamily,
   DiscoveryPlatform,
   KnownLocation,
   RootSignature,
@@ -30,7 +31,11 @@ export type {
  * that location when the folder is part of it, and the exact children a tool's
  * root is known to hold. Nothing is listed until a history folder has been
  * positively identified that way; then only that folder is listed, to count
- * its files, bounded by the adapter's declared depth. A folder whose name is
+ * its files, bounded by the adapter's declared depth. One exception is
+ * declared: a tool that names alternate config folders (Claude Code's
+ * `.claude`, `.claude2`, `.claude-work`) may list the chosen folder's
+ * top-level names once, and only where that tool is installed, to find each
+ * matching folder; no other entry is opened. A folder whose name is
  * only a generic history name (`projects`, `sessions`) is never listed to find
  * out what it is: its tools are reported as needing additional access. File
  * sizes come without reading content. Parsing waits until the user chooses what
@@ -93,8 +98,21 @@ export interface SourceFinding<F extends DiscoveryFile = DiscoveryFile> {
   status: DiscoveryStatus;
   /** Whether the browser import can parse this source. */
   importable: boolean;
-  /** The matched location below the chosen folder. */
+  /** The first matched location below the chosen folder. */
   location?: readonly string[];
+  /**
+   * Every readable location found in one run, in the order discovered. More
+   * than one when alternate config folders share the history shape (Claude
+   * Code's `.claude`, `.claude2`, `.claude-work`); their files are imported
+   * together as one source.
+   */
+  locations?: readonly (readonly string[])[];
+  /**
+   * With `found`: a registered history location that is installed but not
+   * readable (a link the browser cannot follow), so it is never silently left
+   * out. Usually `.claude/projects` beside a readable `.claude2/projects`.
+   */
+  unreadable?: readonly (readonly string[])[];
   /** History files found so far (while checking) or in total. */
   fileCount?: number;
   /** Total size, present only when every counted file reported its size. */
@@ -369,6 +387,53 @@ function namedLikeHistory(source: SourceDiscovery, rootName: string): boolean {
   );
 }
 
+/** Whether any installed marker for this source exists under the chosen folder. */
+async function anyInstalled<F extends DiscoveryFile>(
+  prober: Prober<F>,
+  source: SourceDiscovery,
+  rootName: string,
+  registry: readonly SourceDiscovery[],
+  platform: DiscoveryPlatform | undefined,
+): Promise<boolean> {
+  for (const marker of ordered(source.installed, platform)) {
+    for (const path of anchoredPaths(marker, rootName, registry, "installed")) {
+      if (await prober.exists(marker.kind, path)) return true;
+    }
+  }
+  return false;
+}
+
+/**
+ * Alternate config folders found by listing the chosen folder's top-level
+ * entry names once: every directory whose name matches a declared family and
+ * that holds that family's history folder. Only names are listed; no
+ * non-matching entry is opened, and a matching one is asked for exactly its
+ * history child.
+ */
+async function locateFamilyHistories<F extends DiscoveryFile>(
+  prober: Prober<F>,
+  root: DiscoveryDirectory<F>,
+  source: SourceDiscovery,
+): Promise<(readonly string[])[]> {
+  const families = source.families;
+  if (families === undefined || families.length === 0) return [];
+  const listing = await prober.list(root);
+  const found: (readonly string[])[] = [];
+  const seen = new Set<string>();
+  for (const family of families) {
+    for (const child of [...listing.directories].sort(byName)) {
+      if (!family.pattern.test(child.name)) continue;
+      const path = [child.name, ...family.history];
+      const key = path.join("\u0000");
+      if (seen.has(key)) continue;
+      if (await prober.exists("directory", path)) {
+        seen.add(key);
+        found.push(path);
+      }
+    }
+  }
+  return found;
+}
 /**
  * Checks one chosen folder for every registered history.
  *
@@ -406,24 +471,54 @@ export async function discoverHistories<F extends DiscoveryFile>(
 
     const match = await locateHistory(prober, root, source, registry, options.platform);
 
-    let finding: SourceFinding<F>;
-    if (match === undefined && base.importable && namedLikeHistory(source, root.name)) {
-      finding = { ...base, status: "access-needed", unconfirmed: true };
-    } else if (match === undefined) {
-      let installed = false;
-      if (base.importable) {
-        for (const marker of ordered(source.installed, options.platform)) {
-          for (const path of anchoredPaths(marker, root.name, registry, "installed")) {
-            if (await prober.exists(marker.kind, path)) installed = true;
-            if (installed) break;
-          }
-          if (installed) break;
-        }
+    // Alternate config folders (Claude Code's `.claude`, `.claude2`,
+    // `.claude-work`): when the chosen folder is not itself one of them, list
+    // its top-level entry names once and treat every matching directory that
+    // holds the history child as another location. This runs only where the
+    // tool is demonstrably installed, so an unrelated folder is never listed.
+    const scanningFamilies =
+      base.importable &&
+      source.families !== undefined &&
+      !source.families.some((family) => family.pattern.test(root.name));
+    let installed = false;
+    if (scanningFamilies) {
+      installed =
+        match !== undefined ||
+        (await anyInstalled(prober, source, root.name, registry, options.platform));
+    }
+    const familyPaths =
+      scanningFamilies && installed ? await locateFamilyHistories(prober, root, source) : [];
+
+    const readable = new Map<string, readonly string[]>();
+    if (match !== undefined) readable.set(match.path.join("\u0000"), match.path);
+    for (const path of familyPaths) readable.set(path.join("\u0000"), path);
+    const readingPaths = [...readable.values()];
+
+    // A registered location that is installed but not readable (a link the
+    // browser cannot follow) is flagged, so it is never a silent omission even
+    // when another config folder was found. Only a home-like root can hide it:
+    // a chosen tool folder is recognized directly and has no default location.
+    const unreadable: (readonly string[])[] = [];
+    if (scanningFamilies && installed && match === undefined) {
+      for (const location of source.history) {
+        if (!readable.has(location.path.join("\u0000"))) unreadable.push(location.path);
       }
-      finding = { ...base, status: installed ? "access-needed" : "not-found" };
+    }
+
+    let finding: SourceFinding<F>;
+    if (readingPaths.length === 0 && base.importable && namedLikeHistory(source, root.name)) {
+      finding = { ...base, status: "access-needed", unconfirmed: true };
+    } else if (readingPaths.length === 0) {
+      if (!installed && base.importable)
+        installed = await anyInstalled(prober, source, root.name, registry, options.platform);
+      finding = {
+        ...base,
+        status: installed ? "access-needed" : "not-found",
+        ...(unreadable.length > 0 ? { unreadable } : {}),
+      };
     } else if (!base.importable) {
-      finding = { ...base, status: "unsupported", location: match.path };
-    } else if (match.kind === "file") {
+      finding = { ...base, status: "unsupported", location: readingPaths[0] };
+    } else if (match !== undefined && match.kind === "file") {
       const file = await prober.file(match.path);
       if (file === null) throw new Error("A probed history database disappeared");
       const files: DiscoveredFile<F>[] = [{ file, path: match.path }];
@@ -442,28 +537,43 @@ export async function discoverHistories<F extends DiscoveryFile>(
         files,
       };
     } else if (source.inventory === undefined) {
-      finding = { ...base, status: "unsupported", location: match.path };
+      finding = { ...base, status: "unsupported", location: readingPaths[0] };
     } else {
-      const directory = match.path.length === 0 ? root : await prober.directory(match.path);
-      if (directory === null) throw new Error("A probed history folder disappeared");
-      const listed = await inventory(
-        prober,
-        directory,
-        match.path,
-        source.inventory,
-        limit,
-        (count) => options.onFinding?.({ ...base, status: "checking", fileCount: count }),
-        options.signal,
-      );
-      const bytes = await totalSize(listed.files);
+      const files: DiscoveredFile<F>[] = [];
+      let truncated = false;
+      let reported = 0;
+      for (const path of readingPaths) {
+        if (truncated || aborted(options.signal)) break;
+        const directory = path.length === 0 ? root : await prober.directory(path);
+        if (directory === null) continue;
+        const listed = await inventory(
+          prober,
+          directory,
+          path,
+          source.inventory,
+          limit - files.length,
+          (count) => {
+            const total = files.length + count;
+            if (total === reported) return;
+            reported = total;
+            options.onFinding?.({ ...base, status: "checking", fileCount: total });
+          },
+          options.signal,
+        );
+        files.push(...listed.files);
+        truncated ||= listed.truncated;
+      }
+      const bytes = await totalSize(files);
       finding = {
         ...base,
-        status: listed.files.length === 0 ? "empty" : "found",
-        location: match.path,
-        fileCount: listed.files.length,
+        status: files.length === 0 ? "empty" : "found",
+        location: readingPaths[0],
+        ...(readingPaths.length > 1 ? { locations: readingPaths } : {}),
+        fileCount: files.length,
         ...(bytes === undefined ? {} : { bytes }),
-        ...(listed.truncated ? { truncated: true } : {}),
-        files: listed.files,
+        ...(truncated ? { truncated: true } : {}),
+        files,
+        ...(unreadable.length > 0 ? { unreadable } : {}),
       };
     }
     if (

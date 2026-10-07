@@ -336,6 +336,24 @@ describe("browser intake using shared adapters", () => {
     expect(result.exported?.events).toEqual(alone.exported?.events);
   });
 
+  it("dedupes one session shared by two Claude config folders", async () => {
+    const shared: BrowserCandidate[] = [
+      { ...candidate(".claude/projects/app/s.jsonl", CLAUDE_CODE_SESSION), group: "claude-code" },
+      { ...candidate(".claude2/projects/app/s.jsonl", CLAUDE_CODE_SESSION), group: "claude-code" },
+    ];
+    const both = await intakeBrowserCandidates(shared, syntheticCatalog(), {
+      now: NOW,
+      salt: FIXTURE_SALT,
+    });
+    const alone = await intakeBrowserCandidates([shared[0] as BrowserCandidate], syntheticCatalog(), {
+      now: NOW,
+      salt: FIXTURE_SALT,
+    });
+    // The same session in `.claude` and `.claude2` is one history, not two.
+    expect(both.outcomes.filter((outcome) => outcome.status === "duplicate")).toHaveLength(1);
+    expect(both.exported?.events).toEqual(alone.exported?.events);
+  });
+
   it("accepts a raw source file above the former 256 MB per-file cap", async () => {
     const large = { ...candidate("large.jsonl", CODEX_ROLLOUT), size: 288 * 1024 * 1024 };
     const result = await intakeBrowserCandidates([large], syntheticCatalog(), {
@@ -345,7 +363,6 @@ describe("browser intake using shared adapters", () => {
     expect(result.exported?.events.length).toBeGreaterThan(0);
     expect(result.outcomes[0]?.status).toBe("imported");
   });
-
   it("streams JSONL without asking for the whole file as text", async () => {
     const bytes = new TextEncoder().encode(CODEX_ROLLOUT);
     const streamed: BrowserCandidate = {

@@ -205,6 +205,77 @@ describe("Linux home", () => {
   });
 });
 
+describe("alternate Claude config folders", () => {
+  const home: Tree = {
+    ...PERSONAL,
+    ".claude": { projects: claudeProjects, "settings.json": 10 },
+    ".claude2": { projects: { "-home-dev-synthetic-two": { "a.jsonl": 200 } }, "session-env": {} },
+    ".claude-work": {
+      projects: { "-home-dev-synthetic-work": { "b.jsonl": 300 } },
+      "shell-snapshots": {},
+    },
+    ".claude.json": 50,
+    // Matches the family name but holds no `projects`: ignored.
+    ".claudeignore": { junk: { "x.txt": 1 } },
+    ".config": { secret: { "x.txt": 1 } },
+    ".cache": { "big.bin": 999 },
+  };
+
+  it("finds every .claude* config folder and imports them as one Claude Code", async () => {
+    const { status, log } = await discover(home, { platform: "linux" });
+    expect(status["Claude Code"]).toMatchObject({
+      status: "found",
+      fileCount: 5,
+      bytes: 2250,
+      locations: [
+        [".claude", "projects"],
+        [".claude2", "projects"],
+        [".claude-work", "projects"],
+      ],
+    });
+    // Only names were listed at the chosen folder; no unrelated dot folder was
+    // opened or listed, and the family check touched only matching names.
+    expect(log.some((entry) => entry.path.startsWith(".config"))).toBe(false);
+    expect(log.some((entry) => entry.path.startsWith(".cache"))).toBe(false);
+    const listings = log.filter((entry) => entry.op === "list").map((entry) => entry.path);
+    expect(listings.some((path) => path.startsWith(".claudeignore"))).toBe(false);
+    expect(listings[0]).toBe("");
+    expect(listings.filter((path) => path === "")).toHaveLength(1);
+    expect(listings).toContain(".claude2/projects");
+    expect(listings).toContain(".claude-work/projects");
+  });
+
+  it("reports a linked default as access-needed, and beside a found sibling as unreadable", async () => {
+    const linkedOnly: Tree = {
+      ...PERSONAL,
+      ".claude": { projects: LINK, "settings.json": 10 },
+      ".claude.json": 50,
+    };
+    const alone = await discover(linkedOnly, { platform: "linux" });
+    expect(alone.status["Claude Code"]).toMatchObject({
+      status: "access-needed",
+      unreadable: [[".claude", "projects"]],
+    });
+
+    const linked = { ...home, ".claude": { projects: LINK, "settings.json": 10 } };
+    const beside = await discover(linked, { platform: "linux" });
+    expect(beside.status["Claude Code"]).toMatchObject({
+      status: "found",
+      fileCount: 2,
+      unreadable: [[".claude", "projects"]],
+    });
+  });
+
+  it("does not list the chosen folder when the tool is not installed there", async () => {
+    const unrelated: Tree = {
+      Documents: { "tax.pdf": 1 },
+      Downloads: { "installer.zip": 2 },
+    };
+    const { run } = await discover(unrelated, { root: "bts", platform: "linux" });
+    expect(run.listings).toBe(0);
+  });
+});
+
 describe("macOS home", () => {
   const home: Tree = {
     ...PERSONAL,
@@ -599,15 +670,18 @@ describe("privacy contract", () => {
     }
   });
 
-  it("lists nothing outside a found history folder, and never the chosen folder", async () => {
+  it("lists nothing outside a found history folder, and only names at the chosen folder", async () => {
     const { log, run } = await discover(home, { platform: "linux" });
     const found = run.findings
       .filter((finding) => finding.status === "found")
       .map((finding) => (finding.location ?? []).join("/"));
     const listings = log.filter((entry) => entry.op === "list");
     expect(listings.length).toBe(run.listings);
+    // The chosen folder's own top-level names are listed once, and only when a
+    // tool that declares alternate config folders is installed there.
+    expect(listings.filter((listing) => listing.path === "").length).toBe(1);
     for (const listing of listings) {
-      expect(listing.path).not.toBe("");
+      if (listing.path === "") continue;
       expect(
         found.some((root) => listing.path === root || listing.path.startsWith(`${root}/`)),
       ).toBe(true);

@@ -47,7 +47,9 @@ test("choosing home skips a large decoy tree and scans Claude Code and Codex", a
         },
         async *values(): AsyncGenerator<unknown> {
           access.push({ op: "list", path: path.slice(0, -1) });
-          if (!/^\.(claude\/projects|codex\/sessions)(\/|$)/u.test(path))
+          // The chosen home's own top-level names are listed once to find
+          // alternate Claude config folders; nothing else is listed.
+          if (path !== "" && !/^\.(claude\/projects|codex\/sessions)(\/|$)/u.test(path))
             throw new Error("Unrelated directory was listed");
           for (const [child, node] of Object.entries(tree)) {
             if (typeof node === "string") yield await this.getFileHandle(child);
@@ -85,6 +87,7 @@ test("choosing home skips a large decoy tree and scans Claude Code and Codex", a
     () => (window as unknown as { __pickerAccess: { op: string; path: string }[] }).__pickerAccess,
   );
   expect(log.filter((entry) => entry.op === "list").map((entry) => entry.path)).toEqual([
+    "",
     ".claude/projects",
     ".claude/projects/project",
     ".codex/sessions",

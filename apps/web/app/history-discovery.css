@@ -339,6 +339,50 @@ label.sr-find-choice {
   color: var(--warning);
 }
 
+/* A history that is installed but not readable: prominent, above the list. */
+.sr-find-missing {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--signal, var(--accent));
+  border-left-width: 3px;
+  background: var(--surface-2);
+}
+
+.sr-find-missing-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.sr-find-missing-body {
+  flex: 1 1 16rem;
+  min-width: 0;
+}
+
+/* The build step's confirm: the same information, in place of the button. */
+.sr-find-confirm {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px 14px;
+  border: 1px solid var(--signal, var(--accent));
+  border-left-width: 3px;
+  background: var(--surface-2);
+}
+
+.sr-find-confirm-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
 .sr-find-detail {
   margin-top: 3px;
   font-size: 12px;

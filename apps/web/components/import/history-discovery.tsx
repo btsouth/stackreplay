@@ -103,6 +103,51 @@ function describe(finding: SourceFinding): string {
   }
 }
 
+/**
+ * A history that is installed but not readable from this folder: a linked or
+ * custom location. It must be connected, or it is left out, so the screen says
+ * so loudly and the build asks first.
+ */
+function needsConnection(row: HistoryRow): boolean {
+  return (
+    row.status === "access-needed" ||
+    (FOUND.includes(row.status) && (row.unreadable?.length ?? 0) > 0)
+  );
+}
+
+/** Whether the tool is wholly missing from the recap (nothing readable found). */
+function whollyMissing(row: HistoryRow): boolean {
+  return row.status === "access-needed";
+}
+
+/** The one-line reason a tool is not included, for the top block. */
+function missingMessage(row: HistoryRow): string {
+  if (row.unconfirmed === true)
+    return `${row.name} isn't included yet. This folder only has the name of its history folder, so StackReplay did not look inside.`;
+  if (whollyMissing(row))
+    return row.adapterId === "claude-code"
+      ? `${row.name} isn't included yet. Its history folder is a link your browser can't follow from a drag.`
+      : `${row.name} isn't included yet. Its history folder isn't visible from here.`;
+  return `${row.name}'s ${(row.unreadable ?? []).join(" · ")} isn't included yet. It is a link your browser can't follow from a drag.`;
+}
+
+/** How to connect it, naming the exact folder to choose. */
+function missingHint(row: HistoryRow): string {
+  const path = HIDDEN_FOLDERS[row.adapterId ?? row.key];
+  const choose = path === undefined ? "" : `Choose ${path}. `;
+  if (row.unconfirmed === true)
+    return `${choose}Drop the folder that holds it${parentOf(row) === undefined ? "" : ` (${parentOf(row)})`}, or connect it to choose it yourself.`;
+  if (row.adapterId === "claude-code" || (row.unreadable?.length ?? 0) > 0)
+    return `${choose}The chooser follows the link.`;
+  return `${choose}The chooser reads only the folder you choose.`;
+}
+
+/** What the confirm step says the person is about to leave out. */
+function missingConfirm(row: HistoryRow): string {
+  if (whollyMissing(row)) return `${row.name} won't be in your recap.`;
+  return `${row.name}'s ${(row.unreadable ?? []).join(" · ")} won't be in your recap.`;
+}
+
 export function HistoryDiscovery({
   busy,
   ready,
@@ -136,6 +181,7 @@ export function HistoryDiscovery({
   const [announcement, setAnnouncement] = useState("");
   const [dropNote, setDropNote] = useState<string | undefined>(undefined);
   const [building, setBuilding] = useState(false);
+  const [confirming, setConfirming] = useState(false);
   const [rail, setRail] = useState<{ top: number; height: number; lit: number } | undefined>(
     undefined,
   );
@@ -158,6 +204,9 @@ export function HistoryDiscovery({
   const selectedFiles = selected.reduce((total, row) => total + (row.fileCount ?? 0), 0);
   const unmeasured = selected.some((row) => row.bytes === undefined);
   const accessNeeded = rows.filter((row) => row.status === "access-needed");
+  /** Rows whose history is installed but not readable, so it needs connecting. */
+  const needsConnect = rows.filter(needsConnection);
+  const missingNames = needsConnect.filter(whollyMissing).map((row) => row.name);
   const settled = phase === "selecting";
   const intro = phase === "intro";
 
@@ -298,6 +347,7 @@ export function HistoryDiscovery({
   const openChooser = useCallback(
     async (key?: string) => {
       if (busy || !ready || runningRef.current) return;
+      setConfirming(false);
       if (!supportsDirectoryPicker()) {
         chooserTarget.current = key === undefined ? {} : { key };
         chooserRef.current?.click();
@@ -390,13 +440,25 @@ export function HistoryDiscovery({
 
   const build = useCallback(async () => {
     if (selected.length === 0 || building) return;
+    // A history that is installed but not readable is never dropped silently:
+    // the first press asks, and only a second choice builds without it.
+    if (needsConnect.length > 0 && !confirming) {
+      setConfirming(true);
+      return;
+    }
     setBuilding(true);
     try {
-      onBuild(await collectSelection(selected));
+      onBuild(
+        await collectSelection(
+          selected,
+          accessNeeded.map((row) => ({ id: row.adapterId ?? row.key, name: row.name })),
+        ),
+      );
     } finally {
       setBuilding(false);
+      setConfirming(false);
     }
-  }, [building, onBuild, selected]);
+  }, [accessNeeded, building, confirming, needsConnect.length, onBuild, selected]);
 
   const reset = useCallback(() => {
     setRows(waitingRows());
@@ -406,6 +468,7 @@ export function HistoryDiscovery({
     setDropNote(undefined);
     setAnnouncement("");
     setPathsOpen(false);
+    setConfirming(false);
   }, []);
 
   const forget = useCallback(() => {
@@ -657,6 +720,28 @@ export function HistoryDiscovery({
           </div>
         </div>
 
+        {settled && needsConnect.length > 0 ? (
+          <div className="sr-find-missing" data-testid="missing-histories">
+            {needsConnect.map((row) => (
+              <div className="sr-find-missing-row" key={row.key} data-testid={`missing-${row.key}`}>
+                <div className="sr-find-missing-body">
+                  <p className="font-medium">{missingMessage(row)}</p>
+                  <p className="sr-find-fine mt-1">{missingHint(row)}</p>
+                </div>
+                <Button
+                  type="button"
+                  size="sm"
+                  disabled={disabled}
+                  onClick={() => void openChooser(row.key)}
+                  data-testid={`top-connect-${row.key}`}
+                >
+                  Connect {row.name}
+                </Button>
+              </div>
+            ))}
+          </div>
+        ) : null}
+
         <ol className="sr-find-rows" aria-label="Known AI history locations">
           {rows.map((row) => (
             <HistoryRowView
@@ -745,35 +830,76 @@ export function HistoryDiscovery({
                 : ""}
             </p>
           ) : null}
-          <div className="sr-find-build">
-            <div className="min-w-0">
-              <p className="sr-micro" data-testid="selection-count">
-                {selected.length} selected
-                {selected.length > 0
-                  ? ` · ${count.format(selectedFiles)} files${unmeasured ? "" : ` · ${formatBytes(selectedBytes)}`}`
-                  : ""}
-              </p>
-              {selectedBytes > LARGE_HISTORY_BYTES ? (
-                <LargeHistoryNote bytes={selectedBytes} />
-              ) : (
-                <p className="sr-find-fine">
-                  {saveLocal
-                    ? "Only normalized usage is kept, in this browser."
-                    : "This scan stays available until this page reloads."}
-                </p>
-              )}
+          {confirming ? (
+            <div className="sr-find-confirm" data-testid="connect-confirm" role="status">
+              <p className="sr-micro text-muted-foreground">Before your recap</p>
+              {needsConnect.map((row) => (
+                <div className="sr-find-confirm-row" key={row.key}>
+                  <p className="font-medium">{missingConfirm(row)}</p>
+                  <Button
+                    type="button"
+                    size="sm"
+                    disabled={disabled}
+                    onClick={() => void openChooser(row.key)}
+                    data-testid={`confirm-connect-${row.key}`}
+                  >
+                    Connect {row.name}
+                  </Button>
+                </div>
+              ))}
+              <div className="sr-find-more">
+                <Button
+                  type="button"
+                  size="lg"
+                  disabled={disabled || selected.length === 0 || building}
+                  onClick={() => void build()}
+                  data-testid="build-without-missing"
+                >
+                  {missingNames.length === needsConnect.length
+                    ? `Make it without ${missingNames.join(" or ")}`
+                    : "Make it without the missing folder"}
+                </Button>
+                <button
+                  type="button"
+                  className="sr-find-link sr-find-link-quiet"
+                  disabled={disabled}
+                  onClick={() => setConfirming(false)}
+                >
+                  Back
+                </button>
+              </div>
             </div>
-            <Button
-              type="button"
-              size="lg"
-              disabled={disabled || selected.length === 0 || building}
-              onClick={() => void build()}
-              data-testid="build-workload"
-              aria-label={`Make my recap from ${selected.length} selected ${selected.length === 1 ? "history" : "histories"}`}
-            >
-              Make my recap →
-            </Button>
-          </div>
+          ) : (
+            <div className="sr-find-build">
+              <div className="min-w-0">
+                <p className="sr-micro" data-testid="selection-count">
+                  {selected.length} selected
+                  {selected.length > 0
+                    ? ` · ${count.format(selectedFiles)} files${unmeasured ? "" : ` · ${formatBytes(selectedBytes)}`}`
+                    : ""}
+                </p>
+                {selectedBytes > LARGE_HISTORY_BYTES ? (
+                  <LargeHistoryNote bytes={selectedBytes} />
+                ) : (
+                  <p className="sr-find-fine">
+                    {saveLocal
+                      ? "Only normalized usage is kept, in this browser."
+                      : "This scan stays available until this page reloads."}
+                  </p>
+                )}
+              </div>
+              <Button
+                type="button"
+                size="lg"
+                disabled={disabled || selected.length === 0 || building}
+                onClick={() => void build()}
+                data-testid="build-workload"
+                aria-label={`Make my recap from ${selected.length} selected ${selected.length === 1 ? "history" : "histories"}`}
+              >
+                Make my recap →
+              </Button>
+            </div>
+          )}
           <div className="sr-find-more">
             <button
               type="button"
@@ -985,6 +1111,15 @@ function HistoryRowView({
               : `Choose ${HIDDEN_FOLDERS[row.adapterId ?? row.key]}. It is a hidden folder: in the picker, press ⌘⇧. on a Mac or Ctrl+H on Linux to show it. `}
             Your browser will call this an upload. The files are read in this tab; none are sent
             anywhere.
+          </p>
+        ) : null}
+        {FOUND.includes(row.status) &&
+        ((row.locations?.length ?? 0) > 0 || (row.unreadable?.length ?? 0) > 0) ? (
+          <p className="sr-find-detail" data-testid={`locations-${row.key}`}>
+            {(row.locations?.length ?? 0) > 0 ? `Locations: ${row.locations?.join(" · ")}` : null}
+            {(row.unreadable?.length ?? 0) > 0
+              ? `${(row.locations?.length ?? 0) > 0 ? " · " : ""}${row.unreadable?.join(" · ")} not readable`
+              : null}
           </p>
         ) : null}
       </div>

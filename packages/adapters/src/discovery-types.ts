@@ -31,6 +31,22 @@ export interface ChildMarker {
 }
 
 /**
+ * Alternate config folders for one tool, found by listing the chosen folder's
+ * top-level entry names once. A directory whose name matches `pattern` and that
+ * holds `history` is another location for this source's history. This is how a
+ * home folder's `CLAUDE_CONFIG_DIR` folders (`.claude`, `.claude2`,
+ * `.claude-work`) are found beside the default `.claude`. Only names are
+ * listed: nothing inside a non-matching entry is read, and no matching entry is
+ * looked into beyond its `history` child.
+ */
+export interface ConfigFamily {
+  /** A directory-name pattern, e.g. `/^\.claude[\w.-]*$/u`. */
+  pattern: RegExp;
+  /** The history folder each matching directory must hold. */
+  history: readonly string[];
+}
+
+/**
  * A folder recognized by its own children when it is supplied directly under a
  * name the registry does not know, such as a custom `CODEX_HOME` or a copied
  * OpenCode data folder. Every marker is checked by exact name; nothing is listed.
@@ -73,6 +89,13 @@ export interface SourceDiscovery {
   };
   /** Folders recognized by their children when supplied under another name. */
   roots?: readonly RootSignature[];
+  /**
+   * Alternate config folders sharing the primary history's shape, found by
+   * listing the chosen folder's top-level entry names once (Claude Code's
+   * `CLAUDE_CONFIG_DIR` folders). Same for the browser drop, the folder chooser
+   * and any node caller of discovery.
+   */
+  families?: readonly ConfigFamily[];
   /**
    * A file in the chosen folder naming the signed-in account (Claude Code's
    * `.claude.json`). Discovery only checks that it is there; it is read once,

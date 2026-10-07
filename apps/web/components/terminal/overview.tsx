@@ -26,6 +26,7 @@ import {
 } from "@/lib/terminal-presentation";
 import { useGitHubActivity } from "@/lib/use-github-activity";
 import type { PaidFigure } from "@/lib/use-paid-multiplier";
+import type { SkippedSource } from "@/lib/skipped-sources";
 import type { ImportRecord } from "@/lib/worker-protocol";
 import { isSyntheticWorkload } from "@/lib/workload-kind";
 import { DailyChart } from "./daily-chart";
@@ -41,12 +42,15 @@ export function Overview({
   onPeriod,
   record,
   paid,
+  skipped,
 }: {
   recap: Recap;
   period: RecapPeriod;
   onPeriod: (p: RecapPeriod) => void;
   record?: ImportRecord | undefined;
   paid?: PaidFigure | undefined;
+  /** Tools discovery found but this recap left out on purpose. */
+  skipped?: SkippedSource[] | undefined;
 }) {
   const p = useMemo(() => presentation(r), [r]);
   const activeCount = activeDays(r);
@@ -124,6 +128,13 @@ export function Overview({
           </a>
         </div>
       </div>
+      {skipped !== undefined && skipped.length > 0 && (
+        <p className="recap-skipped" data-testid="skipped-tool-notice">
+          {skipped.map((source) => source.name).join(" · ")}{" "}
+          {skipped.length === 1 ? "was" : "were"} found but not included ·{" "}
+          <Link href="/app/scan">Connect it</Link>
+        </p>
+      )}
       {record && (
         <PartialScanNotice
           record={record}
