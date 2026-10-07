@@ -229,8 +229,8 @@ describe("alternate Claude config folders", () => {
       bytes: 2250,
       locations: [
         [".claude", "projects"],
-        [".claude2", "projects"],
         [".claude-work", "projects"],
+        [".claude2", "projects"],
       ],
     });
     // Only names were listed at the chosen folder; no unrelated dot folder was

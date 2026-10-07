@@ -420,7 +420,7 @@ async function locateFamilyHistories<F extends DiscoveryFile>(
   const listing = await prober.list(root);
   const found: (readonly string[])[] = [];
   const seen = new Set<string>();
-  // `.claude2` before `.claude-work`: digits sort naturally, as a person reads them.
+  // A stable, human order for the matching folders.
   const order = (a: { name: string }, b: { name: string }): number =>
     a.name.localeCompare(b.name, "en", { numeric: true, sensitivity: "base" });
   for (const family of families) {
