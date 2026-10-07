@@ -872,27 +872,19 @@ export async function intakeBrowserCandidates(
         : MAX_SOURCE_FILE_BYTES;
   const readable = (candidate: BrowserCandidate): boolean =>
     isBrowserSourceCandidate(candidate.path) && candidate.size <= fileLimit(candidate);
-  /** Exact-file matches already include this history scope in their key. */
-  const historyRootOf = (path: string): string | undefined =>
-    /(?:^|\/)(?:opencode|state)\.db$/iu.test(path)
-      ? path.replace(/(?:^|\/)(?:opencode|state)\.db$/iu, "")
-      : path.match(/^(.*?(?:^|\/)projects)(?:\/|$)/u)?.[1];
-  /** The account a file belongs to: each Claude config folder is its own root. */
-  const signatureScopeOf = (candidate: BrowserCandidate): string | undefined => {
-    const selectedRoot = historyRootOf(normalizedPath(candidate.path));
-    return selectedRoot === undefined
-      ? undefined
-      : JSON.stringify([candidate.group ?? "selection", selectedRoot]);
-  };
   /**
-   * The file-dedup scope: the same bytes in `.claude` and `.claude2` are one
-   * session copied between config folders, not two accounts' worth of work.
+   * The history root of a selected file, shared by Claude Code's alternate
+   * config folders (`.claude`, `.claude2`, `.claude-work`): they are one
+   * Claude Code history, so the same session there is one session, not two.
+   * Other sources keep each location distinct.
    */
-  const fileScopeOf = (candidate: BrowserCandidate): string | undefined => {
-    const selectedRoot = historyRootOf(normalizedPath(candidate.path))?.replace(
-      /\.claude[\w.-]*\/projects$/u,
-      ".claude/projects",
-    );
+  const signatureScopeOf = (candidate: BrowserCandidate): string | undefined => {
+    const path = normalizedPath(candidate.path);
+    const selectedRoot = /(?:^|\/)(?:opencode|state)\.db$/iu.test(path)
+      ? path.replace(/(?:^|\/)(?:opencode|state)\.db$/iu, "")
+      : path
+          .match(/^(.*?(?:^|\/)projects)(?:\/|$)/u)?.[1]
+          ?.replace(/\.claude[\w.-]*\/projects$/u, ".claude/projects");
     return selectedRoot === undefined
       ? undefined
       : JSON.stringify([candidate.group ?? "selection", selectedRoot]);
@@ -905,7 +897,7 @@ export async function intakeBrowserCandidates(
   const streamedSizes = new Map<string | undefined, Map<number, number>>();
   for (const candidate of candidates) {
     if (!readable(candidate)) continue;
-    const scope = fileScopeOf(candidate);
+    const scope = signatureScopeOf(candidate);
     if (!streams(candidate)) {
       textSignedScopes.add(scope);
       continue;
@@ -990,11 +982,10 @@ export async function intakeBrowserCandidates(
     // there instead of being read and decoded a second time.
     const whole = streaming && candidate.size <= PEEK_BYTES;
     const sessionRoot = signatureScopeOf(candidate);
-    const fileScope = fileScopeOf(candidate);
     const signed =
-      textSignedScopes.has(fileScope) ||
+      textSignedScopes.has(sessionRoot) ||
       !streaming ||
-      (streamedSizes.get(fileScope)?.get(candidate.size) ?? 0) > 1;
+      (streamedSizes.get(sessionRoot)?.get(candidate.size) ?? 0) > 1;
     let lastReported = 0;
     const examined = (bytes: number): void => {
       scanProgress.examinedBytes += bytes;
@@ -1086,7 +1077,7 @@ export async function intakeBrowserCandidates(
       report(index + 1, true);
       continue;
     }
-    if (signature !== undefined && fileScope) signature = `${fileScope}\u0000${signature}`;
+    if (signature !== undefined && sessionRoot) signature = `${sessionRoot}\u0000${signature}`;
     if (signature !== undefined && seen.has(signature)) {
       database?.close();
       outcomes.push({
