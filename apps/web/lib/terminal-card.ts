@@ -40,6 +40,20 @@ export const CARD_SIZES = {
   square: [1080, 1080],
   story: [1080, 1920],
 } as const;
+// Sum each run of days so no active day is skipped on long ranges.
+function buckets(values: number[], step: number): number[] {
+  const out: number[] = [];
+  values.forEach((v, i) => {
+    const k = Math.floor(i / step);
+    out[k] = (out[k] ?? 0) + v;
+  });
+  return out;
+}
+// Scale to 0..1000, keeping every nonzero bucket at 1 or more so it still draws.
+function scaled(values: number[]): number[] {
+  const max = Math.max(1, ...values);
+  return values.map((v) => (v > 0 ? Math.max(1, Math.round((v / max) * 1000)) : 0));
+}
 export function makeCard(
   r: Recap,
   selected: CardSelections,
@@ -51,9 +65,15 @@ export function makeCard(
 ): PublicCard {
   const p = presentation(r),
     top = p.top.slice(0, 5);
-  const max = Math.max(1, ...p.days.map((d) => d.total));
-  const githubMax = Math.max(1, ...p.days.map((d) => githubDays?.get(d.date) ?? 0));
   const step = Math.max(1, Math.ceil(p.days.length / 64));
+  const tokenBuckets = buckets(
+      p.days.map((d) => d.total),
+      step,
+    ),
+    githubBuckets = buckets(
+      p.days.map((d) => githubDays?.get(d.date) ?? 0),
+      step,
+    );
   const insight = headline?.trim();
   const split = tokenSplit(r);
   return {
@@ -64,9 +84,7 @@ export function makeCard(
       ? {
           totalTokens: r.total,
           ...(split ? { cacheShare: Math.round(split.cacheShare * 100) } : {}),
-          spark: p.days
-            .filter((_, i) => i % step === 0)
-            .map((d) => Math.round((d.total / max) * 1000)),
+          spark: scaled(tokenBuckets),
         }
       : {}),
     ...(selected.usd && r.priced
@@ -80,13 +98,7 @@ export function makeCard(
           github,
           ...(githubDays
             ? {
-                githubSpark: p.days
-                  .filter((_, i) => i % step === 0)
-                  .map((d) =>
-                    githubDays.get(d.date)
-                      ? Math.max(1, Math.round(((githubDays.get(d.date) ?? 0) / githubMax) * 1000))
-                      : 0,
-                  ),
+                githubSpark: scaled(githubBuckets),
               }
             : {}),
         }
@@ -541,7 +553,7 @@ export function cardLayout(card: PublicCard, format: CardFormat, options: CardRe
   tokenSeries.forEach((value, i) => {
     if (!value) return;
     const slot = chartWidth / tokenSeries.length,
-      bh = (value / 1000) * tokenHeight;
+      bh = Math.max(Math.min(4, tokenHeight), (value / 1000) * tokenHeight);
     activityBars.push({
       id: `token-day-${i}`,
       x: pad + i * slot,

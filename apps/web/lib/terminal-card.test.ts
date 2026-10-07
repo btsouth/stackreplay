@@ -355,6 +355,27 @@ describe("poster composition", () => {
 });
 
 describe("readable activity and period stats", () => {
+  it("draws a visible token bar for every day with AI activity", () => {
+    const days = recap.explorer!.days.map((d, i) => ({
+      ...d,
+      total: d.records > 0 ? (i % 3 ? 1 : 5e9) : 0,
+    }));
+    const card = makeCard(
+      { ...recap, explorer: { ...recap.explorer!, days } },
+      DEFAULT_SELECTIONS,
+      "dark",
+    );
+    const active = days.filter((d) => d.records > 0).length;
+    const step = Math.max(1, Math.ceil(days.length / 64));
+    const buckets = new Set(days.flatMap((d, i) => (d.records > 0 ? [Math.floor(i / step)] : [])));
+    expect(active).toBeGreaterThan(0);
+    expect(card.spark?.filter((v) => v > 0).length).toBe(buckets.size);
+    const bars = cardLayout(card, "landscape").activityBars.filter((b) =>
+      b.id.startsWith("token-day-"),
+    );
+    expect(bars).toHaveLength(buckets.size);
+    expect(Math.min(...bars.map((b) => b.height))).toBeGreaterThanOrEqual(4);
+  });
   it("prints explicit colored legends and visible independently scaled GitHub bars in every format", () => {
     for (const theme of ["dark", "light"] as const)
       for (const format of ["landscape", "square", "story"] as const) {

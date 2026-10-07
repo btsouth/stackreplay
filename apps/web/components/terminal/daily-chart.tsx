@@ -75,9 +75,9 @@ export function DailyChart({
                 <rect
                   className={`bar${i === peak ? " hot" : cost ? " dimbar" : ""}`}
                   x={left + i * slot}
-                  y={base - bh}
+                  y={base - Math.max(2, bh)}
                   width={bw}
-                  height={Math.max(0.5, bh)}
+                  height={Math.max(2, bh)}
                 />
               )}
               {github && g > 0 && (
