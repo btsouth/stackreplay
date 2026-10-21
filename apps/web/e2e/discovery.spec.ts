@@ -137,6 +137,8 @@ test("finds histories in a dropped home folder and builds only what is selected"
 test("the happy path opens a recap after scanning and can reopen its details", async ({
   page,
 }, testInfo) => {
+  // The fixture histories are dated September 2026; pin the clock so they stay in the default period.
+  await page.clock.setFixedTime(new Date("2026-09-27T12:00:00Z"));
   const home = testInfo.outputPath("dev-home");
   await buildHome(home, { claudeSessions: 3, codexRollouts: 2 });
   await discover(page, home);

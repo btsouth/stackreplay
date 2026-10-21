@@ -264,6 +264,25 @@ function sessionHash(sessionId: string): string {
   return `ns_demo_${output}`;
 }
 
+/**
+ * Moves a demo export by whole days so its newest call lands in the 24 hours before `now`.
+ * The fixed anchors keep tests deterministic; the app rebases the sample when it
+ * is opened so it lands inside the default recap period instead of ageing out of it.
+ */
+export function rebaseDemoExport(exported: StackReplayExportV1, now: string): StackReplayExportV1 {
+  const newest = Date.parse(exported.range.to || exported.generatedAt);
+  const offset = Math.floor((Date.parse(now) - newest) / DAY_MS) * DAY_MS;
+  if (!Number.isFinite(offset) || offset === 0) return exported;
+  const shift = (value: string) =>
+    value ? new Date(Date.parse(value) + offset).toISOString() : value;
+  return {
+    ...exported,
+    generatedAt: shift(exported.generatedAt),
+    range: { from: shift(exported.range.from), to: shift(exported.range.to) },
+    events: exported.events.map((event) => ({ ...event, occurredAt: shift(event.occurredAt) })),
+  };
+}
+
 /** Builds a deterministic demo export for a preset. */
 export function buildDemoExport(preset: DemoWorkloadPresetId): StackReplayExportV1 {
   if (preset === "billing") {
