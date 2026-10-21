@@ -46,6 +46,8 @@ for (const source of ["plans", "stack"] as const) {
 test("saved and temporary scans keep a path through recap, Stats and Settings", async ({
   page,
 }) => {
+  // The uploaded sample keeps its fixed September dates; pin the clock so they stay in the default period.
+  await page.clock.setFixedTime(new Date("2026-09-27T12:00:00Z"));
   await gotoImport(page);
   await expect(page.getByTestId("intake-surface")).toHaveAttribute("data-ready", "true");
   await page.getByRole("checkbox", { name: "Save this scan in this browser" }).uncheck();

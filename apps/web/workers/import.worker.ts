@@ -18,7 +18,7 @@ import {
   loadBundledCatalog,
 } from "@stackreplay/catalog/bundled";
 import type { StackReplayExportV1 } from "@stackreplay/schema";
-import { buildDemoExport } from "@stackreplay/test-fixtures";
+import { buildDemoExport, rebaseDemoExport } from "@stackreplay/test-fixtures";
 import * as storage from "../lib/idb";
 import {
   importSizeAdvice,
@@ -614,7 +614,7 @@ async function handleImportDemo(
   const { requestId, preset, importId, now } = request;
   progress(requestId, "import", "preparing", "Building the demo workload");
   const storeWhenStarted = storage.localStoreGeneration();
-  const exported = buildDemoExport(preset);
+  const exported = rebaseDemoExport(buildDemoExport(preset), now);
   const validated = validateExportValue(exported);
   if (!validated.ok) {
     post({ type: "ERROR", requestId, error: validated.error });
