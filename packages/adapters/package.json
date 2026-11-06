@@ -47,7 +47,7 @@
     "@stackreplay/schema": "workspace:*",
     "fflate": "^0.8.3",
     "sql.js": "1.14.2",
-    "zod": "^4.4.7"
+    "zod": "^4.6.6"
   },
   "devDependencies": {
     "@stackreplay/config": "workspace:*",
