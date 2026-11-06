@@ -27,7 +27,7 @@
   },
   "dependencies": {
     "@stackreplay/schema": "workspace:*",
-    "zod": "^4.6.5"
+    "zod": "^4.6.6"
   },
   "devDependencies": {
     "@stackreplay/config": "workspace:*",
