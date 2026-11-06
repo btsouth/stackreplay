@@ -311,10 +311,20 @@ export interface PublicCatalog {
   planVersions: (id: string) => readonly LoadedPlanVersionV1[];
 }
 
+/**
+ * The day public pages resolve the catalog on. Reviewed records expire at their
+ * review horizon, so E2E builds pin the day with STACKREPLAY_CATALOG_DATE to keep
+ * testing the same facts after that horizon passes.
+ */
+function catalogDay(): string {
+  const pinned = typeof process === "undefined" ? undefined : process.env.STACKREPLAY_CATALOG_DATE;
+  return pinned || new Date().toISOString().slice(0, 10);
+}
+
 /** Public read model over the real (non-synthetic) catalog entries. */
 export function loadPublicCatalog(asOf?: string): PublicCatalog {
   const catalog = loadCatalog();
-  const date = asOf ?? new Date().toISOString().slice(0, 10);
+  const date = asOf ?? catalogDay();
 
   const realPlanIds = Object.keys(catalog.plans)
     .filter((id) => !isSyntheticCatalogId(id))

@@ -223,7 +223,8 @@ describe("October 3 public coding coverage", () => {
 });
 
 describe("model by model", () => {
-  const current = loadPublicCatalog();
+  // Command Code GOAT is reviewed through October 26; pin the day it was listed.
+  const current = loadPublicCatalog("2026-09-28");
   const factsFor = (planId: string) => {
     const plan = current.planById(planId);
     if (plan === undefined) throw new Error(`missing ${planId}`);
