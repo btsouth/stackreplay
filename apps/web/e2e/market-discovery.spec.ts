@@ -173,6 +173,8 @@ for (const theme of ["dark", "light"] as const) {
 }
 
 test("native Sonnet 5.5 history receives the published cache-duration range", async ({ page }) => {
+  // The record is dated September 28; pin the clock so its reviewed price is still in force.
+  await page.clock.setFixedTime(new Date("2026-09-29T12:00:00Z"));
   await gotoImport(page);
   const record = JSON.stringify({
     type: "assistant",

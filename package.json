@@ -13,7 +13,7 @@
     "build": "turbo run build",
     "typecheck": "turbo run typecheck",
     "test": "turbo run test",
-    "test:e2e": "turbo run test:e2e",
+    "test:e2e": "STACKREPLAY_CATALOG_DATE=2026-10-26 turbo run test:e2e",
     "lint": "biome lint .",
     "format": "biome format --write .",
     "check": "biome check .",

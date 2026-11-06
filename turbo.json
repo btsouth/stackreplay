@@ -3,6 +3,7 @@
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
+      "env": ["STACKREPLAY_CATALOG_DATE"],
       "outputs": ["dist/**", ".next/**", "!.next/cache/**"]
     },
     "dev": {

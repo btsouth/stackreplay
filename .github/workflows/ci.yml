@@ -60,6 +60,10 @@ jobs:
     env:
       PLAYWRIGHT_IMAGE_VERSION: '1.63.0'
       PLAYWRIGHT_BROWSERS_PATH: /ms-playwright
+      # Build public pages on a fixed catalog day inside the reviewed window, so
+      # the suite does not change when reviewed records reach their horizon.
+      # Keep in step with the root test:e2e script.
+      STACKREPLAY_CATALOG_DATE: '2026-10-26'
     strategy:
       fail-fast: false
       matrix:
